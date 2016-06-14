@@ -1,0 +1,14 @@
+package components
+
+import (
+	"io"
+	"laatoo/sdk/core"
+)
+
+type StorageComponent interface {
+	Open(ctx core.RequestContext, fileName string) (io.ReadCloser, error)
+	SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error)
+	GetFullPath(ctx core.RequestContext, fileName string) string
+	CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error)
+	Exists(ctx core.RequestContext, fileName string) bool
+}
