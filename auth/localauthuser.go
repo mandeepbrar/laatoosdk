@@ -12,4 +12,6 @@ type LocalAuthUser interface {
 	SetPassword(string)
 	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
+	GetUsernameField() string
+	GetUserName() string
 }

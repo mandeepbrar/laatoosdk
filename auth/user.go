@@ -8,6 +8,8 @@ type User interface {
 	GetId() string
 	SetId(string)
 	GetIdField() string
+	GetUsernameField() string
+	GetUserName() string
 	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
 }

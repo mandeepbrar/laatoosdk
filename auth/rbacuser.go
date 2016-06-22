@@ -8,6 +8,8 @@ type RbacUser interface {
 	GetId() string
 	SetId(string)
 	GetIdField() string
+	GetUsernameField() string
+	GetUserName() string
 	GetPermissions() (permissions []string, err error)
 	SetPermissions(permissions []string)
 	GetRoles() ([]string, error)

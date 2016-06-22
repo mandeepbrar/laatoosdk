@@ -11,4 +11,6 @@ type OAuthUser interface {
 	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
 	GetEmail() string
+	GetUsernameField() string
+	GetUserName() string
 }
