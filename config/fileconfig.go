@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -11,7 +12,11 @@ var confVariables map[string]string
 
 func init() {
 	confVariables = make(map[string]string, 0)
-	vardata, err := ioutil.ReadFile("confvariables.json")
+	fil := os.Getenv("LAATOO_CONF_VARS")
+	if len(fil) == 0 {
+		fil = "confvariables.json"
+	}
+	vardata, err := ioutil.ReadFile(fil)
 	if err == nil {
 		err = json.Unmarshal(vardata, &confVariables)
 		if err != nil {
