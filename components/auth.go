@@ -6,5 +6,5 @@ import (
 )
 
 type AuthenticationComponent interface {
-	SetTokenGenerator(core.ServerContext, func(auth.User) (string, auth.User, error))
+	SetTokenGenerator(core.ServerContext, func(auth.User, string) (string, auth.User, error))
 }

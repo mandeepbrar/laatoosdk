@@ -14,4 +14,5 @@ type LocalAuthUser interface {
 	LoadJWTClaims(*jwt.Token)
 	GetUsernameField() string
 	GetUserName() string
+	GetRealm() string
 }
