@@ -13,8 +13,9 @@ const (
 
 /***Header****/
 const (
-	ContentType  = "Content-Type"
-	LastModified = "Last-Modified"
+	ContentType     = "Content-Type"
+	ContentEncoding = "Content-Encoding"
+	LastModified    = "Last-Modified"
 )
 
 type ServiceResponse struct {
