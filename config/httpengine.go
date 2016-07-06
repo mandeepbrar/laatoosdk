@@ -9,5 +9,6 @@ const (
 	CONF_HTTPENGINE_STATICVALUES     = "staticvalues"
 	CONF_HTTPENGINE_ROUTEPARAMVALUES = "paramvalues"
 	CONF_HTTPENGINE_HEADERSTOINCLUDE = "headers"
+	CONF_HTTPENGINE_SKIPAUTH         = "skipauth"
 	CONF_HTTPENGINE_METHOD           = "method"
 )
