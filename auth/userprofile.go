@@ -2,7 +2,6 @@ package auth
 
 type UserProfile interface {
 	GetId() string
-	SetId(string)
 	GetIdField() string
 	GetEmail() string
 	GetName() string

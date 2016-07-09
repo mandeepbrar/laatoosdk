@@ -6,11 +6,11 @@ import (
 
 type OAuthUser interface {
 	GetId() string
-	SetId(string)
 	GetIdField() string
-	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
+	PopulateJWTToken(*jwt.Token)
 	GetEmail() string
 	GetUsernameField() string
 	GetUserName() string
+	GetRealm() string
 }

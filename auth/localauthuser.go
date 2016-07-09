@@ -6,12 +6,11 @@ import (
 
 type LocalAuthUser interface {
 	GetId() string
-	SetId(string)
 	GetIdField() string
-	GetPassword() string
-	SetPassword(string)
-	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
+	PopulateJWTToken(*jwt.Token)
+	GetPassword() string
+	ClearPassword()
 	GetUsernameField() string
 	GetUserName() string
 	GetRealm() string

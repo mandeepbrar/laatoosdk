@@ -9,7 +9,6 @@ import (
 //Object stored by data service
 type Storable interface {
 	GetId() string
-	SetId(string)
 	GetObjectType() string
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
