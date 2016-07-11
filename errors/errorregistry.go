@@ -20,9 +20,9 @@ const (
 
 //error that is registered for an error code
 type Error struct {
+	error
 	InternalErrorCode string
 	Loglevel          ErrorLevel
-	Error             error
 }
 
 var ShowStack = true
@@ -40,7 +40,7 @@ var (
 
 //register error code
 func RegisterCode(internalErrorCode string, loglevel ErrorLevel, err error) {
-	ErrorsRegister[internalErrorCode] = &Error{internalErrorCode, loglevel, err}
+	ErrorsRegister[internalErrorCode] = &Error{err, internalErrorCode, loglevel}
 }
 
 //register error handler for an internal error code
@@ -58,7 +58,15 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 }
 
 func WrapError(ctx core.Context, err error) error {
-	return RethrowError(ctx, CORE_ERROR_WRAPPER, err)
+	if err != nil {
+		_, ok := err.(Error)
+		if ok {
+			return err
+		} else {
+			return RethrowError(ctx, CORE_ERROR_WRAPPER, err)
+		}
+	}
+	return nil
 }
 
 func ThrowError(ctx core.Context, internalErrorCode string, info ...interface{}) error {
@@ -78,9 +86,9 @@ func RethrowError(ctx core.Context, internalErrorCode string, err error, info ..
 func throwError(ctx core.Context, registeredError *Error, rethrownError error, info ...interface{}) error {
 	var errDetails []interface{}
 	if rethrownError == nil {
-		errDetails = []interface{}{"Err", registeredError.Error.Error(), "Internal Error Code", registeredError.InternalErrorCode}
+		errDetails = []interface{}{"Err", registeredError.Error(), "Internal Error Code", registeredError.InternalErrorCode}
 	} else {
-		errDetails = []interface{}{"Err", registeredError.Error.Error(), "Internal Error Code", registeredError.InternalErrorCode, "Root Error", rethrownError}
+		errDetails = []interface{}{"Err", registeredError.Error(), "Internal Error Code", registeredError.InternalErrorCode, "Root Error", rethrownError}
 	}
 	var infoArr []interface{}
 	if ShowStack {
@@ -114,5 +122,5 @@ func throwError(ctx core.Context, registeredError *Error, rethrownError error, i
 		}
 	}
 	//thwo the error
-	return registeredError.Error
+	return *registeredError
 }

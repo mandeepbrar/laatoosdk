@@ -38,3 +38,11 @@ var (
 	StatusBadRequestResponse   = newServiceResponse(StatusBadRequest, nil, nil, true)
 	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, true)
 )
+
+func BadRequestResponse(data string) *ServiceResponse {
+	return newServiceResponse(StatusBadRequest, data, nil, true)
+}
+
+func UnauthorizedResponse(data string) *ServiceResponse {
+	return newServiceResponse(StatusUnauthorized, data, nil, true)
+}
