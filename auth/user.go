@@ -6,7 +6,7 @@ import (
 
 type User interface {
 	GetId() string
-	GetIdField() string
+	SetId(string)
 	GetUsernameField() string
 	GetUserName() string
 	LoadJWTClaims(*jwt.Token)

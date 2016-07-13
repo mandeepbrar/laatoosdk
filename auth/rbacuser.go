@@ -6,7 +6,7 @@ import (
 
 type RbacUser interface {
 	GetId() string
-	GetIdField() string
+	SetId(string)
 	LoadJWTClaims(*jwt.Token)
 	PopulateJWTToken(*jwt.Token)
 	GetUsernameField() string

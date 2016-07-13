@@ -6,7 +6,7 @@ import (
 
 type OAuthUser interface {
 	GetId() string
-	GetIdField() string
+	SetId(string)
 	LoadJWTClaims(*jwt.Token)
 	PopulateJWTToken(*jwt.Token)
 	GetEmail() string

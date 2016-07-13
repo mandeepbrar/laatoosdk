@@ -24,6 +24,15 @@ func Remove(arr []string, elem string) []string {
 	return arr
 }
 
+func StrContains(s []string, e string) int {
+	for i, a := range s {
+		if a == e {
+			return i
+		}
+	}
+	return -1
+}
+
 func MapKeys(mapToProcess map[string]interface{}) []string {
 	maplen := len(mapToProcess)
 	if maplen < 1 {

@@ -3,17 +3,34 @@ package data
 import (
 	"fmt"
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	"reflect"
 )
 
+type StorableConfig struct {
+	IdField         string
+	Type            string
+	SoftDeleteField string
+	PreSave         bool
+	PostSave        bool
+	PostLoad        bool
+	Auditable       bool
+	Collection      string
+	Cacheable       bool
+	NotifyNew       bool
+	NotifyUpdates   bool
+}
+
 //Object stored by data service
 type Storable interface {
+	Config() *StorableConfig
 	GetId() string
-	GetObjectType() string
+	SetId(string)
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
-	GetIdField() string
+	IsDeleted() bool
+	Delete()
 }
 
 //Factory function for creating storable
@@ -29,6 +46,7 @@ func CastToStorableCollection(items interface{}) ([]Storable, error) {
 	for i := 0; i < length; i++ {
 		valPtr := arr.Index(i).Addr().Interface()
 		stor, ok := valPtr.(Storable)
+		log.Logger.Error(nil, "*****Value of ok in casting", "ok", ok)
 		if !ok {
 			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
 		}
