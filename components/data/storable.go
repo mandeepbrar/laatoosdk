@@ -3,7 +3,6 @@ package data
 import (
 	"fmt"
 	"laatoo/sdk/core"
-	"laatoo/sdk/log"
 	"reflect"
 )
 
@@ -46,7 +45,6 @@ func CastToStorableCollection(items interface{}) ([]Storable, error) {
 	for i := 0; i < length; i++ {
 		valPtr := arr.Index(i).Addr().Interface()
 		stor, ok := valPtr.(Storable)
-		log.Logger.Error(nil, "*****Value of ok in casting", "ok", ok)
 		if !ok {
 			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
 		}
