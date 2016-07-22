@@ -64,3 +64,22 @@ func MapValues(mapToProcess map[string]interface{}) interface{} {
 	}
 	return arr.Interface()
 }
+
+func ElementPtr(object interface{}) interface{} {
+	return reflect.ValueOf(object).Elem().Interface()
+}
+
+func SetObjectFields(object interface{}, newVals map[string]interface{}) {
+	entVal := reflect.ValueOf(object).Elem()
+	for k, v := range newVals {
+		f := entVal.FieldByName(k)
+		if f.IsValid() {
+			// A Value can be changed only if it is
+			// addressable and was not obtained by
+			// the use of unexported struct fields.
+			if f.CanSet() {
+				f.Set(reflect.ValueOf(v))
+			}
+		}
+	}
+}

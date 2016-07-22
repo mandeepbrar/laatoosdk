@@ -36,6 +36,9 @@ func (log *LogWrapper) Write(p []byte) (n int, err error) {
 }
 
 func (log *LogWrapper) SetType(loggertype string) {
+	if loggertype == "syslog" {
+		log.logger = NewSysLogger()
+	}
 	/*if loggertype == "logrus" {
 		log.logger = NewLogrus()
 	}

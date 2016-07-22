@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"laatoo/sdk/core"
 )
 
 const (
@@ -30,4 +31,48 @@ func init() {
 	RegisterCode(CORE_ERROR_RES_NOT_FOUND, FATAL, fmt.Errorf("Requested resource was not found."))
 	RegisterCode(CORE_ERROR_TYPE_MISMATCH, FATAL, fmt.Errorf("Type Mismatch."))
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
+}
+
+func WrapError(ctx core.Context, err error) error {
+	if err != nil {
+		_, ok := err.(Error)
+		if ok {
+			return err
+		} else {
+			return RethrowError(ctx, CORE_ERROR_WRAPPER, err)
+		}
+	}
+	return nil
+}
+
+func BadRequest(ctx core.Context, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_BAD_REQUEST, info...)
+}
+
+func BadArg(ctx core.Context, argName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_BAD_ARG, append(info, "Argument", argName)...)
+}
+
+func MissingArg(ctx core.Context, argName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_MISSING_ARG, append(info, "Argument", argName)...)
+}
+
+func BadConf(ctx core.Context, confName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_BAD_CONF, append(info, "Configuration", confName)...)
+}
+
+func MissingConf(ctx core.Context, confName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_MISSING_CONF, append(info, "Configuration", confName)...)
+}
+
+func MissingService(ctx core.Context, svcName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_MISSING_SERVICE, append(info, "Service", svcName)...)
+}
+
+func NotImplemented(ctx core.Context, methodName string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_NOT_IMPLEMENTED, append(info, "Method", methodName)...)
+}
+
+func TypeMismatch(ctx core.Context, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_TYPE_MISMATCH, info...)
 }

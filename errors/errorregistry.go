@@ -57,18 +57,6 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 	ErrorsHandlersRegister[internalErrorCode] = val
 }
 
-func WrapError(ctx core.Context, err error) error {
-	if err != nil {
-		_, ok := err.(Error)
-		if ok {
-			return err
-		} else {
-			return RethrowError(ctx, CORE_ERROR_WRAPPER, err)
-		}
-	}
-	return nil
-}
-
 func ThrowError(ctx core.Context, internalErrorCode string, info ...interface{}) error {
 	return RethrowError(ctx, internalErrorCode, nil, info...)
 }

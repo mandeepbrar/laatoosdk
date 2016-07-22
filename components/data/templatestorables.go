@@ -36,6 +36,9 @@ func (as *AbstractStorable) IsDeleted() bool {
 func (as *AbstractStorable) Delete() {
 }
 
+func (as *AbstractStorable) Join(item Storable) {
+}
+
 type SoftDeleteStorable struct {
 	AbstractStorable `bson:",inline"`
 	Deleted          bool `json:"Deleted" bson:"Deleted"`
@@ -53,16 +56,21 @@ func (sds *SoftDeleteStorable) Delete() {
 
 type HardDeleteAuditable struct {
 	AbstractStorable `bson:",inline"`
+	New              bool   `json:"IsNew" bson:"IsNew"`
 	CreatedBy        string `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy        string `json:"UpdatedBy" bson:"UpdatedBy" `
 	UpdatedOn        string `json:"UpdatedOn" bson:"UpdatedOn"`
 }
 
 func NewHardDeleteAuditable() HardDeleteAuditable {
-	return HardDeleteAuditable{NewAbstractStorable(), "", "", ""}
+	return HardDeleteAuditable{NewAbstractStorable(), false, "", "", ""}
 }
 func (hda *HardDeleteAuditable) IsNew() bool {
-	return hda.CreatedBy == ""
+	return hda.New
+}
+func (hda *HardDeleteAuditable) PreSave(ctx core.RequestContext) error {
+	hda.New = (hda.CreatedBy == "")
+	return nil
 }
 func (hda *HardDeleteAuditable) SetUpdatedOn(val string) {
 	hda.UpdatedOn = val
@@ -79,16 +87,21 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 
 type SoftDeleteAuditable struct {
 	SoftDeleteStorable `bson:",inline"`
+	New                bool   `json:"IsNew" bson:"IsNew"`
 	CreatedBy          string `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy          string `json:"UpdatedBy" bson:"UpdatedBy" `
 	UpdatedOn          string `json:"UpdatedOn" bson:"UpdatedOn"`
 }
 
 func NewSoftDeleteAuditable() SoftDeleteAuditable {
-	return SoftDeleteAuditable{NewSoftDeleteStorable(), "", "", ""}
+	return SoftDeleteAuditable{NewSoftDeleteStorable(), false, "", "", ""}
 }
 func (hda *SoftDeleteAuditable) IsNew() bool {
-	return hda.CreatedBy == ""
+	return hda.New
+}
+func (hda *SoftDeleteAuditable) PreSave(ctx core.RequestContext) error {
+	hda.New = (hda.CreatedBy == "")
+	return nil
 }
 func (hda *SoftDeleteAuditable) SetUpdatedOn(val string) {
 	hda.UpdatedOn = val
