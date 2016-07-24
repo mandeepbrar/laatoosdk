@@ -37,7 +37,7 @@ func (log *LogWrapper) Write(p []byte) (n int, err error) {
 
 func (log *LogWrapper) SetType(loggertype string) {
 	if loggertype == "syslog" {
-		log.logger = NewSysLogger()
+		log.logger = NewSysLogger(log.logger.GetApplication())
 	}
 	/*if loggertype == "logrus" {
 		log.logger = NewLogrus()
@@ -47,6 +47,12 @@ func (log *LogWrapper) SetType(loggertype string) {
 	}*/
 }
 
+func (log *LogWrapper) SetApplication(app string) {
+	log.logger.SetApplication(app)
+}
+func (log *LogWrapper) GetApplication() string {
+	return log.logger.GetApplication()
+}
 func (log *LogWrapper) SetLevel(level int) {
 	log.level = level
 	log.logger.SetLevel(level)

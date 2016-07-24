@@ -20,7 +20,7 @@ func gaeSimpleLogsHandler() SimpleWriteHandler {
 type gaeSimpleWriteHandler struct {
 }
 
-func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, msg string, level int) {
+func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, app string, msg string, level int, strlevel string) {
 	if ctx != nil {
 		appengineContext := ctx.GetAppengineContext()
 		if appengineContext != nil {
@@ -41,7 +41,7 @@ func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, msg string, level int) 
 	}
 	stdlog.Print(msg)
 }
-func (jh *gaeSimpleWriteHandler) PrintBytes(ctx core.Context, msg []byte) (int, error) {
+func (jh *gaeSimpleWriteHandler) PrintBytes(ctx core.Context, app string, msg []byte, level int, strlevel string) (int, error) {
 	stdlog.Print(string(msg))
 	return len(msg), nil
 }

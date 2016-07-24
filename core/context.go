@@ -1,16 +1,19 @@
 package core
 
 import (
-	"net/http"
-
 	glctx "golang.org/x/net/context"
+	"net/http"
+	"time"
 )
 
 type Context interface {
 	GetId() string
 	GetName() string
+	GetPath() string
 	GetParent() Context
 	Get(key string) (interface{}, bool)
+	GetCreationTime() time.Time
+	GetElapsedTime() time.Duration
 	SetGaeReq(req *http.Request)
 	Set(key string, value interface{})
 	GetString(key string) (string, bool)

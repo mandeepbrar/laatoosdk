@@ -10,6 +10,7 @@ const (
 	CONF_LOGGING        = "logging"
 	CONF_LOGGINGLEVEL   = "level"
 	CONF_LOGGER         = "loggertype"
+	CONF_APPLICATION    = "application"
 	CONF_LOGGING_FORMAT = "format"
 	FATAL               = 1
 	ERROR               = 2
@@ -29,6 +30,8 @@ type LoggerInterface interface {
 	Fatal(reqContext core.Context, msg string, args ...interface{})
 
 	SetLevel(int)
+	SetApplication(string)
+	GetApplication() string
 	SetType(string)
 	SetFormat(string)
 	IsTrace() bool
@@ -67,6 +70,10 @@ func GetLevel(level string) int {
 func ConfigLogger(conf config.Config) bool {
 	logconf, ok := conf.GetSubConfig(CONF_LOGGING)
 	if ok {
+		application, _ := logconf.GetString(CONF_APPLICATION)
+		if application != "" {
+			Logger.SetApplication(application)
+		}
 		loggerType, _ := logconf.GetString(CONF_LOGGER)
 		if loggerType != "" {
 			Logger.SetType(loggerType)

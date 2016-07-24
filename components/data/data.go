@@ -71,6 +71,8 @@ type DataComponent interface {
 	GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]Storable, error)
 	//Get multiple objects by id
 	GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]Storable, error)
+	//Count all object with given condition
+	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
 	//Get all object with given conditions
 	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
@@ -186,4 +188,8 @@ func (bc *BaseComponent) Get(ctx core.RequestContext, queryCond interface{}, pag
 func (bc *BaseComponent) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return nil, nil, -1, -1, errors.NotImplemented(ctx, "GetList")
 
+}
+
+func (bc *BaseComponent) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
+	return -1, errors.NotImplemented(ctx, "Count")
 }

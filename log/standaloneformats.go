@@ -16,16 +16,18 @@ func init() {
 	logFormats["happymaxcolor"] = printHappyMaxColor
 }
 
-func printHappyMaxColor(ctx core.Context, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
 	var buffer bytes.Buffer
 	firstline := ""
-	if level >= ERROR {
+	if level <= ERROR {
 		firstline = color.RedString("%s: %s", strings.ToUpper(strlevel), msg)
-	} else {
+	} else if level == INFO {
 		firstline = color.BlueString("%s: %s", strings.ToUpper(strlevel), msg)
+	} else {
+		firstline = color.GreenString("%s: %s", strings.ToUpper(strlevel), msg)
 	}
 	argslen := len(args)
 	if argslen > 0 {
@@ -40,22 +42,25 @@ func printHappyMaxColor(ctx core.Context, strlevel string, wh SimpleWriteHandler
 	}
 	buffer.WriteString(fmt.Sprintln("		TIME ", time.Now().String()))
 	buffer.WriteString(fmt.Sprintln("		LEVEL ", strlevel))
+	buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
 	if ctx != nil {
-		buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
+		buffer.WriteString(fmt.Sprintln("		PATH ", ctx.GetPath()))
 		buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
 	}
-	wh.Print(ctx, buffer.String(), level)
+	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappyColor(ctx core.Context, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printHappyColor(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
 	var buffer bytes.Buffer
 	firstline := ""
-	if level >= ERROR {
+	if level <= ERROR {
 		firstline = color.RedString("%s: %s", strings.ToUpper(strlevel), msg)
-	} else {
+	} else if level == INFO {
 		firstline = color.BlueString("%s: %s", strings.ToUpper(strlevel), msg)
+	} else {
+		firstline = color.GreenString("%s: %s", strings.ToUpper(strlevel), msg)
 	}
 	argslen := len(args)
 	if argslen > 0 {
@@ -71,5 +76,5 @@ func printHappyColor(ctx core.Context, strlevel string, wh SimpleWriteHandler, l
 	if ctx != nil {
 		buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
 	}
-	wh.Print(ctx, buffer.String(), level)
+	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }

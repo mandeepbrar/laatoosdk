@@ -3,23 +3,24 @@ package data
 import (
 	"github.com/twinj/uuid"
 	"laatoo/sdk/core"
+	"time"
 )
 
 type AbstractStorable struct {
-	Id string `json:"Id" bson:"Id"`
+	ID string `json:"ID" bson:"ID" sql:"size:50;unique;index" gorm:"primary_key"`
 }
 
 func NewAbstractStorable() AbstractStorable {
 	return AbstractStorable{uuid.NewV4().String()}
 }
 func (as *AbstractStorable) Init() {
-	as.Id = uuid.NewV4().String()
+	as.ID = uuid.NewV4().String()
 }
 func (as *AbstractStorable) GetId() string {
-	return as.Id
+	return as.ID
 }
 func (as *AbstractStorable) SetId(val string) {
-	as.Id = val
+	as.ID = val
 }
 func (as *AbstractStorable) PreSave(ctx core.RequestContext) error {
 	return nil
@@ -56,14 +57,15 @@ func (sds *SoftDeleteStorable) Delete() {
 
 type HardDeleteAuditable struct {
 	AbstractStorable `bson:",inline"`
-	New              bool   `json:"IsNew" bson:"IsNew"`
-	CreatedBy        string `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy        string `json:"UpdatedBy" bson:"UpdatedBy" `
-	UpdatedOn        string `json:"UpdatedOn" bson:"UpdatedOn"`
+	New              bool      `json:"IsNew" bson:"IsNew"`
+	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy"`
+	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" `
+	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt"`
+	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt"`
 }
 
 func NewHardDeleteAuditable() HardDeleteAuditable {
-	return HardDeleteAuditable{NewAbstractStorable(), false, "", "", ""}
+	return HardDeleteAuditable{AbstractStorable: NewAbstractStorable()}
 }
 func (hda *HardDeleteAuditable) IsNew() bool {
 	return hda.New
@@ -71,9 +73,6 @@ func (hda *HardDeleteAuditable) IsNew() bool {
 func (hda *HardDeleteAuditable) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
-}
-func (hda *HardDeleteAuditable) SetUpdatedOn(val string) {
-	hda.UpdatedOn = val
 }
 func (hda *HardDeleteAuditable) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val
@@ -87,14 +86,15 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 
 type SoftDeleteAuditable struct {
 	SoftDeleteStorable `bson:",inline"`
-	New                bool   `json:"IsNew" bson:"IsNew"`
-	CreatedBy          string `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy          string `json:"UpdatedBy" bson:"UpdatedBy" `
-	UpdatedOn          string `json:"UpdatedOn" bson:"UpdatedOn"`
+	New                bool      `json:"IsNew" bson:"IsNew"`
+	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy"`
+	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" `
+	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt"`
+	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt"`
 }
 
 func NewSoftDeleteAuditable() SoftDeleteAuditable {
-	return SoftDeleteAuditable{NewSoftDeleteStorable(), false, "", "", ""}
+	return SoftDeleteAuditable{SoftDeleteStorable: NewSoftDeleteStorable()}
 }
 func (hda *SoftDeleteAuditable) IsNew() bool {
 	return hda.New
@@ -102,9 +102,6 @@ func (hda *SoftDeleteAuditable) IsNew() bool {
 func (hda *SoftDeleteAuditable) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
-}
-func (hda *SoftDeleteAuditable) SetUpdatedOn(val string) {
-	hda.UpdatedOn = val
 }
 func (hda *SoftDeleteAuditable) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val

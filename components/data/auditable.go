@@ -10,7 +10,8 @@ import (
 type Auditable interface {
 	Storable
 	IsNew() bool
-	SetUpdatedOn(string)
+	SetCreatedAt(time.Time)
+	SetUpdatedAt(time.Time)
 	SetUpdatedBy(string)
 	SetCreatedBy(string)
 	GetCreatedBy() string
@@ -27,7 +28,11 @@ func Audit(ctx core.RequestContext, item interface{}) {
 					auditable.SetCreatedBy(id)
 				}
 				auditable.SetUpdatedBy(id)
-				auditable.SetUpdatedOn(time.Now().Format(time.UnixDate))
+				if auditable.IsNew() {
+					auditable.SetCreatedAt(time.Now())
+				} else {
+					auditable.SetUpdatedAt(time.Now())
+				}
 			} else {
 				log.Logger.Info(ctx, "Could not audit entity. User nil")
 			}
@@ -38,7 +43,7 @@ func Audit(ctx core.RequestContext, item interface{}) {
 				if usr != nil {
 					id := usr.GetId()
 					updateMap["UpdatedBy"] = id
-					updateMap["UpdatedOn"] = time.Now().Format(time.UnixDate)
+					updateMap["UpdatedAt"] = time.Now()
 				} else {
 					log.Logger.Info(ctx, "Could not audit map. User nil")
 				}

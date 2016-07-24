@@ -13,8 +13,8 @@ func NewLogger() LoggerInterface {
 	return &LogWrapper{logger: NewSimpleLogger(stdSimpleLogsHandler()), level: TRACE}
 }
 
-func NewSysLogger() LoggerInterface {
-	logWriter, err := syslog.Dial("", "", syslog.LOG_ERR, "Laatoo")
+func NewSysLogger(appname string) LoggerInterface {
+	logWriter, err := syslog.Dial("", "", syslog.LOG_ERR, appname)
 	if err != nil {
 		return NewLogger()
 	}
@@ -34,10 +34,10 @@ func sysLogsHandler(writer io.Writer) SimpleWriteHandler {
 type StdSimpleWriteHandler struct {
 }
 
-func (jh *StdSimpleWriteHandler) Print(ctx core.Context, msg string, level int) {
+func (jh *StdSimpleWriteHandler) Print(ctx core.Context, appname string, msg string, level int, strlevel string) {
 	os.Stderr.WriteString(msg)
 }
-func (jh *StdSimpleWriteHandler) PrintBytes(ctx core.Context, msg []byte) (int, error) {
+func (jh *StdSimpleWriteHandler) PrintBytes(ctx core.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
 	return os.Stderr.Write(msg)
 }
 
@@ -45,9 +45,9 @@ type SyslogWriteHandler struct {
 	writer io.Writer
 }
 
-func (jh *SyslogWriteHandler) Print(ctx core.Context, msg string, level int) {
+func (jh *SyslogWriteHandler) Print(ctx core.Context, appname string, msg string, level int, strlevel string) {
 	jh.writer.Write([]byte(msg))
 }
-func (jh *SyslogWriteHandler) PrintBytes(ctx core.Context, msg []byte) (int, error) {
+func (jh *SyslogWriteHandler) PrintBytes(ctx core.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
 	return jh.writer.Write(msg)
 }
