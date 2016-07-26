@@ -28,11 +28,11 @@ func Audit(ctx core.RequestContext, item interface{}) {
 					auditable.SetCreatedBy(id)
 				}
 				auditable.SetUpdatedBy(id)
+				tim := time.Now()
 				if auditable.IsNew() {
-					auditable.SetCreatedAt(time.Now())
-				} else {
-					auditable.SetUpdatedAt(time.Now())
+					auditable.SetCreatedAt(tim)
 				}
+				auditable.SetUpdatedAt(tim)
 			} else {
 				log.Logger.Info(ctx, "Could not audit entity. User nil")
 			}

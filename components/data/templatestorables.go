@@ -1,26 +1,27 @@
 package data
 
 import (
-	"github.com/twinj/uuid"
 	"laatoo/sdk/core"
 	"time"
+
+	"github.com/twinj/uuid"
 )
 
 type AbstractStorable struct {
-	ID string `json:"ID" bson:"ID" sql:"size:50;unique;index" gorm:"primary_key"`
+	Id string `json:"Id" bson:"Id" sql:"type:varchar(50); primary key; unique;index" gorm:"primary_key"`
 }
 
 func NewAbstractStorable() AbstractStorable {
 	return AbstractStorable{uuid.NewV4().String()}
 }
 func (as *AbstractStorable) Init() {
-	as.ID = uuid.NewV4().String()
+	as.Id = uuid.NewV4().String()
 }
 func (as *AbstractStorable) GetId() string {
-	return as.ID
+	return as.Id
 }
 func (as *AbstractStorable) SetId(val string) {
-	as.ID = val
+	as.Id = val
 }
 func (as *AbstractStorable) PreSave(ctx core.RequestContext) error {
 	return nil
@@ -74,6 +75,13 @@ func (hda *HardDeleteAuditable) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
 }
+func (hda *HardDeleteAuditable) SetCreatedAt(val time.Time) {
+	hda.CreatedAt = val
+}
+func (hda *HardDeleteAuditable) SetUpdatedAt(val time.Time) {
+	hda.UpdatedAt = val
+}
+
 func (hda *HardDeleteAuditable) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val
 }
@@ -103,6 +111,13 @@ func (hda *SoftDeleteAuditable) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
 }
+func (hda *SoftDeleteAuditable) SetCreatedAt(val time.Time) {
+	hda.CreatedAt = val
+}
+func (hda *SoftDeleteAuditable) SetUpdatedAt(val time.Time) {
+	hda.UpdatedAt = val
+}
+
 func (hda *SoftDeleteAuditable) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val
 }

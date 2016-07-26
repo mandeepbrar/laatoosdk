@@ -37,6 +37,12 @@ type DataComponent interface {
 	GetObject() string
 	//supported features
 	Supports(Feature) bool
+	//creates a collection
+	CreateCollection(ctx core.RequestContext) error
+	//drops a collection
+	DropCollection(ctx core.RequestContext) error
+	//collection exists
+	CollectionExists(ctx core.RequestContext) (bool, error)
 	//create condition for passing to data service
 	CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error)
 	//save an object
@@ -192,4 +198,16 @@ func (bc *BaseComponent) GetList(ctx core.RequestContext, pageSize int, pageNum 
 
 func (bc *BaseComponent) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
 	return -1, errors.NotImplemented(ctx, "Count")
+}
+
+func (bc *BaseComponent) CreateCollection(ctx core.RequestContext) error {
+	return errors.NotImplemented(ctx, "CreateCollection")
+}
+
+func (bc *BaseComponent) DropCollection(ctx core.RequestContext) error {
+	return errors.NotImplemented(ctx, "DropCollection")
+}
+
+func (bc *BaseComponent) CollectionExists(ctx core.RequestContext) (bool, error) {
+	return false, errors.NotImplemented(ctx, "CollectionExists")
 }
