@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ConfigFileAdapter(conf Config, configName string) (Config, error, bool) {
+func FileAdapter(conf Config, configName string) (Config, error, bool) {
 	var configToRet Config
 	var err error
 	confFileName, ok := conf.GetString(configName)

@@ -77,8 +77,11 @@ type DataComponent interface {
 	GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]Storable, error)
 	//Get multiple objects by id
 	GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]Storable, error)
+
 	//Count all object with given condition
 	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
+	CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error)
+
 	//Get all object with given conditions
 	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
@@ -198,6 +201,10 @@ func (bc *BaseComponent) GetList(ctx core.RequestContext, pageSize int, pageNum 
 
 func (bc *BaseComponent) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
 	return -1, errors.NotImplemented(ctx, "Count")
+}
+
+func (bc *BaseComponent) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
+	return nil, errors.NotImplemented(ctx, "CountGroups")
 }
 
 func (bc *BaseComponent) CreateCollection(ctx core.RequestContext) error {

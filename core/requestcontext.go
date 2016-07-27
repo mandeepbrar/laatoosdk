@@ -15,11 +15,11 @@ type RequestContext interface {
 	HasPermission(perm string) bool
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
-	PutInCache(key string, item interface{}) error
-	GetFromCache(key string, val interface{}) bool
-	GetMultiFromCache(keys []string, val map[string]interface{}) bool
+	PutInCache(bucket string, key string, item interface{}) error
+	GetFromCache(bucket string, key string, val interface{}) bool
+	GetMultiFromCache(bucket string, keys []string, val map[string]interface{})
 	PushTask(queue string, task interface{}) error
-	InvalidateCache(key string) error
+	InvalidateCache(bucket string, key string) error
 	IsAdmin() bool
 	SetRequest(interface{})
 	GetRequest() interface{}
