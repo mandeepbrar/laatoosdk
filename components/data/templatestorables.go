@@ -14,8 +14,9 @@ type AbstractStorable struct {
 func NewAbstractStorable() AbstractStorable {
 	return AbstractStorable{uuid.NewV4().String()}
 }
-func (as *AbstractStorable) Init() {
+func (as *AbstractStorable) Init(ctx core.Context, args core.MethodArgs) error {
 	as.Id = uuid.NewV4().String()
+	return nil
 }
 func (as *AbstractStorable) GetId() string {
 	return as.Id
@@ -39,6 +40,9 @@ func (as *AbstractStorable) Delete() {
 }
 
 func (as *AbstractStorable) Join(item Storable) {
+}
+func (as *AbstractStorable) Config() *StorableConfig {
+	return nil
 }
 
 type SoftDeleteStorable struct {

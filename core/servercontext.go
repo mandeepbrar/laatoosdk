@@ -51,8 +51,8 @@ type ServerContext interface {
 	SubContext(name string) ServerContext
 	SubContextWithElement(name string, primaryElement ServerElementType) ServerContext
 	CreateNewRequest(name string, engineCtx interface{}) RequestContext
-	CreateCollection(objectName string, length int, args MethodArgs) (interface{}, error)
-	CreateObject(objectName string, args MethodArgs) (interface{}, error)
+	CreateCollection(objectName string, length int) (interface{}, error)
+	CreateObject(objectName string) (interface{}, error)
 	GetMethod(methodName string) (ServiceFunc, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
 	GetObjectCreator(objectName string) (ObjectCreator, error)

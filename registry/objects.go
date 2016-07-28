@@ -5,6 +5,10 @@ import (
 	"laatoo/sdk/core"
 )
 
+func Register(objectName string, obj interface{}) {
+	objects.Register(objectName, obj)
+}
+
 //register the object factory in the global register
 func RegisterObjectFactory(objectName string, factory core.ObjectFactory) {
 	objects.RegisterObjectFactory(objectName, factory)

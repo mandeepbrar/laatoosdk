@@ -23,6 +23,7 @@ type StorableConfig struct {
 
 //Object stored by data service
 type Storable interface {
+	core.Initializable
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
