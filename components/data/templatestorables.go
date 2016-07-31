@@ -63,10 +63,10 @@ func (sds *SoftDeleteStorable) Delete() {
 type HardDeleteAuditable struct {
 	AbstractStorable `bson:",inline"`
 	New              bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" `
-	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt"`
-	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt"`
+	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
+	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
+	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
+	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
 }
 
 func NewHardDeleteAuditable() HardDeleteAuditable {
@@ -99,10 +99,10 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 type SoftDeleteAuditable struct {
 	SoftDeleteStorable `bson:",inline"`
 	New                bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" `
-	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt"`
-	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt"`
+	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
+	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
+	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
+	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
 }
 
 func NewSoftDeleteAuditable() SoftDeleteAuditable {

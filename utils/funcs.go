@@ -33,6 +33,54 @@ func StrContains(s []string, e string) int {
 	return -1
 }
 
+func CastToInterfaceArray(val interface{}) []interface{} {
+	if val == nil {
+		return nil
+	}
+	itemVal := reflect.ValueOf(val)
+	if itemVal.Kind() != reflect.Array {
+		return nil
+	}
+	len := itemVal.Len()
+	res := make([]interface{}, len)
+	for i := 0; i < len; i++ {
+		res[i] = itemVal.Index(i).Interface()
+	}
+	return res
+}
+
+func CastToStringArray(val interface{}) []string {
+	if val == nil {
+		return nil
+	}
+	itemVal := reflect.ValueOf(val)
+	if itemVal.Kind() != reflect.Array {
+		return nil
+	}
+	len := itemVal.Len()
+	res := make([]string, len)
+	for i := 0; i < len; i++ {
+		res[i] = itemVal.Index(i).String()
+	}
+	return res
+}
+
+func CastToStringMap(val interface{}) map[string]interface{} {
+	if val == nil {
+		return nil
+	}
+	itemVal := reflect.ValueOf(val)
+	if itemVal.Kind() != reflect.Map {
+		return nil
+	}
+	keys := itemVal.MapKeys()
+	res := make(map[string]interface{}, len(keys))
+	for _, key := range keys {
+		res[key.String()] = itemVal.MapIndex(key).Interface()
+	}
+	return res
+}
+
 func MapKeys(mapToProcess map[string]interface{}) []string {
 	maplen := len(mapToProcess)
 	if maplen < 1 {

@@ -16,8 +16,11 @@ type RequestContext interface {
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(bucket string, key string, item interface{}) error
-	GetFromCache(bucket string, key string, objectType string) (interface{}, bool)
-	GetMultiFromCache(bucket string, keys []string, objectType string) map[string]interface{}
+	PutMultiInCache(bucket string, vals map[string]interface{}) error
+	GetFromCache(bucket string, key string) (interface{}, bool)
+	GetMultiFromCache(bucket string, keys []string) map[string]interface{}
+	GetObjectFromCache(bucket string, key string, objectType string) (interface{}, bool)
+	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}
 	PushTask(queue string, task interface{}) error
 	InvalidateCache(bucket string, key string) error
 	IsAdmin() bool

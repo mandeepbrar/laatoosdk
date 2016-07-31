@@ -18,6 +18,7 @@ const (
 	CONF_TASK_QUEUES        = "taskqueues"
 	CONF_CACHE_SVC          = "service"
 	CONF_CACHE_NAME         = "cache"
+	CONF_CACHE_ENC          = "encoding"
 	CONF_RULESMGR           = "rulesmanager"
 	CONF_APPL_OBJECT        = "object"
 	CONF_APPLETS            = "applets"
