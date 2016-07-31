@@ -38,12 +38,12 @@ func CastToInterfaceArray(val interface{}) []interface{} {
 		return nil
 	}
 	itemVal := reflect.ValueOf(val)
-	if itemVal.Kind() != reflect.Array {
+	if itemVal.Kind() != reflect.Slice && itemVal.Kind() != reflect.Array {
 		return nil
 	}
-	len := itemVal.Len()
-	res := make([]interface{}, len)
-	for i := 0; i < len; i++ {
+	leng := itemVal.Len()
+	res := make([]interface{}, leng)
+	for i := 0; i < leng; i++ {
 		res[i] = itemVal.Index(i).Interface()
 	}
 	return res

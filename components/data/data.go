@@ -10,6 +10,7 @@ const (
 	MATCHMULTIPLEVALUES ConditionType = iota // expects first value as field name and second value as array of values
 	MATCHANCESTOR                            //expects collection name and id
 	FIELDVALUE                               //expects map of field values
+	COMBINECONDTITIONS                       //combine conditions
 )
 
 const (

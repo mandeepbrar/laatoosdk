@@ -35,12 +35,22 @@ type Storable interface {
 	Join(item Storable)
 }
 
+func StorableArrayToMap(items []Storable) map[string]Storable {
+	res := make(map[string]Storable, len(items))
+	for _, item := range items {
+		res[item.GetId()] = item
+	}
+	return res
+}
+
 //Factory function for creating storable
 //type StorableCreator func() interface{}
 
 func CastToStorableCollection(items interface{}) ([]Storable, []string, error) {
-	fmt.Errorf("Type of items ... ", items)
-	arr := reflect.ValueOf(items).Elem()
+	arr := reflect.ValueOf(items)
+	if arr.Kind() == reflect.Ptr {
+		arr = arr.Elem()
+	}
 	if arr.Kind() != reflect.Slice {
 		return nil, nil, fmt.Errorf("Invalid cast to Storable. Type of Item: %s", arr.Kind())
 	}
@@ -49,7 +59,13 @@ func CastToStorableCollection(items interface{}) ([]Storable, []string, error) {
 	ids := make([]string, length)
 	j := 0
 	for i := 0; i < length; i++ {
-		valPtr := arr.Index(i).Addr().Interface()
+		itemKind := arr.Index(i).Kind()
+		var valPtr interface{}
+		if itemKind == reflect.Ptr {
+			valPtr = arr.Index(i).Interface()
+		} else {
+			valPtr = arr.Index(i).Addr().Interface()
+		}
 		stor, ok := valPtr.(Storable)
 		if !ok {
 			return nil, nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
@@ -65,17 +81,26 @@ func CastToStorableCollection(items interface{}) ([]Storable, []string, error) {
 }
 
 func CastToStorableHash(items interface{}) (map[string]Storable, error) {
-	arr := reflect.ValueOf(items).Elem()
+	arr := reflect.ValueOf(items)
+	if arr.Kind() == reflect.Ptr {
+		arr = arr.Elem()
+	}
 	if arr.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("Invalid cast to Storable. Type of Item: %s", arr.Kind())
 	}
 	length := arr.Len()
 	retVal := make(map[string]Storable, length)
 	for i := 0; i < length; i++ {
-		valPtr := arr.Index(i).Addr().Interface()
+		itemKind := arr.Index(i).Kind()
+		var valPtr interface{}
+		if itemKind == reflect.Ptr {
+			valPtr = arr.Index(i).Interface()
+		} else {
+			valPtr = arr.Index(i).Addr().Interface()
+		}
 		stor, ok := valPtr.(Storable)
 		if !ok {
-			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
+			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr, arr.Index(i).Kind(), arr.Index(i).IsNil())
 		}
 		if stor.IsDeleted() {
 			continue
