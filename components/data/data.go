@@ -57,6 +57,8 @@ type DataComponent interface {
 	//Store an object against an id
 	Put(ctx core.RequestContext, id string, item Storable) error
 	//Store multiple objects
+	CreateMulti(ctx core.RequestContext, items []Storable) error
+	//Store multiple objects
 	PutMulti(ctx core.RequestContext, items []Storable) error
 	//upsert an object by id, fields to be updated should be provided as key value pairs
 	UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error
@@ -83,7 +85,7 @@ type DataComponent interface {
 
 	//Count all object with given condition
 	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
-	CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error)
+	CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error)
 
 	//Get all object with given conditions
 	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)

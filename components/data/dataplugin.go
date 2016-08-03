@@ -75,6 +75,10 @@ func (svc *DataPlugin) PutMulti(ctx core.RequestContext, items []Storable) error
 	return svc.DataComponent.PutMulti(ctx, items)
 }
 
+func (svc *DataPlugin) CreateMulti(ctx core.RequestContext, items []Storable) error {
+	return svc.DataComponent.CreateMulti(ctx, items)
+}
+
 func (svc *DataPlugin) Put(ctx core.RequestContext, id string, item Storable) error {
 	return svc.DataComponent.Put(ctx, id, item)
 }
@@ -133,8 +137,8 @@ func (svc *DataPlugin) Count(ctx core.RequestContext, queryCond interface{}) (co
 	return svc.DataComponent.Count(ctx, queryCond)
 }
 
-func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
-	return svc.DataComponent.CountGroups(ctx, queryCond, group)
+func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error) {
+	return svc.DataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
 func (svc *DataPlugin) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {

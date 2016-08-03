@@ -94,6 +94,10 @@ func (bc *BaseComponent) PutMulti(ctx core.RequestContext, items []Storable) err
 	return errors.NotImplemented(ctx, "PutMulti")
 }
 
+func (bc *BaseComponent) CreateMulti(ctx core.RequestContext, items []Storable) error {
+	return errors.NotImplemented(ctx, "CreateMulti")
+}
+
 //upsert an object ...insert if not there... update if there
 func (bc *BaseComponent) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	return errors.NotImplemented(ctx, "UpsertId")
@@ -164,7 +168,7 @@ func (bc *BaseComponent) Count(ctx core.RequestContext, queryCond interface{}) (
 	return -1, errors.NotImplemented(ctx, "Count")
 }
 
-func (bc *BaseComponent) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
+func (bc *BaseComponent) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error) {
 	return nil, errors.NotImplemented(ctx, "CountGroups")
 }
 

@@ -1,9 +1,6 @@
 package components
 
-import (
-	"fmt"
-	"laatoo/sdk/core"
-)
+import "laatoo/sdk/core"
 
 type CacheComponent interface {
 	PutObject(ctx core.RequestContext, bucket string, key string, item interface{}) error
@@ -13,8 +10,6 @@ type CacheComponent interface {
 	GetObjects(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{}
 	GetMulti(ctx core.RequestContext, bucket string, keys []string) map[string]interface{}
 	Delete(ctx core.RequestContext, bucket string, key string) error
-}
-
-func GetCacheKey(objectType string, variants ...interface{}) string {
-	return fmt.Sprintf("%s_%#v", objectType, variants)
+	Increment(ctx core.RequestContext, bucket string, key string) error
+	Decrement(ctx core.RequestContext, bucket string, key string) error
 }
