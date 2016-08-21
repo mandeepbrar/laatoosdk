@@ -8,7 +8,7 @@ import (
 )
 
 type AbstractStorable struct {
-	Id string `json:"Id" bson:"Id" sql:"type:varchar(50); primary key; unique;index" gorm:"primary_key"`
+	Id string `json:"Id" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
 }
 
 func NewAbstractStorable() AbstractStorable {
