@@ -33,6 +33,7 @@ func newServiceResponse(status int, data interface{}, info map[string]interface{
 }
 
 var (
+	StatusSuccessResponse      = newServiceResponse(StatusSuccess, nil, nil, true)
 	StatusUnauthorizedResponse = newServiceResponse(StatusUnauthorized, nil, nil, true)
 	StatusNotFoundResponse     = newServiceResponse(StatusNotFound, nil, nil, true)
 	StatusBadRequestResponse   = newServiceResponse(StatusBadRequest, nil, nil, true)

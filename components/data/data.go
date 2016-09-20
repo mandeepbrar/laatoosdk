@@ -34,6 +34,8 @@ type DataComponent interface {
 	GetDataServiceType() string
 	//object on which service operates
 	GetObject() string
+	//collection for the service
+	GetCollection() string
 	//get object creator
 	GetObjectCreator() core.ObjectCreator
 	//get object collection creator

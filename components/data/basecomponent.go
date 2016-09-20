@@ -10,6 +10,9 @@ const (
 	CONF_DATA_OBJECT = "object"
 )
 
+/**
+Base Component helps create a new data service
+*/
 type BaseComponent struct {
 	Object                  string
 	ObjectCreator           core.ObjectCreator
@@ -47,6 +50,10 @@ func (bc *BaseComponent) GetDataServiceType() string {
 
 func (bc *BaseComponent) GetObject() string {
 	return ""
+}
+
+func (bc *BaseComponent) GetCollection() string {
+	return bc.ObjectConfig.Collection
 }
 
 //get object creator
