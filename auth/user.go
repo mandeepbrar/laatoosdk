@@ -1,15 +1,11 @@
 package auth
 
-import (
-	jwt "github.com/dgrijalva/jwt-go"
-)
-
 type User interface {
 	GetId() string
 	SetId(string)
 	GetUsernameField() string
 	GetUserName() string
-	LoadJWTClaims(*jwt.Token)
-	PopulateJWTToken(*jwt.Token)
+	LoadClaims(map[string]interface{})
+	PopulateClaims(map[string]interface{})
 	GetRealm() string
 }

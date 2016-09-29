@@ -3,6 +3,8 @@ package utils
 import (
 	"math/rand"
 	"reflect"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -115,6 +117,14 @@ func MapValues(mapToProcess map[string]interface{}) interface{} {
 
 func ElementPtr(object interface{}) interface{} {
 	return reflect.ValueOf(object).Elem().Interface()
+}
+
+func EncryptPassword(pass string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }
 
 func SetObjectFields(object interface{}, newVals map[string]interface{}) {

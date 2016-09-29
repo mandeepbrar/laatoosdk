@@ -1,9 +1,10 @@
 package core
 
 import (
-	glctx "golang.org/x/net/context"
 	"net/http"
 	"time"
+
+	glctx "golang.org/x/net/context"
 )
 
 type Context interface {
@@ -23,7 +24,6 @@ type Context interface {
 	SubCtx(name string) Context
 	NewCtx(flow string) Context
 	GetAppengineContext() glctx.Context
-	GetCloudContext(scope string) glctx.Context
 	HttpClient() *http.Client
 	GetOAuthContext() glctx.Context
 }
