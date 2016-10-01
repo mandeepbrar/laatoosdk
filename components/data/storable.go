@@ -27,6 +27,7 @@ type Storable interface {
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
+	SetValues(interface{}, map[string]interface{})
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error

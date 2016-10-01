@@ -2,6 +2,7 @@ package data
 
 import (
 	"laatoo/sdk/core"
+	"laatoo/sdk/utils"
 	"time"
 
 	"github.com/twinj/uuid"
@@ -32,6 +33,9 @@ func (as *AbstractStorable) PostSave(ctx core.RequestContext) error {
 }
 func (as *AbstractStorable) PostLoad(ctx core.RequestContext) error {
 	return nil
+}
+func (as *AbstractStorable) SetValues(obj interface{}, val map[string]interface{}) {
+	utils.SetObjectFields(obj, val)
 }
 func (as *AbstractStorable) IsDeleted() bool {
 	return false

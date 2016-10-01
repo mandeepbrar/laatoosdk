@@ -51,18 +51,43 @@ func CastToInterfaceArray(val interface{}) []interface{} {
 	return res
 }
 
+/*
+func CastToArrayType(val interface{}, typ reflect.Type) reflect.Value {
+	log.Println("***************************** casting")
+	if val == nil {
+		return reflect.MakeSlice(typ, 0, 0)
+	}
+	itemVal := reflect.ValueOf(val)
+	log.Println("***************************** setting field item val", val, itemVal.Kind())
+	if itemVal.Kind() != reflect.Slice && itemVal.Kind() != reflect.Array {
+		return reflect.MakeSlice(typ, 0, 0)
+	}
+	leng := itemVal.Len()
+	log.Println("***************************** setting field item val", leng)
+	res := reflect.MakeSlice(typ, leng, leng)
+	log.Println("***************************** setting field")
+	for i := 0; i < leng; i++ {
+		log.Println("***************************** setting field val", itemVal.Index(i), itemVal.Index(i).Interface())
+		obj := reflect.New(res.Index(i).Type())
+		obj.SetBytes(itemVal.Index(i).Bytes())
+		//converted := itemVal.Index(i).Convert()
+		res.Index(i).Set(converted)
+	}
+	return res
+}*/
+
 func CastToStringArray(val interface{}) []string {
 	if val == nil {
 		return nil
 	}
 	itemVal := reflect.ValueOf(val)
-	if itemVal.Kind() != reflect.Array {
+	if itemVal.Kind() != reflect.Array && itemVal.Kind() != reflect.Slice {
 		return nil
 	}
 	len := itemVal.Len()
 	res := make([]string, len)
 	for i := 0; i < len; i++ {
-		res[i] = itemVal.Index(i).String()
+		res[i] = itemVal.Index(i).Interface().(string)
 	}
 	return res
 }
@@ -132,11 +157,26 @@ func SetObjectFields(object interface{}, newVals map[string]interface{}) {
 	for k, v := range newVals {
 		f := entVal.FieldByName(k)
 		if f.IsValid() {
-			// A Value can be changed only if it is
-			// addressable and was not obtained by
-			// the use of unexported struct fields.
 			if f.CanSet() {
-				f.Set(reflect.ValueOf(v))
+				kind := f.Kind()
+				switch kind {
+				case reflect.Slice:
+					{
+						if f.Type().String() == "[]string" {
+							arr := CastToStringArray(v)
+							f.Set(reflect.ValueOf(arr))
+						}
+						continue
+					}
+				case reflect.Struct:
+					{
+						continue
+					}
+				default:
+					{
+						f.Set(reflect.ValueOf(v))
+					}
+				}
 			}
 		}
 	}
