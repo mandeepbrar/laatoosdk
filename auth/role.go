@@ -5,6 +5,8 @@ type Role interface {
 	SetId(string)
 	GetPermissions() []string
 	SetPermissions([]string)
+	GetRealm() string
+	SetRealm(val string)
 	GetName() string
 	SetName(string)
 }
