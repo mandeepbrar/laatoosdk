@@ -168,10 +168,6 @@ func SetObjectFields(object interface{}, newVals map[string]interface{}) {
 						}
 						continue
 					}
-				case reflect.Struct:
-					{
-						continue
-					}
 				default:
 					{
 						f.Set(reflect.ValueOf(v))
