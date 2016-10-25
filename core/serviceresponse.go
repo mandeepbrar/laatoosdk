@@ -40,6 +40,10 @@ var (
 	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, true)
 )
 
+func SuccessResponse(data interface{}) *ServiceResponse {
+	return newServiceResponse(StatusSuccess, data, nil, true)
+}
+
 func BadRequestResponse(data string) *ServiceResponse {
 	return newServiceResponse(StatusBadRequest, data, nil, true)
 }
