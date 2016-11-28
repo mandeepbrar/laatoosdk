@@ -177,3 +177,13 @@ func SetObjectFields(object interface{}, newVals map[string]interface{}) {
 		}
 	}
 }
+
+func GetObjectFields(object interface{}, fields []string) map[string]interface{} {
+	entVal := reflect.ValueOf(object).Elem()
+	vals := make(map[string]interface{}, len(fields))
+	for _, v := range fields {
+		f := entVal.FieldByName(v)
+		vals[v] = f.Interface()
+	}
+	return vals
+}
