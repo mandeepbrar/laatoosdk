@@ -6,6 +6,7 @@ const (
 	CONF_OBJECTLDR_METHODS  = "methods"
 	CONF_FACMGR             = "factorymanager"
 	CONF_SVCMGR             = "servicemanager"
+	CONF_SVCPARAMS          = "serviceparams"
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
 	CONF_FILTERS            = "filters"

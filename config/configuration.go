@@ -21,3 +21,36 @@ func Cast(conf interface{}) (Config, bool) {
 	}
 	return nil, false
 }
+
+func Merge(conf1 Config, conf2 Config) Config {
+	mergedConf := make(GenericConfig)
+	copyConfs := func(conf Config) {
+		if conf == nil {
+			return
+		}
+		confNames := conf.AllConfigurations()
+		for _, confName := range confNames {
+			val, _ := conf.Get(confName)
+			subConf, ok := val.(Config)
+			if ok {
+				existingVal, eok := mergedConf[confName]
+				if eok {
+					existingConf, cok := existingVal.(Config)
+					if cok {
+						mergedSubConf := Merge(existingConf, subConf)
+						mergedConf[confName] = mergedSubConf
+					} else {
+						mergedConf[confName] = val
+					}
+				} else {
+					mergedConf[confName] = val
+				}
+			} else {
+				mergedConf[confName] = val
+			}
+		}
+	}
+	copyConfs(conf1)
+	copyConfs(conf2)
+	return mergedConf
+}

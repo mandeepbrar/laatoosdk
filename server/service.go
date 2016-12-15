@@ -8,6 +8,6 @@ import (
 type Service interface {
 	core.ServerElement
 	Service() core.Service
-	Config() config.Config
+	ParamsConfig() config.Config
 	Invoke(ctx core.RequestContext) error
 }
