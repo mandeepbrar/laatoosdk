@@ -9,11 +9,12 @@ import (
 )
 
 type AbstractStorable struct {
-	Id string `json:"Id" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Id    string `json:"Id" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Empty string `json:"-" bson:"-" sql:"-"`
 }
 
 func NewAbstractStorable() AbstractStorable {
-	return AbstractStorable{uuid.NewV4().String()}
+	return AbstractStorable{Id: uuid.NewV4().String()}
 }
 func (as *AbstractStorable) Init(ctx core.Context, args core.MethodArgs) error {
 	as.Id = uuid.NewV4().String()
