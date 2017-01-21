@@ -15,4 +15,5 @@ const (
 	CONF_ENGINE_STRINGMAP_DATA_OBJECT = "__stringmap__"
 	CONF_ENGINE_BYTES_DATA_OBJECT     = "__bytes__"
 	CONF_ENGINE_FILES_DATA_OBJECT     = "__files__"
+	CONF_ENGINE_STRING_DATA_OBJECT    = "__string__"
 )
