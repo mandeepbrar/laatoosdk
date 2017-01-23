@@ -8,11 +8,20 @@ type Searchable interface {
 }
 
 type BaseSearchDocument struct {
-	Title       string
-	Id          string
-	Type        string
-	TextContent string
-	Date        time.Time
+	Title  string
+	Id     string
+	Type   string
+	Text1  string
+	Text2  string
+	Text3  string
+	Text4  string
+	Text5  string
+	Text6  string
+	User   string
+	UserId string
+	Date1  time.Time
+	Date2  time.Time
+	Date3  time.Time
 }
 
 func (bs *BaseSearchDocument) GetId() string {
