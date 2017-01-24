@@ -12,12 +12,11 @@ type StorableConfig struct {
 	SoftDeleteField string
 	PreSave         bool
 	PostSave        bool
+	PostUpdate      bool
 	PostLoad        bool
 	Auditable       bool
 	Collection      string
 	Cacheable       bool
-	NotifyNew       bool
-	NotifyUpdates   bool
 	RefOps          bool
 }
 
