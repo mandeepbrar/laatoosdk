@@ -6,10 +6,6 @@ import (
 	"laatoo/sdk/errors"
 )
 
-const (
-	CONF_DATA_OBJECT = "object"
-)
-
 /**
 Base Component helps create a new data service
 */

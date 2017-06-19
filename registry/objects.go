@@ -1,5 +1,6 @@
 package registry
 
+/*
 import (
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/core"
@@ -23,3 +24,4 @@ func RegisterObject(objectName string, objectCreator core.ObjectCreator, objectC
 func RegisterInvokableMethod(methodName string, method core.ServiceFunc) {
 	objects.RegisterInvokableMethod(methodName, method)
 }
+*/

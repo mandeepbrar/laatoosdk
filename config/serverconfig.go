@@ -2,8 +2,10 @@ package config
 
 const (
 	CONF_OBJECTLDR          = "objectloader"
+	CONF_CONFIG_DIR         = "config"
 	CONF_OBJECTLDR_OBJECTS  = "objects"
 	CONF_OBJECTLDR_METHODS  = "methods"
+	CONF_PLUGINS_FOLDER     = "plugins"
 	CONF_FACMGR             = "factorymanager"
 	CONF_SVCMGR             = "servicemanager"
 	CONF_SVCPARAMS          = "serviceparams"

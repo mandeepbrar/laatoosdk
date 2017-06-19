@@ -17,12 +17,14 @@ const (
 	CORE_ERROR_RES_NOT_FOUND      = "Core_Resource_Not_Found"
 	CORE_ERROR_TYPE_MISMATCH      = "Core_Type_Mismatch"
 	CORE_ERROR_NOT_IMPLEMENTED    = "Core_Not_Implemented"
+	CORE_ERROR_PLUGIN_NOT_LOADED  = "Core_Plugin_Not_Loaded"
 )
 
 func init() {
 	RegisterCode(CORE_ERROR_WRAPPER, FATAL, fmt.Errorf("Wrapped error."))
 	RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, FATAL, fmt.Errorf("Factory not registered."))
 	RegisterCode(CORE_ERROR_MISSING_SERVICE, FATAL, fmt.Errorf("Expected service is missing."))
+	RegisterCode(CORE_ERROR_PLUGIN_NOT_LOADED, FATAL, fmt.Errorf("Plugins could not be loaded."))
 	RegisterCode(CORE_ERROR_MISSING_ARG, FATAL, fmt.Errorf("All arguments have not been provided for the call."))
 	RegisterCode(CORE_ERROR_BAD_ARG, FATAL, fmt.Errorf("Invalid argument was provided."))
 	RegisterCode(CORE_ERROR_BAD_REQUEST, FATAL, fmt.Errorf("Invalid request was sent."))

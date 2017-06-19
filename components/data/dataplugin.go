@@ -1,7 +1,6 @@
 package data
 
 import (
-	"laatoo/framework/services/data/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -29,9 +28,9 @@ func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) er
 		return errors.WrapError(ctx, err)
 	}
 	log.Logger.Error(ctx, "initialized ", "datacomponent", svc.PluginDataComponent)
-	bsSvc, ok := conf.GetString(common.CONF_BASE_SVC)
+	bsSvc, ok := conf.GetString(CONF_BASE_SVC)
 	if !ok {
-		return errors.MissingConf(ctx, common.CONF_BASE_SVC)
+		return errors.MissingConf(ctx, CONF_BASE_SVC)
 	}
 	svc.dataServiceName = bsSvc
 	return nil
@@ -44,11 +43,11 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 	log.Logger.Error(ctx, "initializing ", "datacomponent", svc.PluginDataComponent)
 	s, err := ctx.GetService(svc.dataServiceName)
 	if err != nil {
-		return errors.BadConf(ctx, common.CONF_BASE_SVC)
+		return errors.BadConf(ctx, CONF_BASE_SVC)
 	}
 	PluginDataComponent, ok := s.(DataComponent)
 	if !ok {
-		return errors.BadConf(ctx, common.CONF_BASE_SVC)
+		return errors.BadConf(ctx, CONF_BASE_SVC)
 	}
 	svc.PluginDataComponent = PluginDataComponent
 	return nil

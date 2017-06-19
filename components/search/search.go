@@ -2,6 +2,11 @@ package search
 
 import "laatoo/sdk/core"
 
+const (
+	CONF_INDEX        = "index"
+	CONF_NUMOFRESULTS = "results"
+)
+
 type SearchComponent interface {
 	//Index a searchable document
 	Index(ctx core.RequestContext, s Searchable) error
