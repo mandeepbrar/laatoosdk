@@ -2,7 +2,12 @@ package config
 
 const (
 	CONF_OBJECTLDR          = "objectloader"
+	CONF_OBJECT_NAME        = "name"
+	CONF_BASE_DIR           = "basedir"
+	CONF_APP_SERVER         = "server"
+	CONF_OBJECTS_BASE_DIR   = "objectsbasedir"
 	CONF_CONFIG_DIR         = "config"
+	CONF_CONFIG_FILE        = "config.json"
 	CONF_OBJECTLDR_OBJECTS  = "objects"
 	CONF_OBJECTLDR_METHODS  = "methods"
 	CONF_PLUGINS_FOLDER     = "plugins"

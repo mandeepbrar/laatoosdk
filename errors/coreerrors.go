@@ -35,13 +35,13 @@ func init() {
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
 }
 
-func WrapError(ctx core.Context, err error) error {
+func WrapError(ctx core.Context, err error, info ...interface{}) error {
 	if err != nil {
 		_, ok := err.(Error)
 		if ok {
 			return err
 		} else {
-			return RethrowError(ctx, CORE_ERROR_WRAPPER, err)
+			return RethrowError(ctx, CORE_ERROR_WRAPPER, err, info...)
 		}
 	}
 	return nil
