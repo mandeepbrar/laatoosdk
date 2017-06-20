@@ -5,10 +5,11 @@ package log
 import (
 	"bytes"
 	"fmt"
-	"github.com/fatih/color"
 	"laatoo/sdk/core"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 func init() {
@@ -44,7 +45,7 @@ func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh Simple
 	buffer.WriteString(fmt.Sprintln("		LEVEL ", strlevel))
 	buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
 	if ctx != nil {
-		buffer.WriteString(fmt.Sprintln("		PATH ", ctx.GetPath()))
+		buffer.WriteString(fmt.Sprintln(color.YellowString("%s %s", "		PATH ", ctx.GetPath())))
 		buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
