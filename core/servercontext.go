@@ -28,6 +28,7 @@ const (
 	ServerElementMessagingManager
 	ServerElementTaskManager
 	ServerElementCacheManager
+	ServerElementLogger
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3

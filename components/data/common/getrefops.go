@@ -38,7 +38,7 @@ func fillJoin(ctx core.RequestContext, dataService data.DataComponent, targetfie
 			id := stor.GetId()
 			joinedItem, ok := hash[id]
 			if ok {
-				log.Logger.Info(ctx, "Joining item", "item", joinedItem)
+				log.Info(ctx, "Joining item", "item", joinedItem)
 				stor.Join(joinedItem)
 			}
 		}
@@ -57,10 +57,10 @@ func fillJoin(ctx core.RequestContext, dataService data.DataComponent, targetfie
 func GetRefOps(ctx core.RequestContext, opers []RefOperation, ids []string, inputData interface{}) (interface{}, error) {
 	if opers != nil {
 		var err error
-		log.Logger.Trace(ctx, "getrefops")
+		log.Trace(ctx, "getrefops")
 		for _, oper := range opers {
 			gr := oper.(*getRefOperation)
-			log.Logger.Trace(ctx, "getrefops", "oper", gr.name)
+			log.Trace(ctx, "getrefops", "oper", gr.name)
 			inputData, err = gr.do(ctx, ids, inputData)
 			if err != nil {
 				return nil, err

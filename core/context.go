@@ -26,4 +26,10 @@ type Context interface {
 	GetAppengineContext() glctx.Context
 	HttpClient() *http.Client
 	GetOAuthContext() glctx.Context
+	LogTrace(msg string, args ...interface{})
+	LogDebug(msg string, args ...interface{})
+	LogInfo(msg string, args ...interface{})
+	LogWarn(msg string, args ...interface{})
+	LogError(msg string, args ...interface{})
+	LogFatal(msg string, args ...interface{})
 }

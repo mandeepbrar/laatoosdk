@@ -188,7 +188,7 @@ func (svc *cachedDataService) GetById(ctx core.RequestContext, id string) (data.
 
 	ent, ok := ctx.GetObjectFromCache(svc.object, id, svc.object)
 	if ok {
-		log.Logger.Trace(ctx, "Cache hit")
+		log.Trace(ctx, "Cache hit")
 		return ent.(data.Storable), nil
 	}
 	stor, err := svc.rootComp.GetById(ctx, id)
@@ -227,7 +227,7 @@ func (svc *cachedDataService) GetMulti(ctx core.RequestContext, ids []string, or
 			}
 		}
 	}
-	log.Logger.Error(ctx, "Elapsed time after db", "time", ctx.GetElapsedTime())
+	log.Error(ctx, "Elapsed time after db", "time", ctx.GetElapsedTime())
 	return res, err
 }
 

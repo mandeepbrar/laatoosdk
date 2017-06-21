@@ -27,7 +27,7 @@ func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) er
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Error(ctx, "initialized ", "datacomponent", svc.PluginDataComponent)
+	log.Error(ctx, "initialized ", "datacomponent", svc.PluginDataComponent)
 	bsSvc, ok := conf.GetString(CONF_BASE_SVC)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_BASE_SVC)
@@ -40,7 +40,7 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 	if svc.PluginDataComponent != nil {
 		return nil
 	}
-	log.Logger.Error(ctx, "initializing ", "datacomponent", svc.PluginDataComponent)
+	log.Error(ctx, "initializing ", "datacomponent", svc.PluginDataComponent)
 	s, err := ctx.GetService(svc.dataServiceName)
 	if err != nil {
 		return errors.BadConf(ctx, CONF_BASE_SVC)

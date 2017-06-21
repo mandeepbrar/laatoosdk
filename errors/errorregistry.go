@@ -87,15 +87,15 @@ func throwError(ctx core.Context, registeredError *Error, rethrownError error, i
 	}
 	switch registeredError.Loglevel {
 	case FATAL:
-		log.Logger.Fatal(ctx, "Encountered error", infoArr...)
+		log.Fatal(ctx, "Encountered error", infoArr...)
 	case ERROR:
-		log.Logger.Error(ctx, "Encountered error", infoArr...)
+		log.Error(ctx, "Encountered error", infoArr...)
 	case WARNING:
-		log.Logger.Warn(ctx, "Encountered warning", infoArr...)
+		log.Warn(ctx, "Encountered warning", infoArr...)
 	case INFO:
-		log.Logger.Info(ctx, "Info Error", infoArr...)
+		log.Info(ctx, "Info Error", infoArr...)
 	case DEBUG:
-		log.Logger.Debug(ctx, "Debug Error", infoArr...)
+		log.Debug(ctx, "Debug Error", infoArr...)
 	}
 	//call the handlers while throwing an error
 	handlers := ErrorsHandlersRegister[registeredError.InternalErrorCode]

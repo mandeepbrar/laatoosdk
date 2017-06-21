@@ -45,10 +45,10 @@ func cascadeDelete(ctx core.RequestContext, dataService data.DataComponent, targ
 
 func DeleteRefOps(ctx core.RequestContext, opers []RefOperation, ids []string) error {
 	if opers != nil {
-		log.Logger.Trace(ctx, "deleterefops")
+		log.Trace(ctx, "deleterefops")
 		for _, oper := range opers {
 			dr := oper.(*deleteRefOperation)
-			log.Logger.Trace(ctx, "deleterefops", "oper", dr.name)
+			log.Trace(ctx, "deleterefops", "oper", dr.name)
 			err := dr.do(ctx, ids)
 			if err != nil {
 				return err

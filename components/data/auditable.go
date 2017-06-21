@@ -34,7 +34,7 @@ func Audit(ctx core.RequestContext, item interface{}) {
 				}
 				auditable.SetUpdatedAt(tim)
 			} else {
-				log.Logger.Info(ctx, "Could not audit entity. User nil")
+				log.Info(ctx, "Could not audit entity. User nil")
 			}
 		} else {
 			updateMap, mapok := item.(map[string]interface{})
@@ -45,7 +45,7 @@ func Audit(ctx core.RequestContext, item interface{}) {
 					updateMap["UpdatedBy"] = id
 					updateMap["UpdatedAt"] = time.Now()
 				} else {
-					log.Logger.Info(ctx, "Could not audit map. User nil")
+					log.Info(ctx, "Could not audit map. User nil")
 				}
 			}
 		}
