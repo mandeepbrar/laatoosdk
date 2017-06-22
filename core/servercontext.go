@@ -51,7 +51,7 @@ type ServerContext interface {
 	NewContextWithElements(name string, elements ContextMap, primaryElement ServerElementType) ServerContext
 	SubContext(name string) ServerContext
 	SubContextWithElement(name string, primaryElement ServerElementType) ServerContext
-	CreateNewRequest(name string, engineCtx interface{}) RequestContext
+	CreateNewRequest(name string, params interface{}) RequestContext
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
 	GetMethod(methodName string) (ServiceFunc, error)

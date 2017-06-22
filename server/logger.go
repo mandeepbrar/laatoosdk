@@ -1,11 +1,11 @@
 package server
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
-	"laatoo/sdk/log"
 )
 
 type Logger interface {
 	core.ServerElement
-	log.Logger
+	components.Logger
 }
