@@ -37,12 +37,14 @@ const (
 type ContextMap map[ServerElementType]ServerElement
 
 type ServerElement interface {
-	Context
+	Reference() ServerElement
+	GetProperty(string) interface{}
+	GetName() string
+	GetType() ServerElementType
 }
 
 type ServerContext interface {
 	Context
-	GetServerType() string
 	GetElement() ServerElement
 	GetServerElement(ServerElementType) ServerElement
 	GetService(alias string) (Service, error)
