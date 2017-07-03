@@ -10,7 +10,7 @@ type RequestContext interface {
 	EngineRequestContext() interface{}
 	SubContext(name string) RequestContext
 	GetServerElement(elemType ServerElementType) ServerElement
-	NewContext(name string) RequestContext
+	//NewContext(name string) RequestContext
 	GetUser() auth.User
 	HasPermission(perm string) bool
 	PublishMessage(topic string, message interface{})
