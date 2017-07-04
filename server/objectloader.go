@@ -7,6 +7,7 @@ type ObjectLoader interface {
 	Register(ctx core.Context, objectName string, obj interface{})
 	RegisterObjectFactory(ctx core.Context, objectName string, factory core.ObjectFactory)
 	RegisterObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator)
+	RegisterInvokableMethod(ctx core.Context, methodName string, method core.ServiceFunc)
 	CreateCollection(ctx core.Context, objectName string, length int) (interface{}, error)
 	CreateObject(ctx core.Context, objectName string) (interface{}, error)
 	GetObjectCollectionCreator(ctx core.Context, objectName string) (core.ObjectCollectionCreator, error)
