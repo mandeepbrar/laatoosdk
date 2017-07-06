@@ -18,6 +18,8 @@ type Context interface {
 	SetGaeReq(req *http.Request)
 	Set(key string, value interface{})
 	GetString(key string) (string, bool)
+	GetVariable(key string) (string, bool)
+	SetVariable(key string, value string)
 	GetBool(key string) (bool, bool)
 	GetInt(key string) (int, bool)
 	GetStringArray(key string) ([]string, bool)
