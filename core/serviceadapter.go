@@ -5,9 +5,9 @@ import (
 )
 
 //service method for doing various tasks
-func NewService(ctx ServerContext, alias string, servFunc ServiceFunc) Service {
+func NewService(ctx ServerContext, alias string, servFunc ServiceFunc, params ServiceParamsMap, response ServiceParamsMap) Service {
 	if servFunc != nil {
-		return &serviceImpl{name: alias, servFunc: servFunc}
+		return &serviceImpl{name: alias, servFunc: servFunc, params: params, response: response}
 	}
 	return nil
 }
@@ -15,18 +15,26 @@ func NewService(ctx ServerContext, alias string, servFunc ServiceFunc) Service {
 type serviceImpl struct {
 	name     string
 	servFunc ServiceFunc
+	params   ServiceParamsMap
+	response ServiceParamsMap
 }
 
 func (svc *serviceImpl) GetName() string {
 	return svc.name
+}
+func (svc *serviceImpl) Info() *ServiceInfo {
+	inf := &ServiceInfo{}
+	inf.Request.Params = svc.params
+	inf.Response.Params = svc.response
+	return inf
 }
 
 func (svc *serviceImpl) Initialize(ctx ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *serviceImpl) Invoke(ctx RequestContext) error {
-	return svc.servFunc(ctx)
+func (svc *serviceImpl) Invoke(ctx RequestContext, request ServiceRequest) (*ServiceResponse, error) {
+	return svc.servFunc(ctx, request)
 }
 
 func (svc *serviceImpl) Start(ctx ServerContext) error {

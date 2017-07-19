@@ -8,6 +8,7 @@ import (
 const (
 	CORE_ERROR_WRAPPER            = "Wrapper"
 	CORE_ERROR_PROVIDER_NOT_FOUND = "Core_Provider_Not_Found"
+	CORE_ERROR_CODEC_NOT_FOUND    = "Core_Codec_Not_Found"
 	CORE_ERROR_MISSING_SERVICE    = "Core_Missing_Service"
 	CORE_ERROR_BAD_ARG            = "Core_Bad_Arg"
 	CORE_ERROR_BAD_REQUEST        = "Core_Bad_Request"
@@ -23,6 +24,7 @@ const (
 func init() {
 	RegisterCode(CORE_ERROR_WRAPPER, FATAL, fmt.Errorf("Wrapped error."))
 	RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, FATAL, fmt.Errorf("Factory not registered."))
+	RegisterCode(CORE_ERROR_CODEC_NOT_FOUND, FATAL, fmt.Errorf("Codec not registered."))
 	RegisterCode(CORE_ERROR_MISSING_SERVICE, FATAL, fmt.Errorf("Expected service is missing."))
 	RegisterCode(CORE_ERROR_PLUGIN_NOT_LOADED, FATAL, fmt.Errorf("Plugins could not be loaded."))
 	RegisterCode(CORE_ERROR_MISSING_ARG, FATAL, fmt.Errorf("All arguments have not been provided for the call."))

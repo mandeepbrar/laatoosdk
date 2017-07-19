@@ -1,13 +1,14 @@
 package server
 
 import (
-	"laatoo/sdk/config"
+	"io"
 	"laatoo/sdk/core"
 )
 
 type Service interface {
 	core.ServerElement
 	Service() core.Service
-	ParamsConfig() config.Config
-	Invoke(ctx core.RequestContext) error
+	//Invoke(core.RequestContext, *core.Request) (*core.ServiceResponse, error)
+	HandleRequest(ctx core.RequestContext, info map[string]interface{}, body []byte) (*core.ServiceResponse, error)
+	HandleStreamedRequest(ctx core.RequestContext, info map[string]interface{}, body io.ReadCloser) (*core.ServiceResponse, error)
 }

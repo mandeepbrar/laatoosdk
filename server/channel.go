@@ -7,6 +7,7 @@ import (
 
 type Channel interface {
 	core.ServerElement
-	Serve(ctx core.ServerContext, service Service, channelConfig config.Config) error
+	GetServiceName() string
+	Serve(ctx core.ServerContext) error
 	Child(ctx core.ServerContext, name string, channelConfig config.Config) (Channel, error)
 }
