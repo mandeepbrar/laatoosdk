@@ -1,44 +1,29 @@
 package core
 
-import (
-	"laatoo/sdk/config"
-)
-
 //service method for doing various tasks
-func NewService(ctx ServerContext, alias string, servFunc ServiceFunc, params ServiceParamsMap, response ServiceParamsMap) Service {
+func NewService(ctx ServerContext, alias string, servFunc ServiceFunc, svcInfo ServiceInfo) Service {
 	if servFunc != nil {
-		return &serviceImpl{name: alias, servFunc: servFunc, params: params, response: response}
+		return &serviceImpl{name: alias, servFunc: servFunc, info: svcInfo}
 	}
 	return nil
 }
 
 type serviceImpl struct {
+	Service
 	name     string
 	servFunc ServiceFunc
-	params   ServiceParamsMap
-	response ServiceParamsMap
+	info     ServiceInfo
 }
 
 func (svc *serviceImpl) GetName() string {
 	return svc.name
 }
-func (svc *serviceImpl) Info() *ServiceInfo {
-	inf := &ServiceInfo{}
-	inf.Request.Params = svc.params
-	inf.Response.Params = svc.response
-	return inf
+func (svc *serviceImpl) Info() ServiceInfo {
+	return svc.info
 }
 
-func (svc *serviceImpl) Initialize(ctx ServerContext, conf config.Config) error {
-	return nil
-}
-
-func (svc *serviceImpl) Invoke(ctx RequestContext, request ServiceRequest) (*ServiceResponse, error) {
+func (svc *serviceImpl) Invoke(ctx RequestContext, request Request) (*Response, error) {
 	return svc.servFunc(ctx, request)
-}
-
-func (svc *serviceImpl) Start(ctx ServerContext) error {
-	return nil
 }
 
 /*

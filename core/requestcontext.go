@@ -20,7 +20,6 @@ type RequestContext interface {
 	GetFromCache(bucket string, key string) (interface{}, bool)
 	GetMultiFromCache(bucket string, keys []string) map[string]interface{}
 	GetObjectFromCache(bucket string, key string, objectType string) (interface{}, bool)
-	CreateRequest() ServiceRequest
 	IncrementInCache(bucket string, key string) error
 	DecrementInCache(bucket string, key string) error
 	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}

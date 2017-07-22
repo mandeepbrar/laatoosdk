@@ -1,62 +1,61 @@
 package core
 
-import (
-	"laatoo/sdk/config"
-)
-
-type ServiceParam struct {
-	Name       string
-	Value      interface{}
-	Paramtype  string
-	Collection bool
+type Service interface {
+	Initialize(ctx ServerContext) error
+	Info() ServiceInfo
+	Start(ctx ServerContext) error
+	Invoke(RequestContext, Request) (*Response, error)
+	AddParams(map[string]string)
+	AddStringParams([]string)
+	AddParam(name string, datatype string, collection bool)
+	AddCollectionParams(map[string]string)
+	AddStringConfigurations([]string)
+	AddConfigurations(map[string]string)
+	AddOptionalConfigurations(map[string]string)
+	SetRequestType(datatype string, collection bool, stream bool)
+	SetResponseType(stream bool)
+	GetConfiguration(string) interface{}
+	SetDescription(string)
+	ConfigureService(requestType string, collection bool, stream bool, params map[string]string, config map[string]string, description string)
 }
 
-type ServiceParamsMap map[string]*ServiceParam
-
-type RequestInfo struct {
-	DataType     string
-	IsCollection bool
-	Streaming    bool
-	Params       ServiceParamsMap
+type ServiceInfo interface {
+	GetRequestInfo() RequestInfo
+	GetResponseInfo() ResponseInfo
+	GetConfigurations() map[string]interface{}
+	GetDescription() string
+	IsComponent() bool
 }
 
-type ResponseInfo struct {
-	DataType     string
-	IsCollection bool
-	Streaming    bool
-	Params       ServiceParamsMap
+type RequestInfo interface {
+	GetDataType() string
+	IsCollection() bool
+	IsStream() bool
+	GetParams() map[string]Param
 }
 
-type ServiceInfo struct {
-	Request  RequestInfo
-	Response ResponseInfo
+type ResponseInfo interface {
+	IsStream() bool
 }
 
-type ServiceRequest interface {
+type Param interface {
+	GetName() string
+	IsCollection() bool
+	GetDataType() string
+	GetValue() interface{}
+}
+
+type ServiceFunc func(ctx RequestContext, request Request) (*Response, error)
+
+type Request interface {
 	GetBody() interface{}
-	SetBody(interface{})
-	GetParams() ServiceParamsMap
-	SetParams(ServiceParamsMap)
-	GetParam(string) (*ServiceParam, bool)
-	AddParam(name string, val interface{}, typ string, collection bool)
+	GetParam(string) (Param, bool)
+	GetParams() map[string]Param
 }
 
-type ServiceResponse struct {
+type Response struct {
 	Status int
 	Data   interface{}
-	Info   ServiceParamsMap
+	Info   map[string]interface{}
 	Return bool
-}
-
-type ServiceFunc func(ctx RequestContext, request ServiceRequest) (*ServiceResponse, error)
-
-type Service interface {
-	Info() *ServiceInfo
-	Initialize(ctx ServerContext, conf config.Config) error
-	Start(ctx ServerContext) error
-	Invoke(RequestContext, ServiceRequest) (*ServiceResponse, error)
-}
-
-func (paramsMap ServiceParamsMap) AddParam(name string, val interface{}, typ string, collection bool) {
-	paramsMap[name] = &ServiceParam{name, val, typ, collection}
 }

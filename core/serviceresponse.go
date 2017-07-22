@@ -18,11 +18,11 @@ const (
 	LastModified    = "Last-Modified"
 )
 
-func NewServiceResponse(status int, data interface{}, info ServiceParamsMap) *ServiceResponse {
+func NewServiceResponse(status int, data interface{}, info map[string]interface{}) *Response {
 	return newServiceResponse(status, data, info, false)
 }
-func newServiceResponse(status int, data interface{}, info ServiceParamsMap, ReturnVal bool) *ServiceResponse {
-	return &ServiceResponse{status, data, info, ReturnVal}
+func newServiceResponse(status int, data interface{}, info map[string]interface{}, ReturnVal bool) *Response {
+	return &Response{status, data, info, ReturnVal}
 }
 
 var (
@@ -33,14 +33,14 @@ var (
 	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, true)
 )
 
-func SuccessResponse(data interface{}) *ServiceResponse {
+func SuccessResponse(data interface{}) *Response {
 	return newServiceResponse(StatusSuccess, data, nil, true)
 }
 
-func BadRequestResponse(data string) *ServiceResponse {
+func BadRequestResponse(data string) *Response {
 	return newServiceResponse(StatusBadRequest, data, nil, true)
 }
 
-func UnauthorizedResponse(data string) *ServiceResponse {
+func UnauthorizedResponse(data string) *Response {
 	return newServiceResponse(StatusUnauthorized, data, nil, true)
 }

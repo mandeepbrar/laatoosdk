@@ -6,5 +6,5 @@ import (
 
 type ServiceResponseHandler interface {
 	core.ServerElement
-	HandleResponse(ctx core.RequestContext, resp *core.ServiceResponse) error
+	HandleResponse(ctx core.RequestContext, resp *core.Response) error
 }
