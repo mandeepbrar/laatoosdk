@@ -100,7 +100,7 @@ func CastToStorableHash(items interface{}) (map[string]Storable, error) {
 		}
 		stor, ok := valPtr.(Storable)
 		if !ok {
-			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr, arr.Index(i).Kind(), arr.Index(i).IsNil())
+			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s %s %t", valPtr, arr.Index(i).Kind(), arr.Index(i).IsNil())
 		}
 		if stor.IsDeleted() {
 			continue

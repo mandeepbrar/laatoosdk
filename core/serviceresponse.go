@@ -1,14 +1,15 @@
 package core
 
 const (
-	StatusSuccess      = 200
-	StatusServeFile    = 201
-	StatusServeBytes   = 202
-	StatusUnauthorized = 401
-	StatusNotFound     = 404
-	StatusRedirect     = 301
-	StatusNotModified  = 305
-	StatusBadRequest   = 400
+	StatusSuccess       = 200
+	StatusServeFile     = 201
+	StatusServeBytes    = 202
+	StatusUnauthorized  = 401
+	StatusNotFound      = 404
+	StatusRedirect      = 301
+	StatusNotModified   = 305
+	StatusBadRequest    = 400
+	StatusInternalError = 500
 )
 
 /***Header****/
@@ -26,11 +27,12 @@ func newServiceResponse(status int, data interface{}, info map[string]interface{
 }
 
 var (
-	StatusSuccessResponse      = newServiceResponse(StatusSuccess, nil, nil, true)
-	StatusUnauthorizedResponse = newServiceResponse(StatusUnauthorized, nil, nil, true)
-	StatusNotFoundResponse     = newServiceResponse(StatusNotFound, nil, nil, true)
-	StatusBadRequestResponse   = newServiceResponse(StatusBadRequest, nil, nil, true)
-	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, true)
+	StatusSuccessResponse       = newServiceResponse(StatusSuccess, nil, nil, true)
+	StatusUnauthorizedResponse  = newServiceResponse(StatusUnauthorized, nil, nil, true)
+	StatusNotFoundResponse      = newServiceResponse(StatusNotFound, nil, nil, true)
+	StatusBadRequestResponse    = newServiceResponse(StatusBadRequest, nil, nil, true)
+	StatusNotModifiedResponse   = newServiceResponse(StatusNotModified, nil, nil, true)
+	StatusInternalErrorResponse = newServiceResponse(StatusInternalError, nil, nil, true)
 )
 
 func SuccessResponse(data interface{}) *Response {
@@ -40,7 +42,9 @@ func SuccessResponse(data interface{}) *Response {
 func BadRequestResponse(data string) *Response {
 	return newServiceResponse(StatusBadRequest, data, nil, true)
 }
-
+func InternalErrorResponse(data string) *Response {
+	return newServiceResponse(StatusInternalError, data, nil, true)
+}
 func UnauthorizedResponse(data string) *Response {
 	return newServiceResponse(StatusUnauthorized, data, nil, true)
 }

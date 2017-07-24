@@ -21,4 +21,5 @@ const (
 	CONF_OBJECT_STRING    = "__string__"
 	CONF_OBJECT_CONFIG    = "__config__"
 	CONF_OBJECT_BOOL      = "__bool__"
+	CONF_OBJECT_INT       = "__int__"
 )

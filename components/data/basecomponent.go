@@ -10,33 +10,89 @@ import (
 Base Component helps create a new data service
 */
 type BaseComponent struct {
+	core.Service
 	Object                  string
 	ObjectCreator           core.ObjectCreator
 	ObjectCollectionCreator core.ObjectCollectionCreator
 	ObjectConfig            *StorableConfig
+	Auditable               bool
+	SoftDelete              bool
+	PreSave                 bool
+	PostSave                bool
+	PostLoad                bool
+	PostUpdate              bool
+	SoftDeleteField         string
+	ObjectId                string
 }
 
-func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) error {
-	object, ok := conf.GetString(CONF_DATA_OBJECT)
-	if !ok {
-		return errors.MissingConf(ctx, CONF_DATA_OBJECT)
-	}
-	objectCreator, err := ctx.GetObjectCreator(object)
+func (bc *BaseComponent) Initialize(ctx core.ServerContext) error {
+	bc.SetComponent(true)
+	bc.AddStringConfigurations([]string{CONF_DATA_OBJECT}, nil)
+	bc.AddOptionalConfigurations(map[string]string{CONF_DATA_AUDITABLE: config.CONF_OBJECT_BOOL, CONF_DATA_POSTUPDATE: config.CONF_OBJECT_BOOL,
+		CONF_DATA_POSTSAVE: config.CONF_OBJECT_BOOL, CONF_DATA_PRESAVE: config.CONF_OBJECT_BOOL, CONF_DATA_POSTLOAD: config.CONF_OBJECT_BOOL}, nil)
+	return nil
+}
+
+func (bc *BaseComponent) Start(ctx core.ServerContext) error {
+	object, _ := bc.GetConfiguration(CONF_DATA_OBJECT)
+	bc.Object = object.(string)
+	objectCreator, err := ctx.GetObjectCreator(bc.Object)
 	if err != nil {
 		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object creator for", object)
 	}
-	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(object)
+
+	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(bc.Object)
 	if err != nil {
 		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object collection creator for", object)
 	}
 
-	bc.Object = object
 	bc.ObjectCreator = objectCreator
 	bc.ObjectCollectionCreator = objectCollectionCreator
 
 	testObj := objectCreator()
 	stor := testObj.(Storable)
 	bc.ObjectConfig = stor.Config()
+
+	bc.ObjectId = bc.ObjectConfig.IdField
+	bc.SoftDeleteField = bc.ObjectConfig.SoftDeleteField
+
+	if bc.SoftDeleteField == "" {
+		bc.SoftDelete = false
+	} else {
+		bc.SoftDelete = true
+	}
+
+	auditable, ok := bc.GetConfiguration(CONF_DATA_AUDITABLE)
+	if ok {
+		bc.Auditable = auditable.(bool)
+	} else {
+		bc.Auditable = bc.ObjectConfig.Auditable
+	}
+	postsave, ok := bc.GetConfiguration(CONF_DATA_POSTSAVE)
+	if ok {
+		bc.PostSave = postsave.(bool)
+	} else {
+		bc.PostSave = bc.ObjectConfig.PostSave
+	}
+	postupdate, ok := bc.GetConfiguration(CONF_DATA_POSTUPDATE)
+	if ok {
+		bc.PostUpdate = postupdate.(bool)
+	} else {
+		bc.PostUpdate = bc.ObjectConfig.PostUpdate
+	}
+	presave, ok := bc.GetConfiguration(CONF_DATA_PRESAVE)
+	if ok {
+		bc.PreSave = presave.(bool)
+	} else {
+		bc.PreSave = bc.ObjectConfig.PreSave
+	}
+	postload, ok := bc.GetConfiguration(CONF_DATA_POSTLOAD)
+	if ok {
+		bc.PostLoad = postload.(bool)
+	} else {
+		bc.PostLoad = bc.ObjectConfig.PostLoad
+	}
+
 	return nil
 }
 

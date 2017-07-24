@@ -1,7 +1,6 @@
 package data
 
 import (
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
@@ -12,7 +11,6 @@ Plugins help a developer create layers of data services over one another
 */
 type DataPlugin struct {
 	*BaseComponent
-	dataServiceName     string
 	PluginDataComponent DataComponent
 }
 
@@ -22,17 +20,13 @@ func NewDataPlugin(ctx core.ServerContext) *DataPlugin {
 func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlugin {
 	return &DataPlugin{BaseComponent: &BaseComponent{}, PluginDataComponent: comp}
 }
-func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.BaseComponent.Initialize(ctx, conf)
+func (svc *DataPlugin) Initialize(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	svc.AddStringConfigurations([]string{CONF_BASE_SVC}, []string{""})
 	log.Error(ctx, "initialized ", "datacomponent", svc.PluginDataComponent)
-	bsSvc, ok := conf.GetString(CONF_BASE_SVC)
-	if !ok {
-		return errors.MissingConf(ctx, CONF_BASE_SVC)
-	}
-	svc.dataServiceName = bsSvc
 	return nil
 }
 
@@ -40,11 +34,16 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 	if svc.PluginDataComponent != nil {
 		return nil
 	}
-	log.Error(ctx, "initializing ", "datacomponent", svc.PluginDataComponent)
-	s, err := ctx.GetService(svc.dataServiceName)
+	bsSvc, present := svc.GetConfiguration(CONF_BASE_SVC)
+	if !present {
+		return errors.MissingConf(ctx, CONF_BASE_SVC)
+	}
+
+	s, err := ctx.GetService(bsSvc.(string))
 	if err != nil {
 		return errors.BadConf(ctx, CONF_BASE_SVC)
 	}
+
 	PluginDataComponent, ok := s.(DataComponent)
 	if !ok {
 		return errors.BadConf(ctx, CONF_BASE_SVC)
@@ -53,9 +52,6 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *DataPlugin) Invoke(ctx core.RequestContext) error {
-	return nil
-}
 func (svc *DataPlugin) GetCollection() string {
 	return svc.PluginDataComponent.GetCollection()
 }

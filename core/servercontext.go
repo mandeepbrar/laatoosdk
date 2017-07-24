@@ -52,9 +52,8 @@ type ServerContext interface {
 	CreateNewRequest(name string, params interface{}) RequestContext
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
-	GetMethod(methodName string) (ServiceFunc, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
 	GetObjectCreator(objectName string) (ObjectCreator, error)
 	CreateSystemRequest(name string) RequestContext
-	SubscribeTopic(topics []string, lstnr ServiceFunc) error
+	SubscribeTopic(topics []string, lstnr MessageListener) error
 }

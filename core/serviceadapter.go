@@ -1,5 +1,6 @@
 package core
 
+/*
 //service method for doing various tasks
 func NewService(ctx ServerContext, alias string, servFunc ServiceFunc, svcInfo ServiceInfo) Service {
 	if servFunc != nil {

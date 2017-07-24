@@ -6,7 +6,6 @@ type PluginComponent struct {
 	ObjectCollectionCreator ObjectCollectionCreator
 	ObjectCreator           ObjectCreator
 	ObjectFactory           ObjectFactory
-	ServiceFunc             ServiceFunc
 }
 
 //manifest that needs to be provided by every plugin
