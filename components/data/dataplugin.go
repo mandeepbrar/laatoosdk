@@ -3,30 +3,26 @@ package data
 import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
 )
 
 /*
 Plugins help a developer create layers of data services over one another
 */
 type DataPlugin struct {
-	*BaseComponent
+	core.Service
 	PluginDataComponent DataComponent
 }
 
 func NewDataPlugin(ctx core.ServerContext) *DataPlugin {
-	return &DataPlugin{BaseComponent: &BaseComponent{}}
+	return &DataPlugin{}
 }
 func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlugin {
-	return &DataPlugin{BaseComponent: &BaseComponent{}, PluginDataComponent: comp}
+	return &DataPlugin{PluginDataComponent: comp}
 }
 func (svc *DataPlugin) Initialize(ctx core.ServerContext) error {
-	err := svc.BaseComponent.Initialize(ctx)
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	if svc.PluginDataComponent == nil {
+		svc.AddStringConfiguration(CONF_BASE_SVC)
 	}
-	svc.AddStringConfigurations([]string{CONF_BASE_SVC}, []string{""})
-	log.Error(ctx, "initialized ", "datacomponent", svc.PluginDataComponent)
 	return nil
 }
 
@@ -34,22 +30,31 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 	if svc.PluginDataComponent != nil {
 		return nil
 	}
-	bsSvc, present := svc.GetConfiguration(CONF_BASE_SVC)
-	if !present {
-		return errors.MissingConf(ctx, CONF_BASE_SVC)
-	}
 
-	s, err := ctx.GetService(bsSvc.(string))
+	bsSvc, _ := svc.GetStringConfiguration(CONF_BASE_SVC)
+	s, err := ctx.GetService(bsSvc)
 	if err != nil {
 		return errors.BadConf(ctx, CONF_BASE_SVC)
 	}
 
-	PluginDataComponent, ok := s.(DataComponent)
+	dc, ok := s.(DataComponent)
 	if !ok {
 		return errors.BadConf(ctx, CONF_BASE_SVC)
 	}
-	svc.PluginDataComponent = PluginDataComponent
+	svc.PluginDataComponent = dc
+
 	return nil
+}
+
+func (svc *DataPlugin) GetObject() string {
+	return svc.PluginDataComponent.GetObject()
+}
+func (svc *DataPlugin) GetObjectCollectionCreator() core.ObjectCollectionCreator {
+	return svc.PluginDataComponent.GetObjectCollectionCreator()
+}
+
+func (svc *DataPlugin) GetObjectCreator() core.ObjectCreator {
+	return svc.PluginDataComponent.GetObjectCreator()
 }
 
 func (svc *DataPlugin) GetCollection() string {
@@ -160,4 +165,12 @@ func (svc *DataPlugin) Get(ctx core.RequestContext, queryCond interface{}, pageS
 //create condition for passing to data service
 func (svc *DataPlugin) CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error) {
 	return svc.PluginDataComponent.CreateCondition(ctx, operation, args...)
+}
+
+func (svc *DataPlugin) AddToArray(ctx core.RequestContext, id string, fieldName string, item interface{}) error {
+	return svc.PluginDataComponent.AddToArray(ctx, id, fieldName, item)
+}
+
+func (svc *DataPlugin) Execute(ctx core.RequestContext, name string, data interface{}, params map[string]interface{}) (interface{}, error) {
+	return svc.PluginDataComponent.Execute(ctx, name, data, params)
 }
