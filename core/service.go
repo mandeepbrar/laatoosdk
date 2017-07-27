@@ -22,6 +22,7 @@ type Service interface {
 	GetStringConfiguration(string) (string, bool)
 	GetBoolConfiguration(string) (bool, bool)
 	GetMapConfiguration(string) (config.Config, bool)
+	InjectServices(map[string]string)
 
 	SetDescription(string)
 	SetComponent(bool)
@@ -34,6 +35,7 @@ type ServiceInfo interface {
 	GetConfigurations() map[string]interface{}
 	GetDescription() string
 	IsComponent() bool
+	GetRequiredServices() map[string]string
 }
 
 type RequestInfo interface {
