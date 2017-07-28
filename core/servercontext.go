@@ -26,6 +26,7 @@ const (
 	ServerElementServer
 	ServerElementSecurityHandler
 	ServerElementMessagingManager
+	ServerElementModuleManager
 	ServerElementTaskManager
 	ServerElementCacheManager
 	ServerElementLogger

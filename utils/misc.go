@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -72,7 +73,7 @@ func CopyFile(source string, dest string) (err error) {
 	return
 }
 
-func CopyDir(source string, dest string) (err error) {
+func CopyDir(source string, dest string, prefix string) (err error) {
 	// get properties of source dir
 	_, fi, err := FileExists(source)
 	if err != nil {
@@ -94,9 +95,9 @@ func CopyDir(source string, dest string) (err error) {
 
 	for _, entry := range entries {
 		sfp := path.Join(source, entry.Name())
-		dfp := path.Join(dest, entry.Name())
+		dfp := path.Join(dest, fmt.Sprintf("%s%s", prefix, entry.Name()))
 		if entry.IsDir() {
-			err = CopyDir(sfp, dfp)
+			err = CopyDir(sfp, dfp, prefix)
 			if err != nil {
 				return
 			}
