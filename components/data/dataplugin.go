@@ -21,7 +21,7 @@ func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlug
 }
 func (svc *DataPlugin) Initialize(ctx core.ServerContext) error {
 	if svc.PluginDataComponent == nil {
-		svc.AddStringConfiguration(CONF_BASE_SVC)
+		svc.AddStringConfiguration(ctx, CONF_BASE_SVC)
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (svc *DataPlugin) Start(ctx core.ServerContext) error {
 		return nil
 	}
 
-	bsSvc, _ := svc.GetStringConfiguration(CONF_BASE_SVC)
+	bsSvc, _ := svc.GetStringConfiguration(ctx, CONF_BASE_SVC)
 	s, err := ctx.GetService(bsSvc)
 	if err != nil {
 		return errors.BadConf(ctx, CONF_BASE_SVC)

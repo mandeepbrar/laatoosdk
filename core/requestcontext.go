@@ -11,6 +11,15 @@ type RequestContext interface {
 	SubContext(name string) RequestContext
 	GetServerElement(elemType ServerElementType) ServerElement
 	//NewContext(name string) RequestContext
+	GetRequest() Request
+	SetResponse(*Response)
+	GetResponse() *Response
+	GetBody() interface{}
+	GetParam(string) (Param, bool)
+	GetParams() map[string]Param
+	GetIntParam(string) (int, bool)
+	GetStringParam(string) (string, bool)
+	GetStringMapValue(string) (map[string]interface{}, bool)
 	GetUser() auth.User
 	HasPermission(perm string) bool
 	PublishMessage(topic string, message interface{})

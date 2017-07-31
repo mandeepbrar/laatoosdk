@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"archive/zip"
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 )
 
 func FileExists(file string) (bool, os.FileInfo, error) {
@@ -15,41 +15,69 @@ func FileExists(file string) (bool, os.FileInfo, error) {
 	return err == nil, inf, err
 }
 
-func Unzip(archive, target string) error {
-	reader, err := zip.OpenReader(archive)
+// ReadPackedFile is a function to unpack a tar.gz
+func ReadPackedFile(filepath string) {
+	if filepath == "" {
+		panic("Empty input!")
+	}
+
+	processFile(filepath)
+}
+
+func processFile(srcFile string) {
+
+	f, err := os.Open(srcFile)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	gzf, err := gzip.NewReader(f)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	if err := os.MkdirAll(target, 0755); err != nil {
-		return err
-	}
+	tarReader := tar.NewReader(gzf)
+	// defer io.Copy(os.Stdout, tarReader)
 
-	for _, file := range reader.File {
-		path := filepath.Join(target, file.Name)
-		if file.FileInfo().IsDir() {
-			os.MkdirAll(path, file.Mode())
-			continue
+	for true {
+		header, err := tarReader.Next()
+
+		if err == io.EOF {
+			break
 		}
 
-		fileReader, err := file.Open()
 		if err != nil {
-			return err
+			fmt.Println(err)
+			os.Exit(1)
 		}
-		defer fileReader.Close()
 
-		targetFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, file.Mode())
-		if err != nil {
-			return err
-		}
-		defer targetFile.Close()
+		name := header.Name
 
-		if _, err := io.Copy(targetFile, fileReader); err != nil {
-			return err
+		switch header.Typeflag {
+		case tar.TypeDir: // = directory
+			fmt.Println("Directory:", name)
+			os.Mkdir(name, 0755)
+		case tar.TypeReg: // = regular file
+			fmt.Println("Regular file:", name)
+			data := make([]byte, header.Size)
+			_, err := tarReader.Read(data)
+			if err != nil {
+				panic("Error reading file!!! PANIC!!!!!!")
+			}
+
+			ioutil.WriteFile(name, data, 0755)
+		default:
+			fmt.Printf("%s : %c %s %s\n",
+				"Yikes! Unable to figure out type",
+				header.Typeflag,
+				"in file",
+				name,
+			)
 		}
 	}
-
-	return nil
 }
 
 func CopyFile(source string, dest string) (err error) {

@@ -6,27 +6,27 @@ type Service interface {
 	Initialize(ctx ServerContext) error
 	Info() ServiceInfo
 	Start(ctx ServerContext) error
-	Invoke(RequestContext, Request) (*Response, error)
-	AddParams(map[string]string)
-	AddStringParams(names []string, defaultValues []string)
-	AddStringParam(name string)
-	AddParam(name string, datatype string, collection bool)
-	AddCollectionParams(map[string]string)
-	AddStringConfigurations(names []string, defaultValues []string)
-	AddStringConfiguration(name string)
-	AddConfigurations(map[string]string)
-	AddOptionalConfigurations(map[string]string, map[string]interface{})
-	SetRequestType(datatype string, collection bool, stream bool)
-	SetResponseType(stream bool)
-	GetConfiguration(string) (interface{}, bool)
-	GetStringConfiguration(string) (string, bool)
-	GetBoolConfiguration(string) (bool, bool)
-	GetMapConfiguration(string) (config.Config, bool)
-	InjectServices(map[string]string)
+	Invoke(RequestContext) error
+	AddParams(ServerContext, map[string]string)
+	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
+	AddStringParam(ctx ServerContext, name string)
+	AddParam(ctx ServerContext, name string, datatype string, collection bool)
+	AddCollectionParams(ServerContext, map[string]string)
+	AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
+	AddStringConfiguration(ctx ServerContext, name string)
+	AddConfigurations(ServerContext, map[string]string)
+	AddOptionalConfigurations(ServerContext, map[string]string, map[string]interface{})
+	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
+	SetResponseType(ctx ServerContext, stream bool)
+	GetConfiguration(ServerContext, string) (interface{}, bool)
+	GetStringConfiguration(ServerContext, string) (string, bool)
+	GetBoolConfiguration(ServerContext, string) (bool, bool)
+	GetMapConfiguration(ServerContext, string) (config.Config, bool)
+	InjectServices(ServerContext, map[string]string)
 
-	SetDescription(string)
-	SetComponent(bool)
-	ConfigureService(requestType string, collection bool, stream bool, params map[string]string, config map[string]string, description string)
+	SetDescription(ServerContext, string)
+	SetComponent(ServerContext, bool)
+	ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params map[string]string, config map[string]string, description string)
 }
 
 type ServiceInfo interface {
@@ -56,7 +56,7 @@ type Param interface {
 	GetValue() interface{}
 }
 
-type ServiceFunc func(ctx RequestContext, request Request) (*Response, error)
+type ServiceFunc func(ctx RequestContext) error
 
 type Request interface {
 	GetBody() interface{}

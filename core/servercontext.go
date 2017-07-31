@@ -29,6 +29,7 @@ const (
 	ServerElementModuleManager
 	ServerElementTaskManager
 	ServerElementCacheManager
+	ServerElementModule
 	ServerElementLogger
 	ServerElementOpen1
 	ServerElementOpen2
