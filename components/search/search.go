@@ -3,8 +3,8 @@ package search
 import "laatoo/sdk/core"
 
 const (
-	CONF_INDEX        = "index"
-	CONF_NUMOFRESULTS = "results"
+	CONF_INDEX        = "searchindex"
+	CONF_NUMOFRESULTS = "searchresults"
 )
 
 type SearchComponent interface {
