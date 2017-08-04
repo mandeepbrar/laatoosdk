@@ -26,7 +26,7 @@ type Service interface {
 
 	SetDescription(ServerContext, string)
 	SetComponent(ServerContext, bool)
-	ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params map[string]string, config map[string]string, description string)
+	ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
 }
 
 type ServiceInfo interface {
