@@ -12,11 +12,8 @@ func NewFactory(creator ObjectCreator) ObjectCreator {
 }
 
 type FactoryImpl struct {
+	ServiceFactory
 	creator ObjectCreator
-}
-
-func (fac *FactoryImpl) Initialize(ctx ServerContext, conf config.Config) error {
-	return nil
 }
 
 //Create the services configured for factory.
@@ -24,9 +21,4 @@ func (fac *FactoryImpl) CreateService(ctx ServerContext, name string, method str
 	obj := fac.creator()
 	svc, _ := obj.(Service)
 	return svc, nil
-}
-
-//The services start serving when this method is called
-func (fac *FactoryImpl) Start(ctx ServerContext) error {
-	return nil
 }
