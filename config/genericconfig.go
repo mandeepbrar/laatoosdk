@@ -88,6 +88,11 @@ func (conf GenericConfig) GetSubConfig(configurationName string) (Config, bool) 
 		if ok {
 			gc = cf
 			return gc, true
+		} else {
+			c, ok := val.(Config)
+			if ok {
+				return c, true
+			}
 		}
 		return nil, false
 	}

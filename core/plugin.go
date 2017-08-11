@@ -6,7 +6,8 @@ type PluginComponent struct {
 	ObjectCollectionCreator ObjectCollectionCreator
 	ObjectCreator           ObjectCreator
 	ObjectFactory           ObjectFactory
+	MetaData                Info
 }
 
 //manifest that needs to be provided by every plugin
-type PluginManifest func() []PluginComponent
+type PluginManifest func(MetaDataProvider) []PluginComponent

@@ -14,6 +14,8 @@ type ObjectFactory interface {
 	CreateObject() interface{}
 	//Creates collection
 	CreateObjectCollection(length int) interface{}
+	//Get Metadata for the object
+	Info() Info
 }
 
 type Initializable interface {

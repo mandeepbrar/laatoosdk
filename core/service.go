@@ -1,9 +1,11 @@
 package core
 
+import "laatoo/sdk/config"
+
 type Service interface {
 	ConfigurableObject
-	Initialize(ctx ServerContext) error
-	Info() ServiceInfo
+	Describe(ServerContext)
+	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
 	Invoke(RequestContext) error
 	AddParams(ServerContext, map[string]string)
@@ -17,25 +19,6 @@ type Service interface {
 	SetDescription(ServerContext, string)
 	SetComponent(ServerContext, bool)
 	ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
-}
-
-type ServiceInfo interface {
-	GetRequestInfo() RequestInfo
-	GetResponseInfo() ResponseInfo
-	GetDescription() string
-	IsComponent() bool
-	GetRequiredServices() map[string]string
-}
-
-type RequestInfo interface {
-	GetDataType() string
-	IsCollection() bool
-	IsStream() bool
-	GetParams() map[string]Param
-}
-
-type ResponseInfo interface {
-	IsStream() bool
 }
 
 type Param interface {

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 )
@@ -19,14 +20,14 @@ func NewDataPlugin(ctx core.ServerContext) *DataPlugin {
 func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlugin {
 	return &DataPlugin{PluginDataComponent: comp}
 }
-func (svc *DataPlugin) Initialize(ctx core.ServerContext) error {
+func (svc *DataPlugin) Describe(ctx core.ServerContext) error {
 	if svc.PluginDataComponent == nil {
 		svc.AddStringConfiguration(ctx, CONF_BASE_SVC)
 	}
 	return nil
 }
 
-func (svc *DataPlugin) Start(ctx core.ServerContext) error {
+func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) error {
 	if svc.PluginDataComponent != nil {
 		return nil
 	}

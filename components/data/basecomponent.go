@@ -25,7 +25,7 @@ type BaseComponent struct {
 	ObjectId                string
 }
 
-func (bc *BaseComponent) Initialize(ctx core.ServerContext) error {
+func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.SetComponent(ctx, true)
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
 	bc.AddOptionalConfigurations(ctx, map[string]string{CONF_DATA_AUDITABLE: config.CONF_OBJECT_BOOL, CONF_DATA_POSTUPDATE: config.CONF_OBJECT_BOOL,
@@ -33,17 +33,16 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext) error {
 	return nil
 }
 
-func (bc *BaseComponent) Start(ctx core.ServerContext) error {
-	object, _ := bc.GetConfiguration(ctx, CONF_DATA_OBJECT)
-	bc.Object = object.(string)
+func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) error {
+	bc.Object, _ = bc.GetStringConfiguration(ctx, CONF_DATA_OBJECT)
 	objectCreator, err := ctx.GetObjectCreator(bc.Object)
 	if err != nil {
-		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object creator for", object)
+		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object creator for", bc.Object)
 	}
 
 	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(bc.Object)
 	if err != nil {
-		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object collection creator for", object)
+		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object collection creator for", bc.Object)
 	}
 
 	bc.ObjectCreator = objectCreator
@@ -62,33 +61,33 @@ func (bc *BaseComponent) Start(ctx core.ServerContext) error {
 		bc.SoftDelete = true
 	}
 
-	auditable, ok := bc.GetConfiguration(ctx, CONF_DATA_AUDITABLE)
+	auditable, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_AUDITABLE)
 	if ok {
-		bc.Auditable = auditable.(bool)
+		bc.Auditable = auditable
 	} else {
 		bc.Auditable = bc.ObjectConfig.Auditable
 	}
-	postsave, ok := bc.GetConfiguration(ctx, CONF_DATA_POSTSAVE)
+	postsave, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_POSTSAVE)
 	if ok {
-		bc.PostSave = postsave.(bool)
+		bc.PostSave = postsave
 	} else {
 		bc.PostSave = bc.ObjectConfig.PostSave
 	}
-	postupdate, ok := bc.GetConfiguration(ctx, CONF_DATA_POSTUPDATE)
+	postupdate, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_POSTUPDATE)
 	if ok {
-		bc.PostUpdate = postupdate.(bool)
+		bc.PostUpdate = postupdate
 	} else {
 		bc.PostUpdate = bc.ObjectConfig.PostUpdate
 	}
-	presave, ok := bc.GetConfiguration(ctx, CONF_DATA_PRESAVE)
+	presave, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_PRESAVE)
 	if ok {
-		bc.PreSave = presave.(bool)
+		bc.PreSave = presave
 	} else {
 		bc.PreSave = bc.ObjectConfig.PreSave
 	}
-	postload, ok := bc.GetConfiguration(ctx, CONF_DATA_POSTLOAD)
+	postload, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_POSTLOAD)
 	if ok {
-		bc.PostLoad = postload.(bool)
+		bc.PostLoad = postload
 	} else {
 		bc.PostLoad = bc.ObjectConfig.PostLoad
 	}

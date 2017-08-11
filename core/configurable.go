@@ -2,14 +2,22 @@ package core
 
 import "laatoo/sdk/config"
 
+type Configuration interface {
+	GetName() string
+	IsRequired() bool
+	GetDefaultValue() interface{}
+	GetValue() interface{}
+	GetType() string
+}
+
 type ConfigurableObject interface {
-	GetConfigurations() map[string]interface{}
+	GetConfigurations() map[string]Configuration
 	AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
 	AddStringConfiguration(ctx ServerContext, name string)
-	AddConfigurations(ServerContext, map[string]string)
-	AddOptionalConfigurations(ServerContext, map[string]string, map[string]interface{})
-	GetConfiguration(ServerContext, string) (interface{}, bool)
-	GetStringConfiguration(ServerContext, string) (string, bool)
-	GetBoolConfiguration(ServerContext, string) (bool, bool)
-	GetMapConfiguration(ServerContext, string) (config.Config, bool)
+	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string)
+	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string, defaultValueMap map[string]interface{})
+	GetConfiguration(ctx ServerContext, name string) (interface{}, bool)
+	GetStringConfiguration(ctx ServerContext, name string) (string, bool)
+	GetBoolConfiguration(ctx ServerContext, name string) (bool, bool)
+	GetMapConfiguration(ctx ServerContext, name string) (config.Config, bool)
 }

@@ -9,7 +9,8 @@ type ServiceFactoryProvider func(ctx ServerContext, config config.Config) (Servi
 //Service interface that needs to be implemented by any service of a system
 type ServiceFactory interface {
 	ConfigurableObject
-	Initialize(ctx ServerContext) error
+	Describe(ServerContext)
+	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
 	//Create the services configured for factory.
 	CreateService(ctx ServerContext, name string, method string, conf config.Config) (Service, error)

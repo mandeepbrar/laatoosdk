@@ -4,7 +4,8 @@ import "laatoo/sdk/config"
 
 type Module interface {
 	ConfigurableObject
-	Initialize(ctx ServerContext) error
+	Describe(ServerContext)
+	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
 	Factories(ctx ServerContext) map[string]config.Config
 	Services(ctx ServerContext) map[string]config.Config
