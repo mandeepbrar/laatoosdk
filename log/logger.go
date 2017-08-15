@@ -20,6 +20,9 @@ func Error(reqContext core.Context, msg string, args ...interface{}) {
 func Fatal(reqContext core.Context, msg string, args ...interface{}) {
 	reqContext.LogFatal(msg, args...)
 }
+func Dump(context core.Context) {
+	context.Dump()
+}
 
 const (
 	FATAL = 1

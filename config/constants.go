@@ -22,4 +22,6 @@ const (
 	OBJECTTYPE_CONFIG    = "config"
 	OBJECTTYPE_BOOL      = "bool"
 	OBJECTTYPE_INT       = "int"
+	BASEDIR              = "basedir"
+	MODULEDIR            = "moduledir"
 )
