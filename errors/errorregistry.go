@@ -2,7 +2,7 @@ package errors
 
 import (
 	"fmt"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/log"
 	"runtime/debug"
 )
@@ -29,7 +29,7 @@ var ShowStack = true
 
 //Error handler for interrupting the error process
 //Returns true if the error has been handled
-type ErrorHandler func(ctx core.Context, err *Error, info ...interface{}) bool
+type ErrorHandler func(ctx ctx.Context, err *Error, info ...interface{}) bool
 
 var (
 	//errors register to store all errors in the process
@@ -57,11 +57,11 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 	ErrorsHandlersRegister[internalErrorCode] = val
 }
 
-func ThrowError(ctx core.Context, internalErrorCode string, info ...interface{}) error {
+func ThrowError(ctx ctx.Context, internalErrorCode string, info ...interface{}) error {
 	return RethrowError(ctx, internalErrorCode, nil, info...)
 }
 
-func RethrowError(ctx core.Context, internalErrorCode string, err error, info ...interface{}) error {
+func RethrowError(ctx ctx.Context, internalErrorCode string, err error, info ...interface{}) error {
 	registeredErr, ok := ErrorsRegister[internalErrorCode]
 	if !ok {
 		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
@@ -71,7 +71,7 @@ func RethrowError(ctx core.Context, internalErrorCode string, err error, info ..
 
 //throw a registered error code
 //rethrow an error with an internal error code
-func throwError(ctx core.Context, registeredError *Error, rethrownError error, info ...interface{}) error {
+func throwError(ctx ctx.Context, registeredError *Error, rethrownError error, info ...interface{}) error {
 	var errDetails []interface{}
 	if rethrownError == nil {
 		errDetails = []interface{}{"Err", registeredError.Error(), "Internal Error Code", registeredError.InternalErrorCode}

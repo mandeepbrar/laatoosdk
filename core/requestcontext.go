@@ -2,10 +2,11 @@ package core
 
 import (
 	"laatoo/sdk/auth"
+	"laatoo/sdk/ctx"
 )
 
 type RequestContext interface {
-	Context
+	ctx.Context
 	ServerContext() ServerContext
 	EngineRequestContext() interface{}
 	SubContext(name string) RequestContext

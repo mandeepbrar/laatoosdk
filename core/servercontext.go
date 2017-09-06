@@ -1,5 +1,7 @@
 package core
 
+import "laatoo/sdk/ctx"
+
 /*application and engine types*/
 const (
 	CONF_SERVERTYPE_STANDALONE = "STANDALONE"
@@ -46,7 +48,7 @@ type ServerElement interface {
 }
 
 type ServerContext interface {
-	Context
+	ctx.Context
 	GetServerElement(ServerElementType) ServerElement
 	GetService(alias string) (Service, error)
 	//NewContext(name string) ServerContext

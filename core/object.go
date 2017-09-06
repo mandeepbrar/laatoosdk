@@ -1,5 +1,7 @@
 package core
 
+import "laatoo/sdk/ctx"
+
 type MethodArgs map[string]interface{}
 
 //Creates object
@@ -19,5 +21,5 @@ type ObjectFactory interface {
 }
 
 type Initializable interface {
-	Init(ctx Context, args MethodArgs) error
+	Init(ctx ctx.Context, args MethodArgs) error
 }

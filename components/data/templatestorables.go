@@ -2,6 +2,7 @@ package data
 
 import (
 	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/utils"
 	"time"
 
@@ -16,7 +17,7 @@ type AbstractStorable struct {
 func NewAbstractStorable() AbstractStorable {
 	return AbstractStorable{Id: uuid.NewV4().String()}
 }
-func (as *AbstractStorable) Init(ctx core.Context, args core.MethodArgs) error {
+func (as *AbstractStorable) Init(ctx ctx.Context, args core.MethodArgs) error {
 	as.Id = uuid.NewV4().String()
 	return nil
 }

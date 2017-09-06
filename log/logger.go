@@ -1,26 +1,26 @@
 package log
 
-import "laatoo/sdk/core"
+import "laatoo/sdk/ctx"
 
-func Trace(reqContext core.Context, msg string, args ...interface{}) {
+func Trace(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogTrace(msg, args...)
 }
-func Debug(reqContext core.Context, msg string, args ...interface{}) {
+func Debug(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogDebug(msg, args...)
 }
-func Info(reqContext core.Context, msg string, args ...interface{}) {
+func Info(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogInfo(msg, args...)
 }
-func Warn(reqContext core.Context, msg string, args ...interface{}) {
+func Warn(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogWarn(msg, args...)
 }
-func Error(reqContext core.Context, msg string, args ...interface{}) {
+func Error(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogError(msg, args...)
 }
-func Fatal(reqContext core.Context, msg string, args ...interface{}) {
+func Fatal(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogFatal(msg, args...)
 }
-func Dump(context core.Context) {
+func Dump(context ctx.Context) {
 	context.Dump()
 }
 

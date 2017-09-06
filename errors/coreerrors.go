@@ -2,7 +2,7 @@ package errors
 
 import (
 	"fmt"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 )
 
 const (
@@ -43,7 +43,7 @@ func init() {
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
 }
 
-func WrapError(ctx core.Context, err error, info ...interface{}) error {
+func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 	if err != nil {
 		_, ok := err.(Error)
 		if ok {
@@ -55,42 +55,42 @@ func WrapError(ctx core.Context, err error, info ...interface{}) error {
 	return nil
 }
 
-func BadRequest(ctx core.Context, info ...interface{}) error {
+func BadRequest(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_BAD_REQUEST, info...)
 }
 
-func BadArg(ctx core.Context, argName string, info ...interface{}) error {
+func BadArg(ctx ctx.Context, argName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_BAD_ARG, append(info, "Argument", argName)...)
 }
 
-func MissingArg(ctx core.Context, argName string, info ...interface{}) error {
+func MissingArg(ctx ctx.Context, argName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_MISSING_ARG, append(info, "Argument", argName)...)
 }
 
-func BadConf(ctx core.Context, confName string, info ...interface{}) error {
+func BadConf(ctx ctx.Context, confName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_BAD_CONF, append(info, "Configuration", confName)...)
 }
 
-func DepNotMet(ctx core.Context, dep string, info ...interface{}) error {
+func DepNotMet(ctx ctx.Context, dep string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_DEP_NOT_MET, append(info, "Dependency", dep)...)
 }
 
-func MissingConf(ctx core.Context, confName string, info ...interface{}) error {
+func MissingConf(ctx ctx.Context, confName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_MISSING_CONF, append(info, "Configuration", confName)...)
 }
 
-func MissingService(ctx core.Context, svcName string, info ...interface{}) error {
+func MissingService(ctx ctx.Context, svcName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_MISSING_SERVICE, append(info, "Service", svcName)...)
 }
 
-func NotImplemented(ctx core.Context, methodName string, info ...interface{}) error {
+func NotImplemented(ctx ctx.Context, methodName string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_NOT_IMPLEMENTED, append(info, "Method", methodName)...)
 }
 
-func TypeMismatch(ctx core.Context, info ...interface{}) error {
+func TypeMismatch(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_TYPE_MISMATCH, info...)
 }
 
-func Unauthorized(ctx core.Context, info ...interface{}) error {
+func Unauthorized(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_UNAUTHORIZED, info...)
 }
