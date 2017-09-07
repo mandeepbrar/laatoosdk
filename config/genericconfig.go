@@ -91,21 +91,37 @@ func (conf GenericConfig) AllConfigurations(ctx ctx.Context) []string {
 	return utils.MapKeys(conf)
 }
 
+func (conf GenericConfig) checkConfig(ctx ctx.Context, val interface{}) (Config, bool) {
+	var gc GenericConfig
+	cf, ok := val.(map[string]interface{})
+	if ok {
+		gc = cf
+		return gc, true
+	} else {
+		c, ok := val.(Config)
+		if ok {
+			return c, true
+		} else {
+			return nil, false
+		}
+	}
+}
+
 func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string) (Config, bool) {
 	val, found := conf[configurationName]
 	if found {
-		var gc GenericConfig
-		cf, ok := val.(map[string]interface{})
+		c, ok := conf.checkConfig(ctx, val)
 		if ok {
-			gc = cf
-			return gc, true
+			return c, true
 		} else {
-			c, ok := val.(Config)
-			if ok {
-				return c, true
+			lookupVal := fillVariables(ctx, val)
+			if lookupVal != val {
+				c, ok := conf.checkConfig(ctx, lookupVal)
+				if ok {
+					return c, true
+				}
 			}
 		}
-		return nil, false
 	}
 	return nil, false
 }
