@@ -53,6 +53,7 @@ type ServerContext interface {
 	GetService(alias string) (Service, error)
 	//NewContext(name string) ServerContext
 	SubContext(name string) ServerContext
+	GetServerProperties() map[string]interface{}
 	CreateNewRequest(name string, params interface{}) RequestContext
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
