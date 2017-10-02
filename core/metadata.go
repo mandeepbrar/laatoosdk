@@ -6,7 +6,7 @@ type MetaDataProvider interface {
 	CreateModuleInfo(description string, configurations []Configuration) ModuleInfo
 	CreateRequestInfo(requesttype string, collection bool, stream bool, params []Param) RequestInfo
 	CreateConfiguration(name, conftype string, required bool, defaultValue interface{}) Configuration
-	CreateParam(name, paramtype string, collectio bool) Param
+	CreateParam(name, paramtype string, collectio bool, required bool) Param
 }
 
 type Info interface {

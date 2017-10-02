@@ -8,10 +8,10 @@ type Service interface {
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
 	Invoke(RequestContext) error
-	AddParams(ServerContext, map[string]string)
+	AddParams(ServerContext, map[string]string, bool)
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
 	AddStringParam(ctx ServerContext, name string)
-	AddParam(ctx ServerContext, name string, datatype string, collection bool)
+	AddParam(ctx ServerContext, name string, datatype string, collection, required bool)
 	AddCollectionParams(ServerContext, map[string]string)
 	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
 	SetResponseType(ctx ServerContext, stream bool)
@@ -24,6 +24,7 @@ type Service interface {
 type Param interface {
 	GetName() string
 	IsCollection() bool
+	IsRequired() bool
 	GetDataType() string
 	GetValue() interface{}
 }
