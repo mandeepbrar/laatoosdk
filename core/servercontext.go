@@ -1,6 +1,9 @@
 package core
 
-import "laatoo/sdk/ctx"
+import (
+	"laatoo/sdk/config"
+	"laatoo/sdk/ctx"
+)
 
 /*application and engine types*/
 const (
@@ -61,4 +64,6 @@ type ServerContext interface {
 	GetObjectCreator(objectName string) (ObjectCreator, error)
 	CreateSystemRequest(name string) RequestContext
 	SubscribeTopic(topics []string, lstnr MessageListener) error
+	CreateConfig() config.Config
+	ReadConfig(file string) (config.Config, error)
 }

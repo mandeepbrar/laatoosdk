@@ -11,5 +11,7 @@ type Config interface {
 	GetConfigArray(ctx ctx.Context, configurationName string) ([]Config, bool)
 	Get(ctx ctx.Context, configurationName string) (interface{}, bool)
 	SetString(ctx ctx.Context, configurationName string, configurationValue string)
+	Set(ctx ctx.Context, configurationName string, configurationValue interface{})
+	SetVals(ctx ctx.Context, vals map[string]interface{})
 	AllConfigurations(ctx ctx.Context) []string
 }
