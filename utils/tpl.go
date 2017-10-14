@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"laatoo/sdk/ctx"
 	"laatoo/sdk/log"
+	"strings"
 	"text/template"
 )
 
@@ -30,6 +31,15 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return args[0]
 	}
 
+	defaultVar := func(args ...string) string {
+		_, ok := ctx.Get(args[0])
+		if !ok {
+			return contextVar(args[1])
+		} else {
+			return contextVar(args[0])
+		}
+	}
+
 	eval := func(args ...string) string {
 		if len(args) > 1 && args[1] == "insert" {
 			return fmt.Sprintf("'+%s+'", args[0])
@@ -37,7 +47,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return fmt.Sprintf("%s", args[0])
 	}
 
-	funcMap := template.FuncMap{"var": contextVar, "eval": eval}
+	funcMap := template.FuncMap{"var": contextVar, "eval": eval, "default": defaultVar, "upper": strings.ToUpper, "lower": strings.ToLower, "Title": strings.Title}
 	if funcs != nil {
 		for k, v := range funcs {
 			funcMap[k] = v.(func(variable string) string)
