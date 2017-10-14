@@ -65,5 +65,5 @@ type ServerContext interface {
 	CreateSystemRequest(name string) RequestContext
 	SubscribeTopic(topics []string, lstnr MessageListener) error
 	CreateConfig() config.Config
-	ReadConfig(file string) (config.Config, error)
+	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
 }

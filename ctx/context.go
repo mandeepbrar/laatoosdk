@@ -17,6 +17,7 @@ type Context interface {
 	GetElapsedTime() time.Duration
 	SetGaeReq(req *http.Request)
 	Set(key string, value interface{})
+	SetVals(vals map[string]interface{})
 	GetString(key string) (string, bool)
 	GetBool(key string) (bool, bool)
 	GetInt(key string) (int, bool)
