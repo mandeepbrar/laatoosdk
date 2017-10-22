@@ -19,6 +19,7 @@ const (
 	OBJECTTYPE_BYTES     = "bytes"
 	OBJECTTYPE_FILES     = "files"
 	OBJECTTYPE_STRING    = "string"
+	OBJECTTYPE_DATETIME  = "datetime"
 	OBJECTTYPE_CONFIG    = "config"
 	OBJECTTYPE_BOOL      = "bool"
 	OBJECTTYPE_INT       = "int"
