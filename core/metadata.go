@@ -12,6 +12,7 @@ type MetaDataProvider interface {
 type Info interface {
 	GetDescription() string
 	GetType() string
+	GetProperty(string) interface{}
 }
 
 type ConfigurableObjectInfo interface {
@@ -44,6 +45,30 @@ type ModuleInfo interface {
 
 type ServiceFactoryInfo interface {
 	ConfigurableObjectInfo
+}
+
+type defaultInfo struct {
+	description string
+	objtype     string
+	properties  map[string]interface{}
+}
+
+func NewInfo(description, objtype string, props map[string]interface{}) Info {
+	return &defaultInfo{description, objtype, props}
+}
+
+func (inf *defaultInfo) GetDescription() string {
+	return inf.description
+}
+func (inf *defaultInfo) GetType() string {
+	return inf.objtype
+}
+
+func (inf *defaultInfo) GetProperty(prop string) interface{} {
+	if inf.properties != nil {
+		return inf.properties[prop]
+	}
+	return nil
 }
 
 /*

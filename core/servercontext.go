@@ -62,8 +62,10 @@ type ServerContext interface {
 	CreateObject(objectName string) (interface{}, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
 	GetObjectCreator(objectName string) (ObjectCreator, error)
+	GetObjectMetadata(objectName string) (Info, error)
 	CreateSystemRequest(name string) RequestContext
 	SubscribeTopic(topics []string, lstnr MessageListener) error
 	CreateConfig() config.Config
+	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
 }

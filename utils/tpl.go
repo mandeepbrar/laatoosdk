@@ -53,14 +53,11 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return false
 	}
 
-	eval := func(args ...string) string {
-		if len(args) > 1 && args[1] == "insert" {
-			return fmt.Sprintf("'+%s+'", args[0])
-		}
-		return fmt.Sprintf("%s", args[0])
+	js := func(args ...string) string {
+		return fmt.Sprintf("javascript#@#%s#@#", args[0])
 	}
 
-	funcMap := template.FuncMap{"var": contextVar, "eval": eval, "default": defaultVar, "upper": strings.ToUpper, "lower": strings.ToLower, "title": strings.Title, "exists": exists, "contains": contains}
+	funcMap := template.FuncMap{"var": contextVar, "js": js, "default": defaultVar, "upper": strings.ToUpper, "lower": strings.ToLower, "title": strings.Title, "exists": exists, "contains": contains}
 	if funcs != nil {
 		for k, v := range funcs {
 			funcMap[k] = v.(func(variable string) string)
