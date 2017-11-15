@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/ctx"
 	"laatoo/sdk/utils"
+	"reflect"
 	"time"
 
 	"github.com/twinj/uuid"
@@ -27,6 +28,18 @@ func (as *AbstractStorable) GetId() string {
 func (as *AbstractStorable) SetId(val string) {
 	as.Id = val
 }
+func (as *AbstractStorable) GetLabel() string {
+	c := as.Config()
+	if c != nil && c.LabelField != "" {
+		v := reflect.ValueOf(c)
+		f := v.FieldByName(c.LabelField)
+		if !f.IsNil() {
+			return f.String()
+		}
+	}
+	return ""
+}
+
 func (as *AbstractStorable) PreSave(ctx core.RequestContext) error {
 	return nil
 }

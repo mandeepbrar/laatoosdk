@@ -7,17 +7,20 @@ import (
 )
 
 type StorableConfig struct {
-	IdField         string
-	Type            string
-	SoftDeleteField string
-	PreSave         bool
-	PostSave        bool
-	PostUpdate      bool
-	PostLoad        bool
-	Auditable       bool
-	Collection      string
-	Cacheable       bool
-	RefOps          bool
+	IdField           string
+	LabelField        string
+	PartialLoadFields []string
+	FullLoadFields    []string
+	Type              string
+	SoftDeleteField   string
+	PreSave           bool
+	PostSave          bool
+	PostUpdate        bool
+	PostLoad          bool
+	Auditable         bool
+	Collection        string
+	Cacheable         bool
+	RefOps            bool
 }
 
 //Object stored by data service
@@ -26,6 +29,7 @@ type Storable interface {
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
+	GetLabel() string
 	SetValues(interface{}, map[string]interface{})
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error

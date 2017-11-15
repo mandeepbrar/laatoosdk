@@ -48,7 +48,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	contains := func(variable string, val string) bool {
 		vals, ok := ctx.GetStringArray(variable)
 		if ok {
-			return StrContains(vals, val) > 0
+			return StrContains(vals, val) >= 0
 		}
 		return false
 	}
