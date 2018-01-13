@@ -11,5 +11,6 @@ type StorageComponent interface {
 	GetFullPath(ctx core.RequestContext, fileName string) string
 	ServeFile(ctx core.RequestContext, fileName string) error
 	CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error)
+	ListFiles(ctx core.RequestContext, pattern string) ([]string, error)
 	Exists(ctx core.RequestContext, fileName string) bool
 }
