@@ -9,6 +9,7 @@ type Config interface {
 	GetStringArray(ctx ctx.Context, configurationName string) ([]string, bool)
 	GetSubConfig(ctx ctx.Context, configurationName string) (Config, bool)
 	GetConfigArray(ctx ctx.Context, configurationName string) ([]Config, bool)
+	GetRoot(ctx ctx.Context) (string, Config, bool)
 	Get(ctx ctx.Context, configurationName string) (interface{}, bool)
 	SetString(ctx ctx.Context, configurationName string, configurationValue string)
 	Set(ctx ctx.Context, configurationName string, configurationValue interface{})
