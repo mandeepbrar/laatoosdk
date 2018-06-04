@@ -8,6 +8,7 @@ type Config interface {
 	GetBool(ctx ctx.Context, configurationName string) (bool, bool)
 	GetStringArray(ctx ctx.Context, configurationName string) ([]string, bool)
 	GetSubConfig(ctx ctx.Context, configurationName string) (Config, bool)
+	GetStringMap(ctx ctx.Context, configurationName string) (map[string]string, bool)
 	GetConfigArray(ctx ctx.Context, configurationName string) ([]Config, bool)
 	GetRoot(ctx ctx.Context) (string, Config, bool)
 	Get(ctx ctx.Context, configurationName string) (interface{}, bool)
