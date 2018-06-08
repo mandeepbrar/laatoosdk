@@ -25,11 +25,12 @@ type BaseComponent struct {
 	ObjectId                string
 }
 
-func (bc *BaseComponent) Describe(ctx core.ServerContext) {
+func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.SetComponent(ctx, true)
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
 	bc.AddOptionalConfigurations(ctx, map[string]string{CONF_DATA_AUDITABLE: config.OBJECTTYPE_BOOL, CONF_DATA_POSTUPDATE: config.OBJECTTYPE_BOOL,
 		CONF_DATA_POSTSAVE: config.OBJECTTYPE_BOOL, CONF_DATA_PRESAVE: config.OBJECTTYPE_BOOL, CONF_DATA_POSTLOAD: config.OBJECTTYPE_BOOL}, nil)
+	return nil
 }
 
 func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) error {

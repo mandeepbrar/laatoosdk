@@ -1,12 +1,13 @@
 package core
 
 type MetaDataProvider interface {
-	CreateServiceInfo(description string, reqInfo RequestInfo, streamedResponse bool, configurations []Configuration) ServiceInfo
+	CreateServiceInfo(description string, reqInfo RequestInfo, resInfo ResponseInfo, configurations []Configuration) ServiceInfo
 	CreateFactoryInfo(description string, configurations []Configuration) ServiceFactoryInfo
 	CreateModuleInfo(description string, configurations []Configuration) ModuleInfo
-	CreateRequestInfo(requesttype string, collection bool, stream bool, params []Param) RequestInfo
+	CreateRequestInfo(params map[string]Param) RequestInfo
+	CreateResponseInfo(params map[string]Param) ResponseInfo
 	CreateConfiguration(name, conftype string, required bool, defaultValue interface{}) Configuration
-	CreateParam(name, paramtype string, collectio bool, required bool) Param
+	CreateParam(ctx ServerContext, name, paramtype string, collectio, isStream bool, required bool) (Param, error)
 }
 
 type Info interface {
@@ -29,14 +30,11 @@ type ServiceInfo interface {
 }
 
 type RequestInfo interface {
-	GetDataType() string
-	IsCollection() bool
-	IsStream() bool
-	GetParams() map[string]Param
+	ParamInfo() map[string]Param
 }
 
 type ResponseInfo interface {
-	IsStream() bool
+	ParamInfo() map[string]Param
 }
 
 type ModuleInfo interface {

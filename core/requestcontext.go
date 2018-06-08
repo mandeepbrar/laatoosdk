@@ -15,9 +15,10 @@ type RequestContext interface {
 	GetRequest() Request
 	SetResponse(*Response)
 	GetResponse() *Response
-	GetBody() interface{}
+	//GetBody() interface{}
 	GetParam(string) (Param, bool)
 	GetParams() map[string]Param
+	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
 	GetStringMapValue(string) (map[string]interface{}, bool)

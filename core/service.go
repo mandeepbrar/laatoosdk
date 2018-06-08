@@ -4,26 +4,30 @@ import "laatoo/sdk/config"
 
 type Service interface {
 	ConfigurableObject
-	Describe(ServerContext)
+	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
 	Invoke(RequestContext) error
-	AddParams(ServerContext, map[string]string, bool)
+	AddParams(ServerContext, map[string]string, bool) error
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
 	AddStringParam(ctx ServerContext, name string)
-	AddParam(ctx ServerContext, name string, datatype string, collection, required bool)
-	AddCollectionParams(ServerContext, map[string]string)
-	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
-	SetResponseType(ctx ServerContext, stream bool)
+	AddParam(ctx ServerContext, name string, datatype string, collection, required, stream bool) error
+	AddParamWithType(ctx ServerContext, name string, datatype string) error
+	AddOptionalParamWithType(ctx ServerContext, name string, datatype string) error
+	AddCollectionParams(ServerContext, map[string]string) error
+	//	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
+	//	SetResponseType(ctx ServerContext, stream bool)
 	InjectServices(ServerContext, map[string]string)
 	SetDescription(ServerContext, string)
 	SetComponent(ServerContext, bool)
-	ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
+	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
+	ConfigureService(ctx ServerContext, params []string, config []string, description string)
 }
 
 type Param interface {
 	GetName() string
 	IsCollection() bool
+	IsStream() bool
 	IsRequired() bool
 	GetDataType() string
 	GetValue() interface{}
@@ -32,9 +36,10 @@ type Param interface {
 type ServiceFunc func(ctx RequestContext) error
 
 type Request interface {
-	GetBody() interface{}
+	//GetBody() interface{}
 	GetParam(string) (Param, bool)
 	GetParams() map[string]Param
+	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
 	GetStringMapValue(string) (map[string]interface{}, bool)
@@ -42,7 +47,7 @@ type Request interface {
 
 type Response struct {
 	Status int
-	Data   interface{}
-	Info   map[string]interface{}
+	Data   map[string]interface{}
+	Error  error
 	Return bool
 }

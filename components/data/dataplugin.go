@@ -20,10 +20,11 @@ func NewDataPlugin(ctx core.ServerContext) *DataPlugin {
 func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlugin {
 	return &DataPlugin{PluginDataComponent: comp}
 }
-func (svc *DataPlugin) Describe(ctx core.ServerContext) {
+func (svc *DataPlugin) Describe(ctx core.ServerContext) error {
 	if svc.PluginDataComponent == nil {
 		svc.AddStringConfiguration(ctx, CONF_BASE_SVC)
 	}
+	return nil
 }
 
 func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) error {

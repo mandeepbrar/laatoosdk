@@ -1,6 +1,10 @@
 package core
 
+import (
+	"laatoo/sdk/ctx"
+)
+
 type Codec interface {
-	Unmarshal([]byte, interface{}) error
-	Marshal(interface{}) ([]byte, error)
+	Unmarshal(ctx.Context, []byte, interface{}) error
+	Marshal(ctx.Context, interface{}) ([]byte, error)
 }

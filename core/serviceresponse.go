@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 const (
 	StatusSuccess       = 200
 	StatusServeFile     = 201
@@ -19,32 +21,48 @@ const (
 	LastModified    = "Last-Modified"
 )
 
-func NewServiceResponse(status int, data interface{}, info map[string]interface{}) *Response {
-	return newServiceResponse(status, data, info, false)
+func NewServiceResponse(status int, data map[string]interface{}) *Response {
+	return &Response{status, data, nil, true}
 }
-func newServiceResponse(status int, data interface{}, info map[string]interface{}, ReturnVal bool) *Response {
-	return &Response{status, data, info, ReturnVal}
+func NewServiceResponseWithInfo(status int, data interface{}, info map[string]interface{}) *Response {
+	var res map[string]interface{}
+	if info != nil {
+		res = info
+	} else {
+		res = make(map[string]interface{})
+	}
+	res["Data"] = data
+	return newServiceResponse(status, res, nil, false)
+}
+
+func newServiceResponse(status int, data map[string]interface{}, err error, ReturnVal bool) *Response {
+	return &Response{status, data, err, ReturnVal}
 }
 
 var (
 	StatusSuccessResponse       = newServiceResponse(StatusSuccess, nil, nil, true)
 	StatusUnauthorizedResponse  = newServiceResponse(StatusUnauthorized, nil, nil, true)
 	StatusNotFoundResponse      = newServiceResponse(StatusNotFound, nil, nil, true)
-	StatusBadRequestResponse    = newServiceResponse(StatusBadRequest, nil, nil, true)
 	StatusNotModifiedResponse   = newServiceResponse(StatusNotModified, nil, nil, true)
 	StatusInternalErrorResponse = newServiceResponse(StatusInternalError, nil, nil, true)
+	StatusBadRequestResponse    = newServiceResponse(StatusBadRequest, nil, nil, true)
 )
 
 func SuccessResponse(data interface{}) *Response {
-	return newServiceResponse(StatusSuccess, data, nil, true)
+	return newServiceResponse(StatusSuccess, map[string]interface{}{"Data": data}, nil, false)
 }
 
-func BadRequestResponse(data string) *Response {
-	return newServiceResponse(StatusBadRequest, data, nil, true)
+func SuccessResponseWithInfo(data interface{}, info map[string]interface{}) *Response {
+	return NewServiceResponseWithInfo(StatusSuccess, data, info)
 }
-func InternalErrorResponse(data string) *Response {
-	return newServiceResponse(StatusInternalError, data, nil, true)
+
+func BadRequestResponse(err string) *Response {
+	return newServiceResponse(StatusBadRequest, nil, fmt.Errorf(err), true)
 }
-func UnauthorizedResponse(data string) *Response {
-	return newServiceResponse(StatusUnauthorized, data, nil, true)
+
+func InternalErrorResponse(err string) *Response {
+	return newServiceResponse(StatusInternalError, nil, fmt.Errorf(err), true)
+}
+func UnauthorizedResponse(err string) *Response {
+	return newServiceResponse(StatusUnauthorized, nil, fmt.Errorf(err), true)
 }
