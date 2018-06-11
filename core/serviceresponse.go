@@ -3,15 +3,16 @@ package core
 import "fmt"
 
 const (
-	StatusSuccess       = 200
-	StatusServeFile     = 201
-	StatusServeBytes    = 202
-	StatusUnauthorized  = 401
-	StatusNotFound      = 404
-	StatusRedirect      = 301
-	StatusNotModified   = 305
-	StatusBadRequest    = 400
-	StatusInternalError = 500
+	StatusSuccess         = 200
+	StatusServeFile       = 201
+	StatusServeBytes      = 202
+	StatusUnauthorized    = 401
+	StatusNotFound        = 404
+	StatusRedirect        = 301
+	StatusNotModified     = 305
+	StatusBadRequest      = 400
+	StatusInternalError   = 500
+	StatusFunctionalError = 550
 )
 
 /***Header****/
@@ -50,6 +51,10 @@ var (
 
 func SuccessResponse(data interface{}) *Response {
 	return newServiceResponse(StatusSuccess, map[string]interface{}{"Data": data}, nil, false)
+}
+
+func FunctionalErrorResponse(err error) *Response {
+	return newServiceResponse(StatusFunctionalError, nil, err, true)
 }
 
 func SuccessResponseWithInfo(data interface{}, info map[string]interface{}) *Response {
