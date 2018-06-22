@@ -14,6 +14,7 @@ type RequestContext interface {
 	//NewContext(name string) RequestContext
 	GetRequest() Request
 	SetResponse(*Response)
+	GetSession() Session
 	GetResponse() *Response
 	//GetBody() interface{}
 	GetParam(string) (Param, bool)
