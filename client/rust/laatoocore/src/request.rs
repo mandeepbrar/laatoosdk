@@ -1,2 +1,3 @@
-trait Request {
+pub struct Request {
 }
+

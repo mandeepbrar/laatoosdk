@@ -3,6 +3,11 @@
 extern crate serde_derive;
 
 pub mod utils;
+pub mod request;
+pub mod response;
+pub mod platform;
+pub mod service;
+mod application;
 
 #[cfg(test)]
 mod tests {
