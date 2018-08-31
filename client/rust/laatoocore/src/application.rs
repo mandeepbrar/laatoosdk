@@ -20,11 +20,4 @@ impl <'a> Application<'a> {
             None => {println!("none .. ");}
         }
     }
-
-    fn myfunc(&mut self) {
-        match self.pf {
-            Some(ref myval) => { println!("my func .. "); },
-            None => {println!("none .. ");}
-        }
-    }
 }

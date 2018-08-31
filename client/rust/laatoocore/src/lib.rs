@@ -7,7 +7,7 @@ pub mod request;
 pub mod response;
 pub mod platform;
 pub mod service;
-mod application;
+pub mod application;
 
 #[cfg(test)]
 mod tests {
