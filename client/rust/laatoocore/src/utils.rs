@@ -24,7 +24,7 @@ pub type StringMap = HashMap<String, StringMapValue>;
 
 impl Constructible for StringMap {
     fn new() -> StringMap {
-        let mut string_map: StringMap;
+        let string_map: StringMap;
         string_map = HashMap::new();
         return string_map;
     }

@@ -3,16 +3,20 @@ pub enum HttpMethod {
     POST,
     PUT,
     DELETE,
-};
+}
 
 pub struct HttpHeader {
-    Name String,
-    Value String
+    pub Name: String,
+    pub Value: String,
 }
 
 pub struct HttpRequest {
-    URL: String,
-    Method: HttpMethod,
-    Headers: []HttpHeader
-};
+    pub URL: String,
+    pub Method: HttpMethod,
+    pub Headers: Vec<HttpHeader>,
+}
+
+pub enum Request<'a> {
+    Http(&'a HttpRequest),
+}
 

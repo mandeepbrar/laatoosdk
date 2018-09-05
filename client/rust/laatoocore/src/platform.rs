@@ -1,10 +1,10 @@
 use request;
 use response;
-use utils;
+//use utils;
 
-type success_callback = fn(response::Response);
-type error_callback = fn(i32, String, response::Response);
+pub type SuccessCallback = fn(response::Response);
+pub type ErrorCallback = fn(response::Response);
 
 pub trait Platform {
-    fn http_call(&self, request::Request, success_callback, error_callback);
+    fn http_call(&self, request::HttpRequest, SuccessCallback, ErrorCallback);
 }

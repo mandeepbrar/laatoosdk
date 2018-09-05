@@ -1,23 +1,23 @@
-use std::error;
+//use std::error;
 use platform;
+use service::{Service};
+use request;
+use utils::{StringMap};
 
-#[derive(Default)]
-pub struct Application<'a> {
-    pf: Option<Box<platform::Platform + 'a>>
+pub struct Application {
+    pf: Box<platform::Platform>
 }
 
-impl <'a> Application<'a> {
-    fn instance() -> Box<Application<'a>> {
-        let app: Application<'static> = Application{pf: Option::None};
-        Box::new(app)
+impl Application {
+    fn execute_service_object(_svc: Service, _service_request: &request::Request, _config: Option<StringMap>) {
+        /*var method = get_method(service);
+        var req = service_request.get_method_object("http");
+        var url = this.getURL(service, req);
+        return this.HttpCall(url, method, req.params, req.data, req.headers, config);*/
     }
 
-    fn set_platform(&mut self, pf: Box<platform::Platform>) {
-        println!("set platform");
-        self.pf = Option::Some(pf);
-        match self.pf {
-            Some(ref myval) => { println!("my func .. ");  },
-            None => {println!("none .. ");}
-        }
+    fn execute_service(_service_name: String, _service_request: &request::Request, _config: Option<StringMap>) {
+
     }
 }
+
