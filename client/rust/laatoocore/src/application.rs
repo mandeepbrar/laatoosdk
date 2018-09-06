@@ -5,7 +5,7 @@ use request;
 use utils::{StringMap};
 
 pub struct Application {
-    pf: Box<platform::Platform>
+    pub pf: Box<platform::Platform>
 }
 
 impl Application {

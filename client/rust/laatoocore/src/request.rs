@@ -1,8 +1,22 @@
+use std::fmt;
+
 pub enum HttpMethod {
     GET,
     POST,
     PUT,
     DELETE,
+}
+
+impl fmt::Display for HttpMethod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            HttpMethod::GET => "GET",
+            HttpMethod::POST => "POST",
+            HttpMethod::PUT => "PUT",
+            HttpMethod::DELETE => "DELETE",
+        };
+        write!(f, "{}", printable)
+    }
 }
 
 pub struct HttpHeader {
