@@ -1,13 +1,16 @@
 
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
+#[cfg(target_arch = "wasm32")]
+extern crate wasm_bindgen;
 
 pub mod utils;
-pub mod request;
-pub mod response;
 pub mod platform;
 pub mod service;
 pub mod application;
+pub mod http;
 
 #[cfg(test)]
 mod tests {

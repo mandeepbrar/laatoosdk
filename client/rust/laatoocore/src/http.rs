@@ -1,5 +1,12 @@
-use std::fmt;
+#[cfg(target_arch = "wasm32")]
+extern crate wasm_bindgen;
 
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+use std::fmt;
+use utils;
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub enum HttpMethod {
     GET,
     POST,
@@ -19,18 +26,8 @@ impl fmt::Display for HttpMethod {
     }
 }
 
-pub struct HttpHeader {
-    pub Name: String,
-    pub Value: String,
-}
-
 pub struct HttpRequest {
-    pub URL: String,
-    pub Method: HttpMethod,
-    pub Headers: Vec<HttpHeader>,
+    pub body: String,
+    pub headers: utils::StringsMap,
+    pub url_params: utils::StringsMap,
 }
-
-pub enum Request<'a> {
-    Http(&'a HttpRequest),
-}
-
