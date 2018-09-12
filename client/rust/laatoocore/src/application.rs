@@ -1,9 +1,3 @@
-#[cfg(target_arch = "wasm32")]
-extern crate wasm_bindgen;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 use std::sync::{Mutex};
 use std::marker::{Sync, Send};
 //use std::error;
@@ -17,7 +11,6 @@ lazy_static! {
 }
 
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct App {
     app_platform: Option<Box<platform::Platform + Sync + Send>>
 }
@@ -28,7 +21,7 @@ impl App {
         self.app_platform = Option::Some(pfm)
     }
     
-     #[allow(dead_code)]
+    #[allow(dead_code)]
     pub fn execute_service_object(_svc: Service, _service_request: ServiceRequest, _config: Option<StringMap>) {
         /*var method = get_method(service);
         var req = service_request.get_method_object("http");
@@ -41,3 +34,13 @@ impl App {
 
     }
 }
+
+/*
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+
+#[cfg(target_arch = "wasm32")]
+extern crate wasm_bindgen;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+*/

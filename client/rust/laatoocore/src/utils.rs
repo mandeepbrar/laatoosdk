@@ -20,8 +20,8 @@ pub enum StringMapValue {
 
 pub type StringMap = HashMap<String, StringMapValue>;
 //pub type StringMapItem = Value;
-pub type StringsMap = HashMap<String, String>;
 
+pub type StringsMap = HashMap<String, String>;
 
 
 impl Constructible for StringMap {
