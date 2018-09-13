@@ -7,6 +7,7 @@ use std::fmt;
 use utils;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+#[derive(Debug)]
 pub enum HttpMethod {
     GET,
     POST,
@@ -26,6 +27,7 @@ impl fmt::Display for HttpMethod {
     }
 }
 
+#[derive(Debug)]
 pub struct HttpRequest {
     pub body: String,
     pub headers: utils::StringsMap,

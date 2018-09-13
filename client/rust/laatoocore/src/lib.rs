@@ -1,4 +1,3 @@
-
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -11,6 +10,8 @@ pub mod platform;
 pub mod service;
 pub mod application;
 pub mod http;
+mod app;
+mod registry;
 
 #[cfg(test)]
 mod tests {

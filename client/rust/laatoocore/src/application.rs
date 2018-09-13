@@ -1,39 +1,32 @@
 use std::sync::{Mutex};
+use app::App;
+use std::collections::HashMap;
 use std::marker::{Sync, Send};
-//use std::error;
 use platform;
-use service::{Service, ServiceRequest};
-use utils::{StringMap};
-
+use registry::{Registry, RegisteredItem};
 
 lazy_static! {
-    pub static ref Application: Mutex<Box<App>> = Mutex::new(Box::new(App{app_platform: Option::None}));
+    static ref app_obj: Mutex<Box<App>> = Mutex::new(Box::new(App::new()));
+}
+
+pub fn initialize(pfm: Box<platform::Platform + Sync + Send>) {
+    app_obj.lock().unwrap().initialize(pfm);
+
+}
+
+#[allow(dead_code)]
+pub fn register(reg: Registry, item_name: String, item: RegisteredItem) {
+    app_obj.lock().unwrap().register(reg, item_name, item);
+}
+
+#[allow(dead_code)]
+pub fn get_registered_item<'a>(reg: Registry, item_name: String) -> Option<&'a RegisteredItem> {
+    let appobj = app_obj.lock();
+    let res = appobj.unwrap().get_registered_item(reg, item_name);
+    res
 }
 
 
-pub struct App {
-    app_platform: Option<Box<platform::Platform + Sync + Send>>
-}
-
-impl App {
-     #[allow(dead_code)]
-    pub fn initialize(&mut self, pfm: Box<platform::Platform + Sync + Send>) {
-        self.app_platform = Option::Some(pfm)
-    }
-    
-    #[allow(dead_code)]
-    pub fn execute_service_object(_svc: Service, _service_request: ServiceRequest, _config: Option<StringMap>) {
-        /*var method = get_method(service);
-        var req = service_request.get_method_object("http");
-        var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data, req.headers, config);*/
-    }
-
-    #[allow(dead_code)]
-    pub fn execute_service(_service_name: String, _service_request: ServiceRequest, _config: Option<StringMap>) {
-
-    }
-}
 
 /*
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]

@@ -1,6 +1,7 @@
 use http;
 use utils;
 
+#[derive(Debug)]
 pub enum Service {
     Http(String, http::HttpMethod, http::HttpRequest),
 }
