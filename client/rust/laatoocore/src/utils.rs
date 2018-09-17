@@ -13,6 +13,7 @@ pub enum StringMapValue {
     Int(i64),
     Float(f64),
     String(String),
+    StrArray(Vec<String>),
     Array(Vec<StringMapValue>),
     Object(HashMap<String, StringMapValue>),
     StringsMap(StringMap),

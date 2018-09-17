@@ -10,7 +10,8 @@ pub mod platform;
 pub mod service;
 pub mod application;
 pub mod http;
-mod app;
+//pub mod context;
+//mod app;
 mod registry;
 
 #[cfg(test)]

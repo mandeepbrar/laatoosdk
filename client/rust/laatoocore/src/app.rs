@@ -1,4 +1,4 @@
-use std::marker::{Sync, Send};
+/*use std::marker::{Sync, Send};
 //use std::error;
 use platform;
 use service::{Service, ServiceRequest};
@@ -31,21 +31,17 @@ impl App {
     }
   
     #[allow(dead_code)]
-    pub fn get_registered_item(&mut self, registry: Registry, item_name: String) -> Option<&RegisteredItem> {
+    pub fn get_registered_item(&self, registry: Registry, item_name: String) -> Option<&RegisteredItem> {
         let registry_store = self.registries.get(&registry).unwrap();
         registry_store.get_registered_item(item_name)
     }
 
     #[allow(dead_code)]
-    pub fn execute_service_object(_svc: Service, _service_request: ServiceRequest, _config: Option<StringMap>) {
-        /*var method = get_method(service);
-        var req = service_request.get_method_object("http");
-        var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data, req.headers, config);*/
+    pub fn execute_service_object(&self, _svc: Service, _service_request: ServiceRequest, _config: Option<StringMap>) {
     }
 
     #[allow(dead_code)]
-    pub fn execute_service(_service_name: String, _service_request: ServiceRequest, _config: Option<StringMap>) {
+    pub fn execute_service(&self, _service_name: String, _service_request: ServiceRequest, _config: Option<StringMap>) {
 
     }
 }
