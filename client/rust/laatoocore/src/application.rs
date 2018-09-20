@@ -5,13 +5,19 @@ use service::{Service, ServiceRequest};
 use utils::{StringMap};
 use std::collections::HashMap;
 use registry::{Registry, RegistryStore, RegisteredItem};
+use action::{Action};
+use store::{Store, StoreData};
+use reducer::{Reducer};
+use std::any::Any;
+
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub struct Application {
     app_platform: Box<platform::Platform>,
-    registries: HashMap<Registry, RegistryStore>
+    registries: HashMap<Registry, RegistryStore>,
+    //store: LaatooStore,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -50,6 +56,14 @@ impl Application {
     pub fn execute_service(&self, _service_name: String, _service_request: ServiceRequest, _config: Option<StringMap>) {
 
     }
+
+    pub fn register_store(&self, store: Box<Store>, action: Box<Action>) {
+
+    }
+
+    /*pub fn dispatch(&self, action: Action) -> Result<T::Action, String> {
+    }*/
+
 }
 
 #[cfg(target_arch = "wasm32")]

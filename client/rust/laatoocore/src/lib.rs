@@ -13,6 +13,10 @@ pub mod http;
 //pub mod context;
 //mod app;
 mod registry;
+pub mod store;
+pub mod reducer;
+pub mod action;
+pub mod error;
 
 #[cfg(test)]
 mod tests {
@@ -38,3 +42,4 @@ mod tests {
         } ;*/
     }
 }
+

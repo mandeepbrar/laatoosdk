@@ -1,6 +1,7 @@
 extern crate serde;
 
 use std::collections::HashMap;
+use std::any::Any;
 
 pub trait Constructible {
     fn new() -> Self;
