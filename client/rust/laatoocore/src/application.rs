@@ -5,10 +5,13 @@ use service::{Service, ServiceRequest};
 use utils::{StringMap};
 use std::collections::HashMap;
 use registry::{Registry, RegistryStore, RegisteredItem};
-use action::{Action};
-use store::{Store, StoreData};
-use reducer::{Reducer};
+use redux::{Action, Store, Reducer, Dispatcher};
+use storemanager::{StoreManager};
+use event::{EventProducer, EventListener};
 use std::any::Any;
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::borrow::BorrowMut;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -17,6 +20,8 @@ use wasm_bindgen::prelude::*;
 pub struct Application {
     app_platform: Box<platform::Platform>,
     registries: HashMap<Registry, RegistryStore>,
+    dispatchers: HashMap<&'static str, Rc<RefCell<Dispatcher>>>,
+    stores: HashMap<&'static str, Rc<RefCell<EventProducer>>>
     //store: LaatooStore,
 }
 
@@ -29,7 +34,8 @@ extern {
 
 impl Application {
     pub fn new(pfm: Box<platform::Platform>) -> Application {
-        Application{app_platform: pfm, registries: HashMap::new()}
+        let mut app = Application{app_platform: pfm, registries: HashMap::new(), dispatchers: HashMap::new(), stores: HashMap::new()};
+        app
     }
     
     #[allow(dead_code)]
@@ -57,12 +63,40 @@ impl Application {
 
     }
 
-    pub fn register_store(&self, store: Box<Store>, action: Box<Action>) {
-
+    pub fn register_store(&mut self, store: Box<Store>, action_type: &'static str) {
+        let id = store.get_id();//.clone();
+        let mgr = Rc::new(RefCell::new(StoreManager::new(store)));
+        self.dispatchers.insert(action_type, mgr.clone());
+        self.stores.insert(id, mgr);
     }
 
-    /*pub fn dispatch(&self, action: Action) -> Result<T::Action, String> {
-    }*/
+    pub fn register_listener(&mut self, store_id: &str, lsnr: Box<EventListener>) {
+        match self.stores.get(store_id) {
+            Some(stor) => {
+                let prod = stor.clone();
+                let mut val1 = (*prod).borrow_mut();
+                (*val1).register_listener(lsnr);
+            },
+            None => {}
+        }
+        
+        //self.global_store.insert(action.get_type(), store);
+    }
+
+
+    pub fn dispatch(&mut self, action: &Action) -> Result<(), String> {
+       match self.dispatchers.get(action.get_type()) {
+            Some(dispatcher) => {
+                let disp = dispatcher.clone();
+                let mut val1 = (*disp).borrow_mut();
+                //let mut val2 = val1.borrow_mut();
+                let val = (*val1).dispatch(action);
+                //return val;
+            },
+            None => {}
+        }
+        Ok(())
+    }
 
 }
 
