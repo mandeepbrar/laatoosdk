@@ -29,6 +29,10 @@ mod tests {
         fn get_id(&self) -> &'static str {
             "Test Data"
         }
+        fn get_data(&self) -> () {
+            (self.testdata)
+        }
+
     }
 
     pub struct TestListener {

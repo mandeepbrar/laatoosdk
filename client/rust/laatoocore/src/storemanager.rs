@@ -4,12 +4,12 @@ use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct StoreChangeEvent {
-
+    data: (),
 }
 
 impl StoreChangeEvent {
-    fn new() -> Self {
-        return StoreChangeEvent{};
+    fn new(storeState: ()) -> Self {
+        return StoreChangeEvent{data: storeState};
     }
 }
 
@@ -37,8 +37,9 @@ impl Dispatcher for StoreManager {
     fn dispatch(&mut self, action: &Action) -> Result<(), String> {
         match self.state.reduce(action) {
             Ok(changed) => {
+                let storeState = self.state.get_data();
                 for ref lsnr in &self.lsnrs {
-                    let evt = Box::new(StoreChangeEvent{});
+                    let evt = Box::new(StoreChangeEvent::new(storeState));
                     lsnr.on_event(evt);
                 }
             }
