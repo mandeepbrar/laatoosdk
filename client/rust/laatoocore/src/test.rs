@@ -18,7 +18,7 @@ mod tests {
         }
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     struct TestData {
         testdata: Vec<i32>,
     }
@@ -29,22 +29,22 @@ mod tests {
         fn get_id(&self) -> &'static str {
             "Test Data"
         }
-        fn get_data(&self) -> () {
-            (self.testdata)
+        fn as_any(&self) -> &dyn Any {
+            self
         }
 
     }
 
-    pub struct TestListener {
+/*    pub struct TestListener {
 
     }
 
     impl EventListener for TestListener {
-        fn on_event(&self, evt: Box<Event>) {
+        fn on_event(&self, evt: &Event) {
             println!("Event recieved {:?}", evt);
         }
     }
-
+*/
     impl Reducer for TestData {
         fn reduce(&mut self, action: &Action) -> Result<bool, String> {
             match (*action).as_any().downcast_ref::<TestStoreAction>() {
@@ -86,8 +86,10 @@ mod tests {
         let act = TestStoreAction::Add(2);
         let str_id = str.get_id();
         app.register_store(str, act.get_type());
-        let lsr = Box::new(TestListener{});
-        app.register_listener(str_id, lsr);
+       // let lsr = Box::new(TestListener{});
+        app.register_listener(str_id, |stor| {
+            println!("event received {:?}", stor);
+        });
         app.dispatch(&act);
         assert_eq!(2 + 2, 4);
     }

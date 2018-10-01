@@ -5,7 +5,7 @@ use service::{Service, ServiceRequest};
 use utils::{StringMap};
 use std::collections::HashMap;
 use registry::{Registry, RegistryStore, RegisteredItem};
-use redux::{Action, Store, Reducer, Dispatcher};
+use redux::{Action, Store, Reducer, Dispatcher, StoreListener};
 use storemanager::{StoreManager};
 use event::{EventProducer, EventListener};
 use std::any::Any;
@@ -21,7 +21,7 @@ pub struct Application {
     app_platform: Box<platform::Platform>,
     registries: HashMap<Registry, RegistryStore>,
     dispatchers: HashMap<&'static str, Rc<RefCell<Dispatcher>>>,
-    stores: HashMap<&'static str, Rc<RefCell<EventProducer>>>
+    stores: HashMap<&'static str, Rc<RefCell<StoreManager>>>
     //store: LaatooStore,
 }
 
@@ -70,7 +70,7 @@ impl Application {
         self.stores.insert(id, mgr);
     }
 
-    pub fn register_listener(&mut self, store_id: &str, lsnr: Box<EventListener>) {
+    pub fn register_listener(&mut self, store_id: &str, lsnr: StoreListener) {
         match self.stores.get(store_id) {
             Some(stor) => {
                 let prod = stor.clone();

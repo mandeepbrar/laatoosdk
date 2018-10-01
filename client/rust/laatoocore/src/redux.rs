@@ -2,13 +2,25 @@ use utils::StringMap;
 use std::any::Any;
 use std::fmt::Debug;
 use error::Error;
+use event::Event;
 
 
-pub trait Store: Reducer {
+pub trait Store: Reducer  + Debug {
     fn initialize(&self);
     fn get_id(&self) -> &'static str;
-    fn get_data(&self) -> ();
+    fn as_any(&self) -> &dyn Any;  
 }
+
+pub type StoreListener = fn(&Box<Store>);
+
+
+/*
+fn get_store<T>(evt: &Event) -> T {
+    let store_evt = (*evt).as_any().downcast_ref::<StoreChangeEvent>();
+    let store = store_evt.src;
+    (*store).as_any().downcast_ref::<T>()
+}*/
+
 
 pub trait Dispatcher {
     fn dispatch(&mut self, action: &Action) -> Result<(), String>;

@@ -1,3 +1,4 @@
+#![feature(associated_type_defaults)]
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
