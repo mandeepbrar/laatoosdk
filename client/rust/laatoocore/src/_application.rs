@@ -1,5 +1,3 @@
-//use std::marker::{Sync, Send};
-//use std::error;
 use platform;
 use service::{Service, ServiceRequest};
 use utils::{StringMap};
@@ -11,29 +9,18 @@ use event::{EventProducer, EventListener};
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::borrow::BorrowMut;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub struct Application {
+pub struct _Application {
     app_platform: Box<platform::Platform>,
     registries: HashMap<Registry, RegistryStore>,
     dispatchers: HashMap<&'static str, Rc<RefCell<Dispatcher>>>,
     stores: HashMap<&'static str, Rc<RefCell<StoreManager>>>
-    //store: LaatooStore,
 }
 
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-extern {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(msg: &str);
-}
-
-impl Application {
-    pub fn new(pfm: Box<platform::Platform>) -> Application {
-        let mut app = Application{app_platform: pfm, registries: HashMap::new(), dispatchers: HashMap::new(), stores: HashMap::new()};
+impl _Application {
+    pub fn new(pfm: Box<platform::Platform>) -> Box<_Application> {
+        let mut app = Box::new(_Application{app_platform: pfm, registries: HashMap::new(), dispatchers: HashMap::new(), stores: HashMap::new()});
         app
     }
     
@@ -51,10 +38,6 @@ impl Application {
 
     #[allow(dead_code)]
     pub fn execute_service_object(&self, _svc: Service, _service_request: ServiceRequest, _config: Option<StringMap>) {
-        /*var method = get_method(service);
-        var req = service_request.get_method_object("http");
-        var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data, req.headers, config);*/
     }
 
     #[allow(dead_code)]
@@ -78,8 +61,6 @@ impl Application {
             },
             None => {}
         }
-        
-        //self.global_store.insert(action.get_type(), store);
     }
 
 
@@ -88,9 +69,7 @@ impl Application {
             Some(dispatcher) => {
                 let disp = dispatcher.clone();
                 let mut val1 = (*disp).borrow_mut();
-                //let mut val2 = val1.borrow_mut();
                 let val = (*val1).dispatch(action);
-                //return val;
             },
             None => {}
         }
@@ -98,23 +77,3 @@ impl Application {
     }
 
 }
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-impl Application {
-    #[allow(dead_code)]
-    pub fn js_get_registered_item(&self, registry: String, item_name: String) -> String {
-        log(&registry);
-        String::from("s: Cow<'a, str>s: Cow<'a, str>")
-
-    }
-}
-/*
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-
-#[cfg(target_arch = "wasm32")]
-extern crate wasm_bindgen;
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-*/
