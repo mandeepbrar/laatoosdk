@@ -9,6 +9,7 @@ type RbacUser interface {
 	GetUserName() string
 	GetPermissions() (permissions []string, err error)
 	GetRoles() ([]string, error)
+	SetRoles([]string) error
 	GetRealm() string
 	SetPermissions(permissions []string)
 }
