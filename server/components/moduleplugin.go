@@ -5,7 +5,22 @@ import (
 	"laatoo/sdk/server/core"
 )
 
+type ModInfo struct {
+	InstanceName    string
+	ModName         string
+	ModDir          string
+	ParentModName   string
+	Mod             core.Module
+	ModConf         config.Config
+	ModSettings     config.Config
+	ModProps        map[string]interface{}
+	IsExtended      bool
+	ExtendedModName string
+	ExtendedModConf config.Config
+	ExtendedModDir  string
+}
+
 type ModuleManagerPlugin interface {
-	Load(ctx core.ServerContext, name, moduleName, dir, parentMod string, mod core.Module, conf config.Config, settings config.Config, props map[string]interface{}) error
+	Load(ctx core.ServerContext, modInfo *ModInfo) error
 	Loaded(ctx core.ServerContext) error
 }
