@@ -7,6 +7,8 @@ type Service interface {
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
+	Stop(ctx ServerContext) error
+	Unload(ctx ServerContext) error
 	Invoke(RequestContext) error
 	AddParams(ServerContext, map[string]string, bool) error
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)

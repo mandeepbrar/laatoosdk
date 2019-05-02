@@ -16,4 +16,5 @@ type TaskQueue interface {
 
 type TaskServer interface {
 	SubsribeQueue(ctx core.ServerContext, queue string) error
+	UnsubsribeQueue(ctx core.ServerContext, queue string) error
 }

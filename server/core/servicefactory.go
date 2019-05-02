@@ -12,6 +12,8 @@ type ServiceFactory interface {
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
+	Stop(ctx ServerContext) error
+	Unload(ctx ServerContext) error
 	//Create the services configured for factory.
 	CreateService(ctx ServerContext, name string, method string, conf config.Config) (Service, error)
 }

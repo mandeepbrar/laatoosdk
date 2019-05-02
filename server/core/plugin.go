@@ -9,5 +9,5 @@ type PluginComponent struct {
 	Metadata                Info
 }
 
-//manifest that needs to be provided by every plugin
+//manifest that needs to be provided by every module
 type PluginManifest func(MetaDataProvider) []PluginComponent

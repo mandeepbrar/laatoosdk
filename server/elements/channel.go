@@ -10,4 +10,5 @@ type Channel interface {
 	GetServiceName() string
 	Serve(ctx core.ServerContext) error
 	Child(ctx core.ServerContext, name string, channelConfig config.Config) (Channel, error)
+	RemoveChild(ctx core.ServerContext, name string, channelConfig config.Config) error
 }

@@ -1,9 +1,9 @@
 package core
 
 type MetaDataProvider interface {
-	CreateServiceInfo(description string, reqInfo RequestInfo, resInfo ResponseInfo, configurations []Configuration) ServiceInfo
-	CreateFactoryInfo(description string, configurations []Configuration) ServiceFactoryInfo
-	CreateModuleInfo(description string, configurations []Configuration) ModuleInfo
+	CreateServiceInfo(name, description string, reqInfo RequestInfo, resInfo ResponseInfo, configurations []Configuration) ServiceInfo
+	CreateFactoryInfo(name, description string, configurations []Configuration) ServiceFactoryInfo
+	CreateModuleInfo(name, description string, configurations []Configuration) ModuleInfo
 	CreateRequestInfo(params map[string]Param) RequestInfo
 	CreateResponseInfo(params map[string]Param) ResponseInfo
 	CreateConfiguration(name, conftype string, required bool, defaultValue interface{}) Configuration

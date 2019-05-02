@@ -21,6 +21,9 @@ type ModInfo struct {
 }
 
 type ModuleManagerPlugin interface {
+	GetName() string
 	Load(ctx core.ServerContext, modInfo *ModInfo) error
 	Loaded(ctx core.ServerContext) error
+	Unloaded(ctx core.ServerContext, insName, modName string) error
+	Unloading(ctx core.ServerContext, insName, modName string) error
 }

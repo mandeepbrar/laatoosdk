@@ -55,6 +55,7 @@ type ServerContext interface {
 	ctx.Context
 	GetServerElement(ServerElementType) ServerElement
 	GetService(alias string) (Service, error)
+	GetServiceContext(alias string) (ServerContext, error)
 	//NewContext(name string) ServerContext
 	SubContext(name string) ServerContext
 	GetServerProperties() map[string]interface{}
@@ -65,7 +66,7 @@ type ServerContext interface {
 	GetObjectCreator(objectName string) (ObjectCreator, error)
 	GetObjectMetadata(objectName string) (Info, error)
 	CreateSystemRequest(name string) RequestContext
-	SubscribeTopic(topics []string, lstnr MessageListener) error
+	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error
 	CreateConfig() config.Config
 	ReadConfigMap(cfg map[string]interface{}) (config.Config, error)
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
