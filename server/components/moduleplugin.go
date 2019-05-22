@@ -18,6 +18,7 @@ type ModInfo struct {
 	ExtendedModName string
 	ExtendedModConf config.Config
 	ExtendedModDir  string
+	Hot             bool
 }
 
 type ModuleManagerPlugin interface {
