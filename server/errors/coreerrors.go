@@ -22,6 +22,7 @@ const (
 	CORE_ERROR_TYPE_MISMATCH      = "Core_Type_Mismatch"
 	CORE_ERROR_NOT_IMPLEMENTED    = "Core_Not_Implemented"
 	CORE_ERROR_PLUGIN_NOT_LOADED  = "Core_Plugin_Not_Loaded"
+	CORE_ERROR_TENANT_MISMATCH    = "Core_Tenant_Mismatch"
 )
 
 func init() {
@@ -41,6 +42,7 @@ func init() {
 	RegisterCode(CORE_ERROR_DEP_NOT_MET, FATAL, fmt.Errorf("Dependency could not be met."))
 	RegisterCode(CORE_ERROR_TYPE_MISMATCH, FATAL, fmt.Errorf("Type Mismatch."))
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
+	RegisterCode(CORE_ERROR_TENANT_MISMATCH, WARNING, fmt.Errorf("Tenant Mismatch."))
 }
 
 func WrapError(ctx ctx.Context, err error, info ...interface{}) error {

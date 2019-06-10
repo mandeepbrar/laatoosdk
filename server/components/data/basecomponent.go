@@ -21,6 +21,7 @@ type BaseComponent struct {
 	PostSave                bool
 	PostLoad                bool
 	PostUpdate              bool
+	Multitenant             bool
 	SoftDeleteField         string
 	ObjectId                string
 }
@@ -90,6 +91,13 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 		bc.PostLoad = postload
 	} else {
 		bc.PostLoad = bc.ObjectConfig.PostLoad
+	}
+
+	multitenant, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_MULTITENANT)
+	if ok {
+		bc.Multitenant = multitenant
+	} else {
+		bc.Multitenant = bc.ObjectConfig.Multitenant
 	}
 
 	return nil

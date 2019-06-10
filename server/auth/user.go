@@ -8,4 +8,5 @@ type User interface {
 	LoadClaims(map[string]interface{})
 	PopulateClaims(map[string]interface{})
 	GetRealm() string
+	GetTenant() string
 }

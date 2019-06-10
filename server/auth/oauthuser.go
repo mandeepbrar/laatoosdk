@@ -1,12 +1,16 @@
 package auth
 
 type OAuthUser interface {
-	GetId() string
-	SetId(string)
-	LoadClaims(map[string]interface{})
-	PopulateClaims(map[string]interface{})
+	User
 	GetEmail() string
-	GetUsernameField() string
-	GetUserName() string
-	GetRealm() string
 }
+
+/*GetId() string
+SetId(string)
+GetUsernameField() string
+GetUserName() string
+LoadClaims(map[string]interface{})
+PopulateClaims(map[string]interface{})
+GetRealm() string
+GetTenant() string
+*/

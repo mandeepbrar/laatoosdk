@@ -58,6 +58,10 @@ func (as *AbstractStorable) IsDeleted() bool {
 func (as *AbstractStorable) Delete() {
 }
 
+func (as *AbstractStorable) IsMultitenant() bool {
+	return false
+}
+
 func (as *AbstractStorable) Join(item Storable) {
 }
 func (as *AbstractStorable) Config() *StorableConfig {

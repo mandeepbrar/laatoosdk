@@ -21,6 +21,7 @@ type StorableConfig struct {
 	Collection        string
 	Cacheable         bool
 	RefOps            bool
+	Multitenant       bool
 }
 
 //Object stored by data service
@@ -35,8 +36,22 @@ type Storable interface {
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
 	IsDeleted() bool
+	IsMultitenant() bool
 	Delete()
 	Join(item Storable)
+}
+
+type StorableMT interface {
+	Storable
+	GetTenant() string
+	SetTenant(tenant string)
+}
+
+type StorableRef struct {
+	Id     string
+	Type   string
+	Name   string
+	Entity Storable
 }
 
 func StorableArrayToMap(items []Storable) map[string]Storable {
