@@ -9,6 +9,7 @@ type RequestContext interface {
 	ctx.Context
 	ServerContext() ServerContext
 	EngineRequestContext() interface{}
+	EngineRequestParams() map[string]interface{}
 	SubContext(name string) RequestContext
 	GetServerElement(elemType ServerElementType) ServerElement
 	//NewContext(name string) RequestContext

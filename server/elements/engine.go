@@ -8,4 +8,5 @@ import (
 type Engine interface {
 	core.ServerElement
 	GetRootChannel(ctx core.ServerContext) Channel
+	GetRequestParams(ctx core.RequestContext) map[string]interface{}
 }

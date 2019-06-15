@@ -59,7 +59,7 @@ type ServerContext interface {
 	//NewContext(name string) ServerContext
 	SubContext(name string) ServerContext
 	GetServerProperties() map[string]interface{}
-	CreateNewRequest(name string, engineCtx interface{}, sessionId string) (RequestContext, error)
+	CreateNewRequest(name string, engine interface{}, engineCtx interface{}, sessionId string) (RequestContext, error)
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
