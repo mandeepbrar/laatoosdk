@@ -24,6 +24,8 @@ type RequestContext interface {
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
 	GetStringMapValue(string) (map[string]interface{}, bool)
+	Forward(string, map[string]interface{}) error
+	ForwardToService(Service, map[string]interface{}) error
 	GetUser() auth.User
 	HasPermission(perm string) bool
 	PublishMessage(topic string, message interface{})

@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 func FileExists(file string) (bool, os.FileInfo, error) {
@@ -138,4 +140,20 @@ func CopyDir(source string, dest string, prefix string) (err error) {
 		}
 	}
 	return
+}
+
+func printFilePath(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+	fmt.Println(path)
+	return nil
+}
+
+func PrintDirContents(path string) {
+	err := filepath.Walk(path, printFilePath)
+	if err != nil {
+		log.Print(err)
+	}
 }
