@@ -48,10 +48,10 @@ type StorableMT interface {
 }
 
 type StorableRef struct {
-	Id     string
-	Type   string
-	Name   string
-	Entity Storable
+	Id     string   `json:"Id" bson:"Id" gorm:"column:Id" sql:"type:varchar(100);`
+	Type   string   `json:"Type" bson:"Type" gorm:"column:Type" sql:"type:varchar(100);`
+	Name   string   `json:"Name" bson:"Name" gorm:"column:Name" sql:"type:varchar(300);`
+	Entity Storable `json:"-" bson:"-" sql:"-"`
 }
 
 func StorableArrayToMap(items []Storable) map[string]Storable {

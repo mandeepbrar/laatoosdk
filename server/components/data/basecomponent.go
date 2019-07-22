@@ -4,6 +4,8 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
+	"reflect"
+	"strings"
 )
 
 /**
@@ -24,6 +26,8 @@ type BaseComponent struct {
 	Multitenant             bool
 	SoftDeleteField         string
 	ObjectId                string
+	StorableRefs            map[string]string
+	ProcessStorableRefs     bool
 }
 
 func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
@@ -52,6 +56,8 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 	testObj := objectCreator()
 	stor := testObj.(Storable)
 	bc.ObjectConfig = stor.Config()
+	bc.StorableRefs = make(map[string]string)
+	bc.identifyStorableRefs(ctx, testObj)
 
 	bc.ObjectId = bc.ObjectConfig.IdField
 	bc.SoftDeleteField = bc.ObjectConfig.SoftDeleteField
@@ -68,6 +74,9 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 	} else {
 		bc.Auditable = bc.ObjectConfig.Auditable
 	}
+
+	bc.ProcessStorableRefs, _ = bc.GetBoolConfiguration(ctx, CONF_REF_CONDITION)
+
 	postsave, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_POSTSAVE)
 	if ok {
 		bc.PostSave = postsave
@@ -107,6 +116,23 @@ func (bc *BaseComponent) GetDataServiceType() string {
 	return ""
 }
 
+func (bc *BaseComponent) identifyStorableRefs(ctx core.ServerContext, obj interface{}) {
+
+	//objVal := reflect.ValueOf(obj).Elem()
+	objTyp := reflect.Indirect(reflect.ValueOf(obj)).Type()
+
+	for i := 0; i < objTyp.NumField(); i++ {
+		field := objTyp.Field(i)
+
+		if strings.Contains(field.Type.String(), "data.StorableRef") {
+			storableType, ok := field.Tag.Lookup("entity")
+			if !ok {
+			}
+			bc.StorableRefs[field.Name] = storableType
+		}
+	}
+}
+
 func (bc *BaseComponent) GetObject() string {
 	return ""
 }
@@ -128,6 +154,24 @@ func (bc *BaseComponent) GetObjectCollectionCreator() core.ObjectCollectionCreat
 //supported features
 func (bc *BaseComponent) Supports(Feature) bool {
 	return false
+}
+
+func (bc *BaseComponent) PreProcessConditionMap(ctx core.RequestContext, operation ConditionType, args map[string]interface{}) map[string]interface{} {
+	if bc.Multitenant {
+		args["Tenant"] = ctx.GetUser().GetTenant()
+	}
+	if bc.SoftDelete {
+		args[bc.SoftDeleteField] = false
+	}
+	if bc.ProcessStorableRefs {
+		for k, v := range args {
+			_, present := bc.StorableRefs[k]
+			if present {
+				args[k] = map[string]interface{}{"Id": v}
+			}
+		}
+	}
+	return args
 }
 
 //create condition for passing to data service

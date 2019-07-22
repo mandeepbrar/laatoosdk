@@ -23,7 +23,8 @@ type RequestContext interface {
 	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
-	GetStringMapValue(string) (map[string]interface{}, bool)
+	GetStringMapParam(string) (map[string]interface{}, bool)
+	GetStringsMapParam(string) (map[string]string, bool)
 	Forward(string, map[string]interface{}) error
 	ForwardToService(Service, map[string]interface{}) error
 	GetUser() auth.User

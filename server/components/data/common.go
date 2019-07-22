@@ -15,6 +15,7 @@ const (
 	CONF_DATA_AUDITABLE   = "auditable"
 	CONF_DATA_REFOPS      = "refops"
 	CONF_DATA_COLLECTION  = "collection"
+	CONF_REF_CONDITION    = "query_by_ref"
 	CONF_PRESAVE_MSG      = "storable_presave"
 	CONF_PREUPDATE_MSG    = "storable_preupdate"
 	CONF_POSTUPDATE_MSG   = "storable_postupdate"

@@ -44,7 +44,8 @@ type Request interface {
 	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
-	GetStringMapValue(string) (map[string]interface{}, bool)
+	GetStringMapParam(string) (map[string]interface{}, bool)
+	GetStringsMapParam(string) (map[string]string, bool)
 }
 
 type Response struct {
