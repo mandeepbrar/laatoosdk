@@ -157,3 +157,21 @@ func PrintDirContents(path string) {
 		log.Print(err)
 	}
 }
+
+func FlattenMap(mapToFlatten map[string]interface{}, retMap map[string]interface{}, initStr string) {
+	for k, v := range mapToFlatten {
+		valMap, ok := v.(map[string]interface{})
+		if ok {
+			if initStr != "" {
+				FlattenMap(valMap, retMap, fmt.Sprintf("%s.%s", initStr, k))
+			} else {
+				FlattenMap(valMap, retMap, k)
+			}
+		} else {
+			if initStr != "" {
+				k = fmt.Sprintf("%s.%s", initStr, k)
+			}
+			retMap[k] = v
+		}
+	}
+}

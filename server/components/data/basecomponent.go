@@ -4,8 +4,6 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
-	"reflect"
-	"strings"
 )
 
 /**
@@ -26,15 +24,15 @@ type BaseComponent struct {
 	Multitenant             bool
 	SoftDeleteField         string
 	ObjectId                string
-	StorableRefs            map[string]string
-	ProcessStorableRefs     bool
+	EmbeddedSearch          bool
 }
 
 func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.SetComponent(ctx, true)
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
 	bc.AddOptionalConfigurations(ctx, map[string]string{CONF_DATA_AUDITABLE: config.OBJECTTYPE_BOOL, CONF_DATA_POSTUPDATE: config.OBJECTTYPE_BOOL,
-		CONF_DATA_POSTSAVE: config.OBJECTTYPE_BOOL, CONF_DATA_PRESAVE: config.OBJECTTYPE_BOOL, CONF_DATA_POSTLOAD: config.OBJECTTYPE_BOOL}, nil)
+		CONF_DATA_EMBEDDED_DOC_SEARCH: config.OBJECTTYPE_BOOL, CONF_DATA_POSTSAVE: config.OBJECTTYPE_BOOL, CONF_DATA_PRESAVE: config.OBJECTTYPE_BOOL,
+		CONF_DATA_POSTLOAD: config.OBJECTTYPE_BOOL}, nil)
 	return nil
 }
 
@@ -56,8 +54,6 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 	testObj := objectCreator()
 	stor := testObj.(Storable)
 	bc.ObjectConfig = stor.Config()
-	bc.StorableRefs = make(map[string]string)
-	bc.identifyStorableRefs(ctx, testObj)
 
 	bc.ObjectId = bc.ObjectConfig.IdField
 	bc.SoftDeleteField = bc.ObjectConfig.SoftDeleteField
@@ -75,7 +71,7 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 		bc.Auditable = bc.ObjectConfig.Auditable
 	}
 
-	bc.ProcessStorableRefs, _ = bc.GetBoolConfiguration(ctx, CONF_REF_CONDITION)
+	bc.EmbeddedSearch, _ = bc.GetBoolConfiguration(ctx, CONF_DATA_EMBEDDED_DOC_SEARCH)
 
 	postsave, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_POSTSAVE)
 	if ok {
@@ -116,6 +112,7 @@ func (bc *BaseComponent) GetDataServiceType() string {
 	return ""
 }
 
+/*
 func (bc *BaseComponent) identifyStorableRefs(ctx core.ServerContext, obj interface{}) {
 
 	//objVal := reflect.ValueOf(obj).Elem()
@@ -132,6 +129,7 @@ func (bc *BaseComponent) identifyStorableRefs(ctx core.ServerContext, obj interf
 		}
 	}
 }
+*/
 
 func (bc *BaseComponent) GetObject() string {
 	return ""
@@ -163,14 +161,14 @@ func (bc *BaseComponent) PreProcessConditionMap(ctx core.RequestContext, operati
 	if bc.SoftDelete {
 		args[bc.SoftDeleteField] = false
 	}
-	if bc.ProcessStorableRefs {
+	/*if bc.ProcessStorableRefs {
 		for k, v := range args {
 			_, present := bc.StorableRefs[k]
 			if present {
 				args[k] = map[string]interface{}{"Id": v}
 			}
 		}
-	}
+	}*/
 	return args
 }
 
