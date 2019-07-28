@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"github.com/imdario/mergo"
+)
+
 type StringMap map[string]interface{}
 type StringsMap map[string]string
 
@@ -136,4 +140,34 @@ func (smap StringMap) SetVals(vals StringMap) {
 			smap.Set(k, v)
 		}
 	}
+}
+
+func MergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
+	if obj1 == nil {
+		return obj2
+	}
+	if obj2 == nil {
+		return obj1
+	}
+	res := make(map[string]interface{})
+	mergo.Merge(&res, obj1)
+	mergo.Merge(&res, obj2)
+	return res
+}
+
+func ShallowMergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
+	if obj1 == nil {
+		return obj2
+	}
+	if obj2 == nil {
+		return obj1
+	}
+	res := make(map[string]interface{}, len(obj1))
+	for k, v := range obj1 {
+		res[k] = v
+	}
+	for k, v := range obj2 {
+		res[k] = v
+	}
+	return res
 }
