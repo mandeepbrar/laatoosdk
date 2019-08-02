@@ -53,19 +53,27 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return false
 	}
 
+	equals := func(variable string, val string) bool {
+		valToCompare, ok := ctx.Get(variable)
+		if ok {
+			return fmt.Sprint("%v", valToCompare) == val
+		}
+		return false
+	}
+
 	jsReplace := func(args ...string) string {
 		return fmt.Sprintf("javascript###replace@@@%s###", args[0])
 	}
 
 	jsFormat := func(args ...string) string {
 		vars := ""
-		if len(args)>1 {
+		if len(args) > 1 {
 			vars = strings.Join(args[1:], "@@@")
 		}
 		return fmt.Sprintf("javascript###format@@@%s@@@%s###", args[0], vars)
 	}
 
-	funcMap := template.FuncMap{"var": contextVar, "jsreplace": jsReplace, "jsformat": jsFormat, "default": defaultVar, "upper": strings.ToUpper, "lower": strings.ToLower, "title": strings.Title, "exists": exists, "contains": contains}
+	funcMap := template.FuncMap{"var": contextVar, "jsreplace": jsReplace, "jsformat": jsFormat, "default": defaultVar, "equals": equals, "upper": strings.ToUpper, "lower": strings.ToLower, "title": strings.Title, "exists": exists, "contains": contains}
 	if funcs != nil {
 		for k, v := range funcs {
 			funcMap[k] = v.(func(variable string) string)
