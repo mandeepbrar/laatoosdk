@@ -13,6 +13,7 @@ type ModInfo struct {
 	Mod             core.Module
 	ModConf         config.Config
 	ModSettings     config.Config
+	Configurations  map[string]core.Configuration
 	ModProps        map[string]interface{}
 	IsExtended      bool
 	ExtendedModName string
