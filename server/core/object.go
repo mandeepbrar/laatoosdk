@@ -1,8 +1,9 @@
 package core
 
-import "laatoo/sdk/server/ctx"
-
-type MethodArgs map[string]interface{}
+import (
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/ctx"
+)
 
 //Creates object
 type ObjectCreator func() interface{}
@@ -21,5 +22,5 @@ type ObjectFactory interface {
 }
 
 type Initializable interface {
-	Init(ctx ctx.Context, args MethodArgs) error
+	Initialize(ctx ctx.Context, conf config.Config) error
 }

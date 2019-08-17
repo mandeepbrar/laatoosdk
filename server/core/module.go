@@ -13,4 +13,5 @@ type Module interface {
 	Rules(ctx ServerContext) map[string]config.Config
 	Channels(ctx ServerContext) map[string]config.Config
 	Tasks(ctx ServerContext) map[string]config.Config
+	GetContext(ctx ServerContext, variable string) (interface{}, bool)
 }

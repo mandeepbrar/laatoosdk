@@ -1,6 +1,7 @@
 package data
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/utils"
@@ -19,7 +20,7 @@ type AbstractStorableMT struct {
 func NewAbstractStorableMT() AbstractStorableMT {
 	return AbstractStorableMT{Id: uuid.NewV4().String()}
 }
-func (as *AbstractStorableMT) Init(ctx ctx.Context, args core.MethodArgs) error {
+func (as *AbstractStorableMT) Initialize(ctx ctx.Context, conf config.Config) error {
 	as.Id = uuid.NewV4().String()
 	return nil
 }

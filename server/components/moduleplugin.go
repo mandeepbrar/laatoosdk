@@ -11,6 +11,7 @@ type ModInfo struct {
 	ModDir          string
 	ParentModName   string
 	Mod             core.Module
+	UserObj         core.Module
 	ModConf         config.Config
 	ModSettings     config.Config
 	Configurations  map[string]core.Configuration
@@ -20,6 +21,10 @@ type ModInfo struct {
 	ExtendedModConf config.Config
 	ExtendedModDir  string
 	Hot             bool
+}
+
+func (info *ModInfo) GetContext(ctx core.ServerContext, variable string) (interface{}, bool) {
+	return info.Mod.GetContext(ctx, variable)
 }
 
 type ModuleManagerPlugin interface {
