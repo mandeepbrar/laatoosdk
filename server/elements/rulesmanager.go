@@ -8,5 +8,5 @@ import (
 type RulesManager interface {
 	core.ServerElement
 	SendSynchronousMessage(ctx core.RequestContext, msgType string, data interface{}) error
-	SubscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule)
+	SubscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule, ruleName string)
 }
