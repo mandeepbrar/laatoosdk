@@ -49,8 +49,9 @@ type Request interface {
 }
 
 type Response struct {
-	Status int
-	Data   map[string]interface{}
-	Error  error
-	Return bool
+	Status   int
+	Data     interface{}
+	MetaInfo map[string]interface{}
+	Error    error
+	Return   bool
 }
