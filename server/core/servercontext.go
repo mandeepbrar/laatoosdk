@@ -48,6 +48,7 @@ type ServerElement interface {
 	Reference() ServerElement
 	GetProperty(string) interface{}
 	GetName() string
+	GetContext() ServerContext
 	GetType() ServerElementType
 }
 
