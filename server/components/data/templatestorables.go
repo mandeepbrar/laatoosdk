@@ -51,6 +51,12 @@ func (as *AbstractStorable) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
 func (as *AbstractStorable) SetValues(obj interface{}, val map[string]interface{}) {
+	delete(val, "Id")
+	delete(val, "IsNew")
+	delete(val, "CreatedBy")
+	delete(val, "UpdatedBy")
+	delete(val, "CreatedAt")
+	delete(val, "UpdatedAt")
 	utils.SetObjectFields(obj, val)
 }
 func (as *AbstractStorable) IsDeleted() bool {

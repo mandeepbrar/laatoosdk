@@ -170,7 +170,12 @@ func SetObjectFields(object interface{}, newVals map[string]interface{}) {
 					}
 				default:
 					{
-						f.Set(reflect.ValueOf(v))
+						switch f.Kind() {
+						case reflect.Struct:
+							//f.Set(reflect.ValueOf(v).Convert(f.Type()))
+						default:
+							f.Set(reflect.ValueOf(v).Convert(f.Type()))
+						}
 					}
 				}
 			}
