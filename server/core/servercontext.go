@@ -37,6 +37,7 @@ const (
 	ServerElementCacheManager
 	ServerElementModule
 	ServerElementLogger
+	ServerElementCommunicator
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -72,4 +73,5 @@ type ServerContext interface {
 	ReadConfigMap(cfg map[string]interface{}) (config.Config, error)
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
+	SendCommunication(communication map[interface{}]interface{}) error
 }

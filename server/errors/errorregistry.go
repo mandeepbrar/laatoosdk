@@ -43,6 +43,10 @@ func RegisterCode(internalErrorCode string, loglevel ErrorLevel, err error) {
 	ErrorsRegister[internalErrorCode] = &Error{err, internalErrorCode, loglevel}
 }
 
+func (err *Error) UnderlyingError() error {
+	return err.error
+}
+
 //register error handler for an internal error code
 //handler will be called before throwing an error
 //nil will be retured if an error is handled
