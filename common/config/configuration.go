@@ -17,5 +17,6 @@ type Config interface {
 	Set(ctx ctx.Context, configurationName string, configurationValue interface{})
 	SetVals(ctx ctx.Context, vals map[string]interface{})
 	Clone() Config
+	ToMap() map[string]interface{}
 	AllConfigurations(ctx ctx.Context) []string
 }
