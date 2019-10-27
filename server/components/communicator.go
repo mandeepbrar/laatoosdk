@@ -1,7 +1,7 @@
 package components
 
-import "laatoo/sdk/server/ctx"
+import "laatoo/sdk/server/core"
 
 type Communicator interface {
-	SendCommunication(ctx ctx.Context, communication map[interface{}]interface{}) error
+	SendCommunication(ctx core.RequestContext, communication map[interface{}]interface{}) error
 }

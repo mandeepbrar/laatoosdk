@@ -19,7 +19,6 @@ type Service interface {
 	AddCollectionParams(ServerContext, map[string]string) error
 	//	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
 	//	SetResponseType(ctx ServerContext, stream bool)
-	InjectServices(ServerContext, map[string]string)
 	SetDescription(ServerContext, string)
 	SetComponent(ServerContext, bool)
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
