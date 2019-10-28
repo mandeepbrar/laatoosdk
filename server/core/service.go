@@ -38,13 +38,13 @@ type ServiceFunc func(ctx RequestContext) error
 
 type Request interface {
 	//GetBody() interface{}
-	GetParam(string) (Param, bool)
-	GetParams() map[string]Param
-	GetParamValue(string) (interface{}, bool)
-	GetIntParam(string) (int, bool)
-	GetStringParam(string) (string, bool)
-	GetStringMapParam(string) (map[string]interface{}, bool)
-	GetStringsMapParam(string) (map[string]string, bool)
+	GetParam(RequestContext, string) (Param, bool)
+	GetParams(RequestContext) map[string]Param
+	GetParamValue(RequestContext, string) (interface{}, bool)
+	GetIntParam(RequestContext, string) (int, bool)
+	GetStringParam(RequestContext, string) (string, bool)
+	GetStringMapParam(RequestContext, string) (map[string]interface{}, bool)
+	GetStringsMapParam(RequestContext, string) (map[string]string, bool)
 }
 
 type Response struct {
