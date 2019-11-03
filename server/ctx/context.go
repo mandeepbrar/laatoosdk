@@ -1,13 +1,13 @@
 package ctx
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	glctx "golang.org/x/net/context"
 )
 
 type Context interface {
+	context.Context
 	GetId() string
 	GetName() string
 	GetPath() string
@@ -24,9 +24,14 @@ type Context interface {
 	GetStringArray(key string) ([]string, bool)
 	SubCtx(name string) Context
 	NewCtx(flow string) Context
-	GetAppengineContext() glctx.Context
+	GetAppengineContext() context.Context
 	HttpClient() *http.Client
-	GetOAuthContext() glctx.Context
+	GetOAuthContext() context.Context
+	WithCancel() (Context, context.CancelFunc)
+	WithDeadline(timeout time.Time) (Context, context.CancelFunc)
+	WithTimeout(timeout time.Duration) (Context, context.CancelFunc)
+	WithValue(key, val interface{}) Context
+	WithContext(parent context.Context) Context
 	Dump()
 	LogTrace(msg string, args ...interface{})
 	LogDebug(msg string, args ...interface{})

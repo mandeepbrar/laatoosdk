@@ -19,6 +19,7 @@ type ConfigurableObject interface {
 	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string, defaultValueMap map[string]interface{})
 	GetConfiguration(ctx ServerContext, name string) (interface{}, bool)
 	GetStringConfiguration(ctx ServerContext, name string) (string, bool)
+	GetSecretConfiguration(ctx ServerContext, name string) ([]byte, bool)
 	GetStringsMapConfiguration(ctx ServerContext, name string) (map[string]string, bool)
 	GetStringArrayConfiguration(ctx ServerContext, name string) ([]string, bool)
 	GetBoolConfiguration(ctx ServerContext, name string) (bool, bool)

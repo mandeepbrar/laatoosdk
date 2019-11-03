@@ -10,4 +10,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	gopkg.in/yaml.v2 v2.2.2 // indirect
+	github.com/peterbourgon/diskv v2.0.1+incompatible
 )

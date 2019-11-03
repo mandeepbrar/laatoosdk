@@ -4,8 +4,9 @@ import "fmt"
 
 const (
 	StatusSuccess         = 200
-	StatusServeFile       = 201
-	StatusServeBytes      = 202
+	StatusServeFile       = 251
+	StatusServeBytes      = 252
+	StatusServeStream     = 253
 	StatusUnauthorized    = 401
 	StatusNotFound        = 404
 	StatusRedirect        = 301
@@ -34,10 +35,10 @@ func newServiceResponse(status int, data interface{}, info map[string]interface{
 }
 
 var (
-	StatusSuccessResponse       = newServiceResponse(StatusSuccess, nil,nil, nil, true)
-	StatusUnauthorizedResponse  = newServiceResponse(StatusUnauthorized, nil, nil, nil, true)
-	StatusNotFoundResponse      = newServiceResponse(StatusNotFound, nil, nil, nil, true)
-	StatusNotModifiedResponse   = newServiceResponse(StatusNotModified, nil, nil, nil, true)
+	StatusSuccessResponse      = newServiceResponse(StatusSuccess, nil, nil, nil, true)
+	StatusUnauthorizedResponse = newServiceResponse(StatusUnauthorized, nil, nil, nil, true)
+	StatusNotFoundResponse     = newServiceResponse(StatusNotFound, nil, nil, nil, true)
+	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, nil, true)
 )
 
 func SuccessResponse(data interface{}) *Response {

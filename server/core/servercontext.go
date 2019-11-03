@@ -38,6 +38,7 @@ const (
 	ServerElementModule
 	ServerElementLogger
 	ServerElementCommunicator
+	ServerElementSecretsManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
