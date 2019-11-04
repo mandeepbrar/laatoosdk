@@ -23,6 +23,7 @@ const (
 	CORE_ERROR_NOT_IMPLEMENTED    = "Core_Not_Implemented"
 	CORE_ERROR_PLUGIN_NOT_LOADED  = "Core_Plugin_Not_Loaded"
 	CORE_ERROR_TENANT_MISMATCH    = "Core_Tenant_Mismatch"
+	CORE_ERROR_INTERNAL_ERROR     = "Core_Internal_Error"
 )
 
 func init() {
@@ -43,6 +44,7 @@ func init() {
 	RegisterCode(CORE_ERROR_TYPE_MISMATCH, FATAL, fmt.Errorf("Type Mismatch."))
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
 	RegisterCode(CORE_ERROR_TENANT_MISMATCH, WARNING, fmt.Errorf("Tenant Mismatch."))
+	RegisterCode(CORE_ERROR_INTERNAL_ERROR, FATAL, fmt.Errorf("Internal Error"))
 }
 
 func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
@@ -95,4 +97,8 @@ func TypeMismatch(ctx ctx.Context, info ...interface{}) error {
 
 func Unauthorized(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_UNAUTHORIZED, info...)
+}
+
+func InternalError(ctx ctx.Context, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_INTERNAL_ERROR, info...)
 }

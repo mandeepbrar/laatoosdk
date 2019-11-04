@@ -8,12 +8,13 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/twinj/uuid"
 )
 
 type AbstractStorableMT struct {
-	Id     string `json:"Id" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
-	Tenant string `json:"Tenant" bson:"Tenant" sql:"type:varchar(100);"`
+	Id     string `json:"Id" protobuf:"bytes,51,opt,name=id,proto3" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Tenant string `json:"Tenant" protobuf:"bytes,61,opt,name=tenant,proto3" bson:"Tenant" sql:"type:varchar(100);"`
 	Empty  string `json:"-" bson:"-" sql:"-"`
 }
 
@@ -76,6 +77,15 @@ func (as *AbstractStorableMT) Config() *StorableConfig {
 	return nil
 }
 
+func (as *AbstractStorableMT) String() string {
+	return proto.CompactTextString(as)
+}
+func (as *AbstractStorableMT) ProtoMessage() {}
+
+func (as *AbstractStorableMT) Reset() {
+	*as = NewAbstractStorableMT()
+}
+
 type SoftDeleteStorableMT struct {
 	AbstractStorableMT `bson:",inline"`
 	Deleted            bool `json:"Deleted" bson:"Deleted"`
@@ -90,14 +100,17 @@ func (sds *SoftDeleteStorableMT) IsDeleted() bool {
 func (sds *SoftDeleteStorableMT) Delete() {
 	sds.Deleted = true
 }
+func (sds *SoftDeleteStorableMT) Reset() {
+	*sds = NewSoftDeleteStorableMT()
+}
 
 type HardDeleteAuditableMT struct {
 	AbstractStorableMT `bson:",inline"`
-	New                bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
-	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
-	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
-	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
+	New                bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
 func NewHardDeleteAuditableMT() HardDeleteAuditableMT {
@@ -126,14 +139,17 @@ func (hda *HardDeleteAuditableMT) SetCreatedBy(val string) {
 func (hda *HardDeleteAuditableMT) GetCreatedBy() string {
 	return hda.CreatedBy
 }
+func (hda *HardDeleteAuditableMT) Reset() {
+	*hda = NewHardDeleteAuditableMT()
+}
 
 type SoftDeleteAuditableMT struct {
 	SoftDeleteStorableMT `bson:",inline"`
-	New                  bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy            string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
-	UpdatedBy            string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
-	CreatedAt            time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
-	UpdatedAt            time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
+	New                  bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy            string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy            string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt            time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt            time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
 func NewSoftDeleteAuditableMT() SoftDeleteAuditableMT {
@@ -161,4 +177,7 @@ func (hda *SoftDeleteAuditableMT) SetCreatedBy(val string) {
 }
 func (hda *SoftDeleteAuditableMT) GetCreatedBy() string {
 	return hda.CreatedBy
+}
+func (hda *SoftDeleteAuditableMT) Reset() {
+	*hda = NewSoftDeleteAuditableMT()
 }

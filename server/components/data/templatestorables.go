@@ -8,11 +8,27 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/twinj/uuid"
 )
 
+/**
+protobuf numbers
+
+id = 51
+deleted=52
+isnew=53
+createdby=54
+updatedby=55
+createdat=56
+updatedat=57
+type=59
+name=60
+tenant=61
+*/
+
 type AbstractStorable struct {
-	Id    string `json:"Id" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Id    string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
 	Empty string `json:"-" bson:"-" sql:"-"`
 }
 
@@ -74,10 +90,17 @@ func (as *AbstractStorable) Join(item Storable) {
 func (as *AbstractStorable) Config() *StorableConfig {
 	return nil
 }
+func (as *AbstractStorable) Reset() {
+	*as = NewAbstractStorable()
+}
+func (as *AbstractStorable) String() string {
+	return proto.CompactTextString(as)
+}
+func (as *AbstractStorable) ProtoMessage() {}
 
 type SoftDeleteStorable struct {
 	AbstractStorable `bson:",inline"`
-	Deleted          bool `json:"Deleted" bson:"Deleted"`
+	Deleted          bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
 func NewSoftDeleteStorable() SoftDeleteStorable {
@@ -92,11 +115,11 @@ func (sds *SoftDeleteStorable) Delete() {
 
 type HardDeleteAuditable struct {
 	AbstractStorable `bson:",inline"`
-	New              bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
-	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
-	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
-	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
+	New              bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
 func NewHardDeleteAuditable() HardDeleteAuditable {
@@ -126,13 +149,17 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 	return hda.CreatedBy
 }
 
+func (hda *HardDeleteAuditable) Reset() {
+	*hda = NewHardDeleteAuditable()
+}
+
 type SoftDeleteAuditable struct {
 	SoftDeleteStorable `bson:",inline"`
-	New                bool      `json:"IsNew" bson:"IsNew"`
-	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" gorm:"column:CreatedBy"`
-	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" gorm:"column:UpdatedBy"`
-	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" gorm:"column:CreatedAt"`
-	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" gorm:"column:UpdatedAt"`
+	New                bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
 func NewSoftDeleteAuditable() SoftDeleteAuditable {
@@ -160,4 +187,7 @@ func (hda *SoftDeleteAuditable) SetCreatedBy(val string) {
 }
 func (hda *SoftDeleteAuditable) GetCreatedBy() string {
 	return hda.CreatedBy
+}
+func (hda *SoftDeleteAuditable) Reset() {
+	*hda = NewSoftDeleteAuditable()
 }
