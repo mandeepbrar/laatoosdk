@@ -25,11 +25,31 @@ updatedat=57
 type=59
 name=60
 tenant=61
+AbstractStorable=62
+SoftDeleteStorable=63
+Entity=64
+AbstractStorableMT=65
+SoftDeleteStorableMT=66
+HardDeleteAuditable=67
+SoftDeleteAuditable=68
+HardDeleteAuditableMT=69
+SoftDeleteAuditableMT=70
+SerializableBase=71
 */
 
+type SerializableBase struct {
+}
+
+func (b *SerializableBase) Reset() {
+	*b = reflect.New(reflect.TypeOf(b).Elem()).Elem().Interface().(SerializableBase)
+}
+
+func (m *SerializableBase) String() string { return proto.CompactTextString(m) }
+
+func (*SerializableBase) ProtoMessage() {}
+
 type AbstractStorable struct {
-	Id    string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
-	Empty string `json:"-" bson:"-" sql:"-"`
+	Id string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
 }
 
 func NewAbstractStorable() AbstractStorable {
@@ -90,16 +110,18 @@ func (as *AbstractStorable) Join(item Storable) {
 func (as *AbstractStorable) Config() *StorableConfig {
 	return nil
 }
-func (as *AbstractStorable) Reset() {
-	*as = NewAbstractStorable()
+
+func (b *AbstractStorable) Reset() {
+	*b = reflect.New(reflect.TypeOf(b).Elem()).Elem().Interface().(AbstractStorable)
+	//	b.Id = uuid.NewV4().String()
 }
-func (as *AbstractStorable) String() string {
-	return proto.CompactTextString(as)
-}
-func (as *AbstractStorable) ProtoMessage() {}
+
+func (m *AbstractStorable) String() string { return proto.CompactTextString(m) }
+
+func (*AbstractStorable) ProtoMessage() {}
 
 type SoftDeleteStorable struct {
-	AbstractStorable `bson:",inline"`
+	AbstractStorable `bson:",inline" json:",inline" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	Deleted          bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
@@ -114,7 +136,7 @@ func (sds *SoftDeleteStorable) Delete() {
 }
 
 type HardDeleteAuditable struct {
-	AbstractStorable `bson:",inline"`
+	AbstractStorable `bson:",inline" json:",inline" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	New              bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -149,12 +171,8 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 	return hda.CreatedBy
 }
 
-func (hda *HardDeleteAuditable) Reset() {
-	*hda = NewHardDeleteAuditable()
-}
-
 type SoftDeleteAuditable struct {
-	SoftDeleteStorable `bson:",inline"`
+	SoftDeleteStorable `bson:",inline" json:",inline" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
 	New                bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -187,7 +205,4 @@ func (hda *SoftDeleteAuditable) SetCreatedBy(val string) {
 }
 func (hda *SoftDeleteAuditable) GetCreatedBy() string {
 	return hda.CreatedBy
-}
-func (hda *SoftDeleteAuditable) Reset() {
-	*hda = NewSoftDeleteAuditable()
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"laatoo/sdk/server/core"
 	"reflect"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type StorableConfig struct {
@@ -26,6 +28,7 @@ type StorableConfig struct {
 
 //Object stored by data service
 type Storable interface {
+	proto.Message
 	core.Initializable
 	Config() *StorableConfig
 	GetId() string
@@ -39,9 +42,6 @@ type Storable interface {
 	IsMultitenant() bool
 	Delete()
 	Join(item Storable)
-	Reset()
-	String() string
-	ProtoMessage()
 }
 
 type StorableMT interface {
@@ -54,7 +54,7 @@ type StorableRef struct {
 	Id     string   `json:"Id" bson:"Id" gorm:"column:Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
 	Type   string   `json:"Type" bson:"Type" gorm:"column:Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
 	Name   string   `json:"Name" bson:"Name" gorm:"column:Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
-	Entity Storable `json:"-" bson:"-" sql:"-"`
+	Entity Storable `json:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
 }
 
 func StorableArrayToMap(items []Storable) map[string]Storable {
