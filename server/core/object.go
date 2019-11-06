@@ -6,17 +6,17 @@ import (
 )
 
 //Creates object
-type ObjectCreator func() interface{}
+type ObjectCreator func(ctx.Context) interface{}
 
 //Creates collection
-type ObjectCollectionCreator func(length int) interface{}
+type ObjectCollectionCreator func(cx ctx.Context, length int) interface{}
 
 //interface that needs to be implemented by any object provider in a system
 type ObjectFactory interface {
 	//Creates object
-	CreateObject() interface{}
+	CreateObject(ctx.Context) interface{}
 	//Creates collection
-	CreateObjectCollection(length int) interface{}
+	CreateObjectCollection(cx ctx.Context, length int) interface{}
 	//Get Metadata for the object
 	Info() Info
 }

@@ -29,6 +29,9 @@ type RequestContext interface {
 	ForwardToService(Service, map[string]interface{}) error
 	GetUser() auth.User
 	HasPermission(perm string) bool
+	GetObjectFactory(name string) (ObjectFactory, bool)
+	CreateCollection(objectName string, length int) (interface{}, error)
+	CreateObject(objectName string) (interface{}, error)
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(bucket string, key string, item interface{}) error

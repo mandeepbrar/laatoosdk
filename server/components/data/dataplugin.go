@@ -50,13 +50,6 @@ func (svc *DataPlugin) Initialize(ctx core.ServerContext, conf config.Config) er
 func (svc *DataPlugin) GetObject() string {
 	return svc.PluginDataComponent.GetObject()
 }
-func (svc *DataPlugin) GetObjectCollectionCreator() core.ObjectCollectionCreator {
-	return svc.PluginDataComponent.GetObjectCollectionCreator()
-}
-
-func (svc *DataPlugin) GetObjectCreator() core.ObjectCreator {
-	return svc.PluginDataComponent.GetObjectCreator()
-}
 
 func (svc *DataPlugin) GetCollection() string {
 	return svc.PluginDataComponent.GetCollection()
@@ -106,12 +99,12 @@ func (svc *DataPlugin) Update(ctx core.RequestContext, id string, newVals map[st
 	return svc.PluginDataComponent.Update(ctx, id, newVals)
 }
 
-func (svc *DataPlugin) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
-	return svc.PluginDataComponent.Upsert(ctx, queryCond, newVals)
+func (svc *DataPlugin) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
+	return svc.PluginDataComponent.Upsert(ctx, queryCond, newVals, getids)
 }
 
-func (svc *DataPlugin) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
-	return svc.PluginDataComponent.UpdateAll(ctx, queryCond, newVals)
+func (svc *DataPlugin) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
+	return svc.PluginDataComponent.UpdateAll(ctx, queryCond, newVals, getids)
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
@@ -130,8 +123,8 @@ func (svc *DataPlugin) DeleteMulti(ctx core.RequestContext, ids []string) error 
 }
 
 //Delete object by condition
-func (svc *DataPlugin) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
-	return svc.PluginDataComponent.DeleteAll(ctx, queryCond)
+func (svc *DataPlugin) DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error) {
+	return svc.PluginDataComponent.DeleteAll(ctx, queryCond, getids)
 }
 
 func (svc *DataPlugin) GetById(ctx core.RequestContext, id string) (Storable, error) {

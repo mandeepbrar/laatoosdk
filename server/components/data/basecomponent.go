@@ -11,20 +11,19 @@ Base Component helps create a new data service
 */
 type BaseComponent struct {
 	core.Service
-	Object                  string
-	ObjectCreator           core.ObjectCreator
-	ObjectCollectionCreator core.ObjectCollectionCreator
-	ObjectConfig            *StorableConfig
-	Auditable               bool
-	SoftDelete              bool
-	PreSave                 bool
-	PostSave                bool
-	PostLoad                bool
-	PostUpdate              bool
-	Multitenant             bool
-	SoftDeleteField         string
-	ObjectId                string
-	EmbeddedSearch          bool
+	Object          string
+	ObjectFactory   core.ObjectFactory
+	ObjectConfig    *StorableConfig
+	Auditable       bool
+	SoftDelete      bool
+	PreSave         bool
+	PostSave        bool
+	PostLoad        bool
+	PostUpdate      bool
+	Multitenant     bool
+	SoftDeleteField string
+	ObjectId        string
+	EmbeddedSearch  bool
 }
 
 func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
@@ -38,20 +37,18 @@ func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 
 func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) error {
 	bc.Object, _ = bc.GetStringConfiguration(ctx, CONF_DATA_OBJECT)
-	objectCreator, err := ctx.GetObjectCreator(bc.Object)
-	if err != nil {
-		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object creator for", bc.Object)
+
+	fac, ok := ctx.GetObjectFactory(bc.Object)
+	if !ok {
+		return errors.BadConf(ctx, CONF_DATA_OBJECT)
+	} else {
+		bc.ObjectFactory = fac
 	}
 
-	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(bc.Object)
+	testObj, err := ctx.CreateObject(bc.Object)
 	if err != nil {
-		return errors.BadArg(ctx, CONF_DATA_OBJECT, "Could not get Object collection creator for", bc.Object)
+		return errors.WrapError(ctx, err)
 	}
-
-	bc.ObjectCreator = objectCreator
-	bc.ObjectCollectionCreator = objectCollectionCreator
-
-	testObj := objectCreator()
 	stor := testObj.(Storable)
 	bc.ObjectConfig = stor.Config()
 
@@ -132,21 +129,15 @@ func (bc *BaseComponent) identifyStorableRefs(ctx core.ServerContext, obj interf
 */
 
 func (bc *BaseComponent) GetObject() string {
-	return ""
+	return bc.Object
+}
+
+func (bc *BaseComponent) GetObjectFactory() core.ObjectFactory {
+	return bc.ObjectFactory
 }
 
 func (bc *BaseComponent) GetCollection() string {
 	return bc.ObjectConfig.Collection
-}
-
-//get object creator
-func (bc *BaseComponent) GetObjectCreator() core.ObjectCreator {
-	return bc.ObjectCreator
-}
-
-//get object collection creator
-func (bc *BaseComponent) GetObjectCollectionCreator() core.ObjectCollectionCreator {
-	return bc.ObjectCollectionCreator
 }
 
 //supported features
@@ -212,7 +203,7 @@ func (bc *BaseComponent) UpsertId(ctx core.RequestContext, id string, newVals ma
 }
 
 //upsert an object ...insert if not there... update if there
-func (bc *BaseComponent) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (bc *BaseComponent) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	return nil, errors.NotImplemented(ctx, "Upsert")
 }
 
@@ -227,7 +218,7 @@ func (bc *BaseComponent) Update(ctx core.RequestContext, id string, newVals map[
 }
 
 //update with condition
-func (bc *BaseComponent) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (bc *BaseComponent) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	return nil, errors.NotImplemented(ctx, "UpdateAll")
 }
 
@@ -242,7 +233,7 @@ func (bc *BaseComponent) DeleteMulti(ctx core.RequestContext, ids []string) erro
 }
 
 //delete with condition
-func (bc *BaseComponent) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+func (bc *BaseComponent) DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error) {
 	return nil, errors.NotImplemented(ctx, "DeleteAll")
 }
 

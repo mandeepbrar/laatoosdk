@@ -38,10 +38,8 @@ type DataComponent interface {
 	GetObject() string
 	//collection for the service
 	GetCollection() string
-	//get object creator
-	GetObjectCreator() core.ObjectCreator
-	//get object collection creator
-	GetObjectCollectionCreator() core.ObjectCollectionCreator
+	//object factory for the data object
+	GetObjectFactory() core.ObjectFactory
 	//supported features
 	Supports(Feature) bool
 	//creates a collection
@@ -67,19 +65,19 @@ type DataComponent interface {
 	//upsert an object by id, fields to be updated should be provided as key value pairs
 	UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error
 	//upsert by condition
-	Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error)
+	Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error)
 	//update objects by ids, fields to be updated should be provided as key value pairs
 	UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error
 	//update an object by ids, fields to be updated should be provided as key value pairs
 	Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error
 	//update with condition
-	UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error)
+	UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error)
 	//Delete an object by id
 	Delete(ctx core.RequestContext, id string) error
 	//Delete object by ids
 	DeleteMulti(ctx core.RequestContext, ids []string) error
 	//delete with condition
-	DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error)
+	DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error)
 	//Get an object by id
 	GetById(ctx core.RequestContext, id string) (Storable, error)
 	//get storables in a hashtable

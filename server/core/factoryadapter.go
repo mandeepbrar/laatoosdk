@@ -2,11 +2,12 @@ package core
 
 import (
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/ctx"
 )
 
 //service method for doing various tasks
 func NewFactory(creator ObjectCreator) ObjectCreator {
-	return func() interface{} {
+	return func(cx ctx.Context) interface{} {
 		return &FactoryImpl{creator: creator}
 	}
 }
@@ -18,7 +19,7 @@ type FactoryImpl struct {
 
 //Create the services configured for factory.
 func (fac *FactoryImpl) CreateService(ctx ServerContext, name string, method string, conf config.Config) (Service, error) {
-	obj := fac.creator()
+	obj := fac.creator(ctx)
 	svc, _ := obj.(Service)
 	return svc, nil
 }

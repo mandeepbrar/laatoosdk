@@ -65,8 +65,7 @@ type ServerContext interface {
 	CreateNewRequest(name string, engine interface{}, engineCtx interface{}, sessionId string) (RequestContext, error)
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
-	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
-	GetObjectCreator(objectName string) (ObjectCreator, error)
+	GetObjectFactory(name string) (ObjectFactory, bool)
 	GetObjectMetadata(objectName string) (Info, error)
 	CreateSystemRequest(name string) RequestContext
 	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error

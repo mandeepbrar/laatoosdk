@@ -13,6 +13,5 @@ type ObjectLoader interface {
 	CreateCollection(ctx ctx.Context, objectName string, length int) (interface{}, error)
 	CreateObject(ctx ctx.Context, objectName string) (interface{}, error)
 	GetMetaData(ctx ctx.Context, objectName string) (core.Info, error)
-	GetObjectCollectionCreator(ctx ctx.Context, objectName string) (core.ObjectCollectionCreator, error)
-	GetObjectCreator(ctx ctx.Context, objectName string) (core.ObjectCreator, error)
+	GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool)
 }

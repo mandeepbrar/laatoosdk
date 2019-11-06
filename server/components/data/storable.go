@@ -3,6 +3,8 @@ package data
 import (
 	"fmt"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/log"
 	"reflect"
 
 	"github.com/golang/protobuf/proto"
@@ -68,7 +70,7 @@ func StorableArrayToMap(items []Storable) map[string]Storable {
 //Factory function for creating storable
 //type StorableCreator func() interface{}
 
-func CastToStorableCollection(items interface{}) ([]Storable, []string, error) {
+func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []string, error) {
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
 		arr = arr.Elem()
@@ -88,16 +90,20 @@ func CastToStorableCollection(items interface{}) ([]Storable, []string, error) {
 		} else {
 			valPtr = arr.Index(i).Addr().Interface()
 		}
-		stor, ok := valPtr.(Storable)
-		if !ok {
-			return nil, nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
+		if valPtr != nil {
+			stor, ok := valPtr.(Storable)
+			if !ok {
+				return nil, nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
+			}
+			if stor.IsDeleted() {
+				continue
+			}
+			ids[j] = stor.GetId()
+			retVal[j] = stor
+			j++
+		} else {
+			log.Warn(cx, "Nil object received", "index", i)
 		}
-		if stor.IsDeleted() {
-			continue
-		}
-		ids[j] = stor.GetId()
-		retVal[j] = stor
-		j++
 	}
 	return retVal[0:j], ids, nil
 }

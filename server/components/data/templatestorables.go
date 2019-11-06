@@ -52,13 +52,20 @@ type AbstractStorable struct {
 	Id string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
 }
 
-func NewAbstractStorable() AbstractStorable {
-	return AbstractStorable{Id: uuid.NewV4().String()}
+func NewAbstractStorable() *AbstractStorable {
+	return &AbstractStorable{Id: uuid.NewV4().String()}
 }
+
+func (as *AbstractStorable) Constructor() {
+	if as.Id != "" {
+		as.Id = uuid.NewV4().String()
+	}
+}
+
 func (as *AbstractStorable) Initialize(ctx ctx.Context, conf config.Config) error {
-	as.Id = uuid.NewV4().String()
 	return nil
 }
+
 func (as *AbstractStorable) GetId() string {
 	return as.Id
 }
@@ -121,12 +128,12 @@ func (m *AbstractStorable) String() string { return proto.CompactTextString(m) }
 func (*AbstractStorable) ProtoMessage() {}
 
 type SoftDeleteStorable struct {
-	AbstractStorable `bson:",inline" json:",inline" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
-	Deleted          bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
+	*AbstractStorable `json:",inline" initialize:"AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	Deleted           bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
-func NewSoftDeleteStorable() SoftDeleteStorable {
-	return SoftDeleteStorable{NewAbstractStorable(), false}
+func NewSoftDeleteStorable() *SoftDeleteStorable {
+	return &SoftDeleteStorable{NewAbstractStorable(), false}
 }
 func (sds *SoftDeleteStorable) IsDeleted() bool {
 	return sds.Deleted
@@ -136,16 +143,16 @@ func (sds *SoftDeleteStorable) Delete() {
 }
 
 type HardDeleteAuditable struct {
-	AbstractStorable `bson:",inline" json:",inline" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
-	New              bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
-	CreatedBy        string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
-	UpdatedBy        string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
-	CreatedAt        time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
-	UpdatedAt        time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
+	*AbstractStorable `json:",inline" initialize:"AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	New               bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy         string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy         string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt         time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt         time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
-func NewHardDeleteAuditable() HardDeleteAuditable {
-	return HardDeleteAuditable{AbstractStorable: NewAbstractStorable()}
+func NewHardDeleteAuditable() *HardDeleteAuditable {
+	return &HardDeleteAuditable{AbstractStorable: NewAbstractStorable()}
 }
 func (hda *HardDeleteAuditable) IsNew() bool {
 	return hda.New
@@ -172,16 +179,16 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 }
 
 type SoftDeleteAuditable struct {
-	SoftDeleteStorable `bson:",inline" json:",inline" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
-	New                bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
-	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
-	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
-	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
-	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
+	*SoftDeleteStorable `json:",inline" initialize:"SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
+	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt           time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt           time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
-func NewSoftDeleteAuditable() SoftDeleteAuditable {
-	return SoftDeleteAuditable{SoftDeleteStorable: NewSoftDeleteStorable()}
+func NewSoftDeleteAuditable() *SoftDeleteAuditable {
+	return &SoftDeleteAuditable{SoftDeleteStorable: NewSoftDeleteStorable()}
 }
 func (hda *SoftDeleteAuditable) IsNew() bool {
 	return hda.New

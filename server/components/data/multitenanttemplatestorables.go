@@ -17,11 +17,15 @@ type AbstractStorableMT struct {
 	Tenant string `json:"Tenant" protobuf:"bytes,61,opt,name=tenant,proto3" bson:"Tenant" sql:"type:varchar(100);"`
 }
 
-func NewAbstractStorableMT() AbstractStorableMT {
-	return AbstractStorableMT{Id: uuid.NewV4().String()}
+func NewAbstractStorableMT() *AbstractStorableMT {
+	return &AbstractStorableMT{Id: uuid.NewV4().String()}
+}
+func (as *AbstractStorableMT) Constructor() {
+	if as.Id != "" {
+		as.Id = uuid.NewV4().String()
+	}
 }
 func (as *AbstractStorableMT) Initialize(ctx ctx.Context, conf config.Config) error {
-	as.Id = uuid.NewV4().String()
 	return nil
 }
 func (as *AbstractStorableMT) GetId() string {
@@ -87,12 +91,12 @@ func (b *AbstractStorableMT) Reset() {
 }
 
 type SoftDeleteStorableMT struct {
-	AbstractStorableMT `bson:",inline" json:",inline" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
-	Deleted            bool `json:"Deleted" bson:"Deleted"`
+	*AbstractStorableMT `json:",inline" initialize:"AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	Deleted             bool `json:"Deleted" bson:"Deleted"`
 }
 
-func NewSoftDeleteStorableMT() SoftDeleteStorableMT {
-	return SoftDeleteStorableMT{NewAbstractStorableMT(), false}
+func NewSoftDeleteStorableMT() *SoftDeleteStorableMT {
+	return &SoftDeleteStorableMT{NewAbstractStorableMT(), false}
 }
 func (sds *SoftDeleteStorableMT) IsDeleted() bool {
 	return sds.Deleted
@@ -102,16 +106,16 @@ func (sds *SoftDeleteStorableMT) Delete() {
 }
 
 type HardDeleteAuditableMT struct {
-	AbstractStorableMT `bson:",inline" json:",inline" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
-	New                bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
-	CreatedBy          string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
-	UpdatedBy          string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
-	CreatedAt          time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
-	UpdatedAt          time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
+	*AbstractStorableMT `json:",inline" initialize:"AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt           time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt           time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
-func NewHardDeleteAuditableMT() HardDeleteAuditableMT {
-	return HardDeleteAuditableMT{AbstractStorableMT: NewAbstractStorableMT()}
+func NewHardDeleteAuditableMT() *HardDeleteAuditableMT {
+	return &HardDeleteAuditableMT{AbstractStorableMT: NewAbstractStorableMT()}
 }
 func (hda *HardDeleteAuditableMT) IsNew() bool {
 	return hda.New
@@ -138,16 +142,16 @@ func (hda *HardDeleteAuditableMT) GetCreatedBy() string {
 }
 
 type SoftDeleteAuditableMT struct {
-	SoftDeleteStorableMT `bson:",inline" json:",inline" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
-	New                  bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
-	CreatedBy            string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
-	UpdatedBy            string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
-	CreatedAt            time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
-	UpdatedAt            time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
+	*SoftDeleteStorableMT `json:",inline" initialize:"SoftDeleteStorableMT" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
+	New                   bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
+	CreatedBy             string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
+	UpdatedBy             string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
+	CreatedAt             time.Time `json:"CreatedAt" bson:"CreatedAt" protobuf:"bytes,56,opt,name=createdat,proto3" gorm:"column:CreatedAt"`
+	UpdatedAt             time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
-func NewSoftDeleteAuditableMT() SoftDeleteAuditableMT {
-	return SoftDeleteAuditableMT{SoftDeleteStorableMT: NewSoftDeleteStorableMT()}
+func NewSoftDeleteAuditableMT() *SoftDeleteAuditableMT {
+	return &SoftDeleteAuditableMT{SoftDeleteStorableMT: NewSoftDeleteStorableMT()}
 }
 func (hda *SoftDeleteAuditableMT) IsNew() bool {
 	return hda.New
