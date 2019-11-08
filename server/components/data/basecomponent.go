@@ -53,13 +53,6 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 	bc.ObjectConfig = stor.Config()
 
 	bc.ObjectId = bc.ObjectConfig.IdField
-	bc.SoftDeleteField = bc.ObjectConfig.SoftDeleteField
-
-	if bc.SoftDeleteField == "" {
-		bc.SoftDelete = false
-	} else {
-		bc.SoftDelete = true
-	}
 
 	auditable, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_AUDITABLE)
 	if ok {
@@ -248,17 +241,17 @@ func (bc *BaseComponent) GetMultiHash(ctx core.RequestContext, ids []string) (ma
 }
 
 //Get multiple objects by id
-func (bc *BaseComponent) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]Storable, error) {
+func (bc *BaseComponent) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]Storable, error) {
 	return nil, errors.NotImplemented(ctx, "GetMulti")
 }
 
 //Get all object with given conditions
-func (bc *BaseComponent) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (bc *BaseComponent) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return nil, nil, -1, -1, errors.NotImplemented(ctx, "Get")
 }
 
 //Get a list of all items
-func (bc *BaseComponent) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (bc *BaseComponent) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return nil, nil, -1, -1, errors.NotImplemented(ctx, "GetList")
 
 }

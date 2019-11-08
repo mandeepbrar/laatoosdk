@@ -7,9 +7,9 @@ import (
 
 type ObjectLoader interface {
 	core.ServerElement
-	Register(ctx ctx.Context, objectName string, obj interface{}, metadata core.Info)
-	RegisterObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory)
-	RegisterObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info)
+	Register(ctx ctx.Context, objectName string, obj interface{}, metadata core.Info) error
+	RegisterObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) error
+	RegisterObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error
 	CreateCollection(ctx ctx.Context, objectName string, length int) (interface{}, error)
 	CreateObject(ctx ctx.Context, objectName string) (interface{}, error)
 	GetMetaData(ctx ctx.Context, objectName string) (core.Info, error)

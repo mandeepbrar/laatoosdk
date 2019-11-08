@@ -102,11 +102,6 @@ func (as *AbstractStorable) SetValues(obj interface{}, val map[string]interface{
 	delete(val, "UpdatedAt")
 	utils.SetObjectFields(obj, val)
 }
-func (as *AbstractStorable) IsDeleted() bool {
-	return false
-}
-func (as *AbstractStorable) Delete() {
-}
 
 func (as *AbstractStorable) IsMultitenant() bool {
 	return false
@@ -138,8 +133,8 @@ func NewSoftDeleteStorable() *SoftDeleteStorable {
 func (sds *SoftDeleteStorable) IsDeleted() bool {
 	return sds.Deleted
 }
-func (sds *SoftDeleteStorable) Delete() {
-	sds.Deleted = true
+func (sds *SoftDeleteStorable) SoftDeleteField() string {
+	return "Deleted"
 }
 
 type HardDeleteAuditable struct {
@@ -161,16 +156,28 @@ func (hda *HardDeleteAuditable) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
 }
+
 func (hda *HardDeleteAuditable) SetCreatedAt(val time.Time) {
 	hda.CreatedAt = val
 }
+func (hda *HardDeleteAuditable) GetCreatedAt() time.Time {
+	return hda.CreatedAt
+}
+
 func (hda *HardDeleteAuditable) SetUpdatedAt(val time.Time) {
 	hda.UpdatedAt = val
+}
+func (hda *HardDeleteAuditable) GetUpdatedAt() time.Time {
+	return hda.UpdatedAt
 }
 
 func (hda *HardDeleteAuditable) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val
 }
+func (hda *HardDeleteAuditable) GetUpdatedBy() string {
+	return hda.UpdatedBy
+}
+
 func (hda *HardDeleteAuditable) SetCreatedBy(val string) {
 	hda.CreatedBy = val
 }
@@ -190,26 +197,38 @@ type SoftDeleteAuditable struct {
 func NewSoftDeleteAuditable() *SoftDeleteAuditable {
 	return &SoftDeleteAuditable{SoftDeleteStorable: NewSoftDeleteStorable()}
 }
-func (hda *SoftDeleteAuditable) IsNew() bool {
-	return hda.New
+func (sda *SoftDeleteAuditable) IsNew() bool {
+	return sda.New
 }
-func (hda *SoftDeleteAuditable) PreSave(ctx core.RequestContext) error {
-	hda.New = (hda.CreatedBy == "")
+func (sda *SoftDeleteAuditable) PreSave(ctx core.RequestContext) error {
+	sda.New = (sda.CreatedBy == "")
 	return nil
 }
-func (hda *SoftDeleteAuditable) SetCreatedAt(val time.Time) {
-	hda.CreatedAt = val
+
+func (sda *SoftDeleteAuditable) SetCreatedAt(val time.Time) {
+	sda.CreatedAt = val
 }
-func (hda *SoftDeleteAuditable) SetUpdatedAt(val time.Time) {
-	hda.UpdatedAt = val
+func (sda *SoftDeleteAuditable) GetCreatedAt() time.Time {
+	return sda.CreatedAt
 }
 
-func (hda *SoftDeleteAuditable) SetUpdatedBy(val string) {
-	hda.UpdatedBy = val
+func (sda *SoftDeleteAuditable) SetUpdatedAt(val time.Time) {
+	sda.UpdatedAt = val
 }
-func (hda *SoftDeleteAuditable) SetCreatedBy(val string) {
-	hda.CreatedBy = val
+func (sda *SoftDeleteAuditable) GetUpdatedAt() time.Time {
+	return sda.UpdatedAt
 }
-func (hda *SoftDeleteAuditable) GetCreatedBy() string {
-	return hda.CreatedBy
+
+func (sda *SoftDeleteAuditable) SetUpdatedBy(val string) {
+	sda.UpdatedBy = val
+}
+func (sda *SoftDeleteAuditable) GetUpdatedBy() string {
+	return sda.UpdatedBy
+}
+
+func (sda *SoftDeleteAuditable) SetCreatedBy(val string) {
+	sda.CreatedBy = val
+}
+func (sda *SoftDeleteAuditable) GetCreatedBy() string {
+	return sda.CreatedBy
 }

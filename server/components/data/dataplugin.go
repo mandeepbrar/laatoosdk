@@ -132,7 +132,7 @@ func (svc *DataPlugin) GetById(ctx core.RequestContext, id string) (Storable, er
 }
 
 //Get multiple objects by id
-func (svc *DataPlugin) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]Storable, error) {
+func (svc *DataPlugin) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]Storable, error) {
 	return svc.PluginDataComponent.GetMulti(ctx, ids, orderBy)
 }
 
@@ -148,11 +148,11 @@ func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{
 	return svc.PluginDataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
-func (svc *DataPlugin) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *DataPlugin) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }
 
-func (svc *DataPlugin) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *DataPlugin) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
 }
 

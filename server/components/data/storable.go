@@ -16,7 +16,6 @@ type StorableConfig struct {
 	PartialLoadFields []string
 	FullLoadFields    []string
 	Type              string
-	SoftDeleteField   string
 	PreSave           bool
 	PostSave          bool
 	PostUpdate        bool
@@ -40,9 +39,7 @@ type Storable interface {
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
-	IsDeleted() bool
 	IsMultitenant() bool
-	Delete()
 	Join(item Storable)
 }
 
@@ -50,6 +47,12 @@ type StorableMT interface {
 	Storable
 	GetTenant() string
 	SetTenant(tenant string)
+}
+
+type SoftDeletable interface {
+	Storable
+	IsDeleted() bool
+	SoftDeleteField() string
 }
 
 type StorableRef struct {
@@ -95,7 +98,8 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []
 			if !ok {
 				return nil, nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
 			}
-			if stor.IsDeleted() {
+			softDeletable, ok := stor.(SoftDeletable)
+			if ok && softDeletable.IsDeleted() {
 				continue
 			}
 			ids[j] = stor.GetId()
@@ -130,7 +134,8 @@ func CastToStorableHash(items interface{}) (map[string]Storable, error) {
 		if !ok {
 			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s %s %t", valPtr, arr.Index(i).Kind(), arr.Index(i).IsNil())
 		}
-		if stor.IsDeleted() {
+		softDeletable, ok := stor.(SoftDeletable)
+		if ok && softDeletable.IsDeleted() {
 			continue
 		}
 		retVal[stor.GetId()] = stor

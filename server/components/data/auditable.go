@@ -11,8 +11,11 @@ type Auditable interface {
 	Storable
 	IsNew() bool
 	SetCreatedAt(time.Time)
+	GetCreatedAt() time.Time
 	SetUpdatedAt(time.Time)
+	GetUpdatedAt() time.Time
 	SetUpdatedBy(string)
+	GetUpdatedBy() string
 	SetCreatedBy(string)
 	GetCreatedBy() string
 }

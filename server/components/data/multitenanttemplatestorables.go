@@ -101,8 +101,8 @@ func NewSoftDeleteStorableMT() *SoftDeleteStorableMT {
 func (sds *SoftDeleteStorableMT) IsDeleted() bool {
 	return sds.Deleted
 }
-func (sds *SoftDeleteStorableMT) Delete() {
-	sds.Deleted = true
+func (sds *SoftDeleteStorableMT) SoftDeleteField() string {
+	return "Deleted"
 }
 
 type HardDeleteAuditableMT struct {
@@ -124,16 +124,28 @@ func (hda *HardDeleteAuditableMT) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
 }
+
 func (hda *HardDeleteAuditableMT) SetCreatedAt(val time.Time) {
 	hda.CreatedAt = val
 }
+func (hda *HardDeleteAuditableMT) GetCreatedAt() time.Time {
+	return hda.CreatedAt
+}
+
 func (hda *HardDeleteAuditableMT) SetUpdatedAt(val time.Time) {
 	hda.UpdatedAt = val
+}
+func (hda *HardDeleteAuditableMT) GetUpdatedAt() time.Time {
+	return hda.UpdatedAt
 }
 
 func (hda *HardDeleteAuditableMT) SetUpdatedBy(val string) {
 	hda.UpdatedBy = val
 }
+func (hda *HardDeleteAuditableMT) GetUpdatedBy() string {
+	return hda.UpdatedBy
+}
+
 func (hda *HardDeleteAuditableMT) SetCreatedBy(val string) {
 	hda.CreatedBy = val
 }
@@ -160,19 +172,30 @@ func (hda *SoftDeleteAuditableMT) PreSave(ctx core.RequestContext) error {
 	hda.New = (hda.CreatedBy == "")
 	return nil
 }
-func (hda *SoftDeleteAuditableMT) SetCreatedAt(val time.Time) {
-	hda.CreatedAt = val
+func (sda *SoftDeleteAuditableMT) SetCreatedAt(val time.Time) {
+	sda.CreatedAt = val
 }
-func (hda *SoftDeleteAuditableMT) SetUpdatedAt(val time.Time) {
-	hda.UpdatedAt = val
+func (sda *SoftDeleteAuditableMT) GetCreatedAt() time.Time {
+	return sda.CreatedAt
 }
 
-func (hda *SoftDeleteAuditableMT) SetUpdatedBy(val string) {
-	hda.UpdatedBy = val
+func (sda *SoftDeleteAuditableMT) SetUpdatedAt(val time.Time) {
+	sda.UpdatedAt = val
 }
-func (hda *SoftDeleteAuditableMT) SetCreatedBy(val string) {
-	hda.CreatedBy = val
+func (sda *SoftDeleteAuditableMT) GetUpdatedAt() time.Time {
+	return sda.UpdatedAt
 }
-func (hda *SoftDeleteAuditableMT) GetCreatedBy() string {
-	return hda.CreatedBy
+
+func (sda *SoftDeleteAuditableMT) SetUpdatedBy(val string) {
+	sda.UpdatedBy = val
+}
+func (sda *SoftDeleteAuditableMT) GetUpdatedBy() string {
+	return sda.UpdatedBy
+}
+
+func (sda *SoftDeleteAuditableMT) SetCreatedBy(val string) {
+	sda.CreatedBy = val
+}
+func (sda *SoftDeleteAuditableMT) GetCreatedBy() string {
+	return sda.CreatedBy
 }

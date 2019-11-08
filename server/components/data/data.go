@@ -11,6 +11,8 @@ const (
 	MATCHANCESTOR                            //expects collection name and id
 	FIELDVALUE                               //expects map of field values
 	COMBINECONDTITIONS                       //combine conditions
+	SORTASC
+	SORTDESC
 )
 
 const (
@@ -83,14 +85,14 @@ type DataComponent interface {
 	//get storables in a hashtable
 	GetMultiHash(ctx core.RequestContext, ids []string) (map[string]Storable, error)
 	//Get multiple objects by id
-	GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]Storable, error)
+	GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]Storable, error)
 
 	//Count all object with given condition
 	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
 	CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error)
 
 	//Get all object with given conditions
-	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
-	GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 }
