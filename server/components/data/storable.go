@@ -41,10 +41,6 @@ type Storable interface {
 	PostLoad(ctx core.RequestContext) error
 	IsMultitenant() bool
 	Join(item Storable)
-}
-
-type StorableMT interface {
-	Storable
 	GetTenant() string
 	SetTenant(tenant string)
 }
