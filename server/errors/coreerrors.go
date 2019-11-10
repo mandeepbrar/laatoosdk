@@ -59,6 +59,18 @@ func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 	return nil
 }
 
+func WrapErrorWithCode(ctx ctx.Context, err error, errCode string, info ...interface{}) error {
+	if err != nil {
+		_, ok := err.(Error)
+		if ok {
+			return err
+		} else {
+			return RethrowError(ctx, errCode, err, info...)
+		}
+	}
+	return nil
+}
+
 func BadRequest(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_BAD_REQUEST, info...)
 }
