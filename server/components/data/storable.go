@@ -34,7 +34,7 @@ type Storable interface {
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
-	GetLabel() string
+	GetLabel(core.RequestContext, interface{}) string
 	SetValues(core.RequestContext, interface{}, map[string]interface{}) error
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
