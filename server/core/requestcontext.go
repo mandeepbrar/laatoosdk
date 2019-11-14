@@ -44,6 +44,7 @@ type RequestContext interface {
 	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}
 	PushTask(queue string, task interface{}) error
 	InvalidateCache(bucket string, key string) error
+	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
 	IsAdmin() bool
 	CompleteRequest()

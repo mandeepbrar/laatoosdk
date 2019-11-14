@@ -1,6 +1,8 @@
 package core
 
-import "laatoo/sdk/common/config"
+import (
+	"laatoo/sdk/common/config"
+)
 
 type Service interface {
 	ConfigurableObject
@@ -9,7 +11,6 @@ type Service interface {
 	Start(ctx ServerContext) error
 	Stop(ctx ServerContext) error
 	Unload(ctx ServerContext) error
-	Invoke(RequestContext) error
 	AddParams(ServerContext, map[string]string, bool) error
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
 	AddStringParam(ctx ServerContext, name string)
@@ -23,6 +24,11 @@ type Service interface {
 	SetComponent(ServerContext, bool)
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
 	ConfigureService(ctx ServerContext, params []string, config []string, description string)
+}
+
+type UserInvokableService interface {
+	Service
+	Invoke(RequestContext) error
 }
 
 type Param interface {

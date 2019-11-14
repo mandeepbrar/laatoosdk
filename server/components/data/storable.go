@@ -35,7 +35,7 @@ type Storable interface {
 	GetId() string
 	SetId(string)
 	GetLabel() string
-	SetValues(interface{}, map[string]interface{})
+	SetValues(core.RequestContext, interface{}, map[string]interface{}) error
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error

@@ -7,6 +7,7 @@ import (
 
 type StorageComponent interface {
 	Open(ctx core.RequestContext, bucket, fileName string) (io.ReadCloser, error)
+	OpenForWrite(ctx core.RequestContext, bucket, fileName string) (io.WriteCloser, error)
 	SaveFile(ctx core.RequestContext, bucket string, inpStr io.ReadCloser, fileName string, contentType string) (string, error)
 	GetFullPath(ctx core.RequestContext, bucket string, fileName string) string
 	ServeFile(ctx core.RequestContext, bucket string, fileName string) error

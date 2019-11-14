@@ -35,3 +35,10 @@ func (ds *DiskStorer) GetObject(id string) ([]byte, error) {
 func (ds *DiskStorer) DeleteObject(id string) error {
 	return ds.Erase(id)
 }
+
+// Keys returns a channel that will yield every key accessible by the store,
+// in undefined order. If a cancel channel is provided, closing it will
+// terminate and close the keys channel.
+func (ds *DiskStorer) Keys(cancel <-chan struct{}) <-chan string {
+	return ds.KeysPrefix("", cancel)
+}

@@ -103,6 +103,9 @@ func NotImplemented(ctx ctx.Context, methodName string, info ...interface{}) err
 	return ThrowError(ctx, CORE_ERROR_NOT_IMPLEMENTED, append(info, "Method", methodName)...)
 }
 
+func NotFound(ctx ctx.Context, resource string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_RES_NOT_FOUND, append(info, "Resource", resource)...)
+}
 func TypeMismatch(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_TYPE_MISMATCH, info...)
 }

@@ -7,6 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type LookupFunc func(interface{}, string, interface{}) (interface{}, error)
+
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 func RandomString(n int) string {
@@ -152,10 +154,36 @@ func EncryptPassword(pass string) (string, error) {
 	return string(hash), nil
 }
 
-func SetObjectFields(object interface{}, newVals map[string]interface{}) {
+//object: object for which fields are to be set
+//newvals: values to be set on the object
+//mappings: if fields from the map need to be set to specific fields of the object
+//field processor: if values need to be transformed from the map before being set on the object
+func SetObjectFields(ctx interface{}, object interface{}, newVals map[string]interface{},
+	mappings map[string]string, fieldProcessor map[string]LookupFunc) error {
 	entVal := reflect.ValueOf(object).Elem()
+	var err error
 	for k, v := range newVals {
-		f := entVal.FieldByName(k)
+		objField := k
+		objVal := v
+		if mappings != nil {
+			newfld, ok := mappings[k]
+			if ok {
+				objField = newfld
+			}
+		}
+		if fieldProcessor != nil {
+			tfunc, ok := fieldProcessor[objField]
+			if ok {
+				objVal, err = tfunc(ctx, objField, objVal)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		if objVal == nil {
+			continue
+		}
+		f := entVal.FieldByName(objField)
 		if f.IsValid() {
 			if f.CanSet() {
 				kind := f.Kind()
@@ -163,24 +191,20 @@ func SetObjectFields(object interface{}, newVals map[string]interface{}) {
 				case reflect.Slice:
 					{
 						if f.Type().String() == "[]string" {
-							arr := CastToStringArray(v)
+							arr := CastToStringArray(objVal)
 							f.Set(reflect.ValueOf(arr))
 						}
 						continue
 					}
 				default:
 					{
-						switch f.Kind() {
-						case reflect.Struct:
-							//f.Set(reflect.ValueOf(v).Convert(f.Type()))
-						default:
-							f.Set(reflect.ValueOf(v).Convert(f.Type()))
-						}
+						f.Set(reflect.ValueOf(objVal).Convert(f.Type()))
 					}
 				}
 			}
 		}
 	}
+	return nil
 }
 
 func GetObjectFields(object interface{}, fields []string) map[string]interface{} {
