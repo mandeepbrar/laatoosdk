@@ -6,8 +6,6 @@ import (
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/log"
 	"reflect"
-
-	"github.com/golang/protobuf/proto"
 )
 
 type StorableConfig struct {
@@ -29,7 +27,7 @@ type StorableConfig struct {
 
 //Object stored by data service
 type Storable interface {
-	proto.Message
+	core.Serializable
 	core.Initializable
 	Config() *StorableConfig
 	GetId() string

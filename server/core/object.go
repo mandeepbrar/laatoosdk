@@ -24,3 +24,10 @@ type ObjectFactory interface {
 type Initializable interface {
 	Initialize(ctx ctx.Context, conf config.Config) error
 }
+
+type Serializable interface {
+	ReadAll(ctx.Context, Codec, SerializableReader) error
+	ReadProps(ctx.Context, Codec, SerializableReader, map[string]interface{}) error
+	WriteAll(ctx.Context, Codec, SerializableWriter) error
+	WriteProps(ctx.Context, Codec, SerializableWriter, map[string]interface{}) error
+}
