@@ -12,5 +12,5 @@ type Codec interface {
 	UnmarshalSerializableProps(ctx.Context, []byte, Serializable, map[string]interface{}) error
 	MarshalSerializableProps(ctx.Context, Serializable, map[string]interface{}) ([]byte, error)
 	UnmarshalReader(ctx.Context, SerializableReader, Serializable) error
-	MarshalWriter(ctx.Context, SerializableWriter) ([]byte, error)
+	MarshalWriter(ctx.Context, SerializableWriter, Serializable) ([]byte, error)
 }
