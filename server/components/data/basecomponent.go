@@ -22,7 +22,6 @@ type BaseComponent struct {
 	PostUpdate      bool
 	Multitenant     bool
 	SoftDeleteField string
-	ObjectId        string
 	EmbeddedSearch  bool
 }
 
@@ -51,8 +50,6 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 	}
 	stor := testObj.(Storable)
 	bc.ObjectConfig = stor.Config()
-
-	bc.ObjectId = bc.ObjectConfig.IdField
 
 	auditable, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_AUDITABLE)
 	if ok {

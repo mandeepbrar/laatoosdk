@@ -17,6 +17,6 @@ type SerializableReader interface {
 	ReadBool(ctx ctx.Context, cdc Codec, prop string, val *bool) error
 	ReadObject(ctx ctx.Context, cdc Codec, prop string, val interface{}) error
 	ReadMap(ctx ctx.Context, cdc Codec, prop string, val *map[string]interface{}) error
-	ReadArray(ctx ctx.Context, cdc Codec, prop string, objtype string, val interface{}) error
+	ReadArray(ctx ctx.Context, cdc Codec, prop string, val interface{}) error
 	ReadTime(ctx ctx.Context, cdc Codec, prop string, val *time.Time) error
 }

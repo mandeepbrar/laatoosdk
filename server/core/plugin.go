@@ -1,7 +1,6 @@
 package core
 
 type PluginComponent struct {
-	Name                    string
 	Object                  interface{}
 	ObjectCollectionCreator ObjectCollectionCreator
 	ObjectCreator           ObjectCreator

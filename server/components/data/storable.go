@@ -9,11 +9,9 @@ import (
 )
 
 type StorableConfig struct {
-	IdField           string
 	LabelField        string
 	PartialLoadFields []string
 	FullLoadFields    []string
-	Type              string
 	PreSave           bool
 	PostSave          bool
 	PostUpdate        bool

@@ -46,6 +46,7 @@ type RequestContext interface {
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
+	GetRegName(object interface{}) string
 	IsAdmin() bool
 	CompleteRequest()
 }
