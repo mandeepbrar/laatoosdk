@@ -32,6 +32,7 @@ type Context interface {
 	WithTimeout(timeout time.Duration) (Context, context.CancelFunc)
 	WithValue(key, val interface{}) Context
 	WithContext(parent context.Context) Context
+	CompleteContext()
 	Dump()
 	LogTrace(msg string, args ...interface{})
 	LogDebug(msg string, args ...interface{})

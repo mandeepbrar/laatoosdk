@@ -1,11 +1,14 @@
 package core
 
 import (
+	"io"
 	"laatoo/sdk/server/ctx"
 	"time"
 )
 
 type SerializableWriter interface {
+	io.WriteCloser
+	Start() error
 	Bytes() []byte
 	WriteBytes(ctx ctx.Context, cdc Codec, prop string, val *[]byte) error
 	WriteInt(ctx ctx.Context, cdc Codec, prop string, val *int) error

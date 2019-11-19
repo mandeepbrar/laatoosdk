@@ -1,13 +1,16 @@
 package core
 
 import (
+	"io"
 	"laatoo/sdk/server/ctx"
 	"time"
 )
 
 type SerializableReader interface {
+	io.Reader
+	Start() error
 	Bytes() []byte
-	Read(ctx ctx.Context, cdc Codec, prop string) (SerializableReader, error)
+	ReadProp(ctx ctx.Context, cdc Codec, prop string) (SerializableReader, error)
 	ReadBytes(ctx ctx.Context, cdc Codec, prop string) ([]byte, error)
 	ReadInt(ctx ctx.Context, cdc Codec, prop string, val *int) error
 	ReadInt64(ctx ctx.Context, cdc Codec, prop string, val *int64) error

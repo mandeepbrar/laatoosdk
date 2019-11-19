@@ -27,6 +27,7 @@ type StorableConfig struct {
 type Storable interface {
 	core.Serializable
 	core.Initializable
+	Constructor()
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
