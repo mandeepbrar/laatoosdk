@@ -18,7 +18,7 @@ type SerializableWriter interface {
 	WriteFloat64(ctx ctx.Context, cdc Codec, prop string, val *float64) error
 	WriteBool(ctx ctx.Context, cdc Codec, prop string, val *bool) error
 	WriteObject(ctx ctx.Context, cdc Codec, prop string, val interface{}) error
-	WriteMap(ctx ctx.Context, cdc Codec, prop string, val *map[string]interface{}) error
+	WriteMap(ctx ctx.Context, cdc Codec, prop string, val interface{}) error
 	WriteArray(ctx ctx.Context, cdc Codec, prop string, val interface{}) error
 	WriteTime(ctx ctx.Context, cdc Codec, prop string, val *time.Time) error
 }
