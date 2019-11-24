@@ -17,6 +17,8 @@ type ObjectFactory interface {
 	CreateObject(ctx.Context) interface{}
 	//Creates collection
 	CreateObjectCollection(cx ctx.Context, length int) interface{}
+	//Creates collection of pointers to object
+	CreateObjectPointersCollection(cx ctx.Context, length int) interface{}
 	//Get Metadata for the object
 	Info() Info
 }

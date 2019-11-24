@@ -64,6 +64,7 @@ type ServerContext interface {
 	GetServerProperties() map[string]interface{}
 	CreateNewRequest(name string, engine interface{}, engineCtx interface{}, sessionId string) (RequestContext, error)
 	CreateCollection(objectName string, length int) (interface{}, error)
+	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
 	GetObjectFactory(name string) (ObjectFactory, bool)
 	GetObjectMetadata(objectName string) (Info, error)
@@ -74,5 +75,5 @@ type ServerContext interface {
 	ReadConfigMap(cfg map[string]interface{}) (config.Config, error)
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
-	GetRegName(object interface{}) string
+	GetRegName(object interface{}) (string, bool, bool)
 }

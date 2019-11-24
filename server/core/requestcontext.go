@@ -32,6 +32,7 @@ type RequestContext interface {
 	GetObjectFactory(name string) (ObjectFactory, bool)
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObject(objectName string) (interface{}, error)
+	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(bucket string, key string, item interface{}) error
@@ -46,7 +47,7 @@ type RequestContext interface {
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
-	GetRegName(object interface{}) string
+	GetRegName(object interface{}) (string, bool, bool)
 	IsAdmin() bool
 	CompleteRequest()
 }
