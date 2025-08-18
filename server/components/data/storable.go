@@ -57,7 +57,7 @@ type StorableConfig struct {
 
 // Object stored by data service
 type Storable interface {
-	Constructor()
+	Constructor(ctx.Context)
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
