@@ -44,7 +44,7 @@ type DataManager interface {
 	//get storables in a hashtable
 	GetMultiHash(ctx core.RequestContext, obj string, ids []string) (map[string]data.Storable, error)
 	//Get multiple objects by id
-	GetMulti(ctx core.RequestContext, obj string, ids []string, orderBy interface{}) ([]data.Storable, error)
+	GetMulti(ctx core.RequestContext, obj string, ids []string, orderBy []string) ([]data.Storable, error)
 	//Gets the value of a key.
 	GetValue(ctx core.RequestContext, obj string, key string) (interface{}, error)
 	//Puts the value of a key
@@ -61,9 +61,9 @@ type DataManager interface {
 	Transaction(ctx core.RequestContext, obj string, callback func(ctx core.RequestContext) error) error
 
 	//Get all object with given conditions
-	Get(ctx core.RequestContext, obj string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
+	Get(ctx core.RequestContext, obj string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get one record satisfying condition
 	GetOne(ctx core.RequestContext, obj string, queryCond interface{}) (dataToReturn data.Storable, err error)
 	//Get a list of all items
-	GetList(ctx core.RequestContext, obj string, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
+	GetList(ctx core.RequestContext, obj string, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
 }
