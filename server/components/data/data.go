@@ -10,12 +10,10 @@ type Feature int
 type ConditionType int
 
 const (
-	MATCHMULTIPLEVALUES ConditionType = iota // expects first value as field name and second value as array of values
-	MATCHANCESTOR                            //expects collection name and id
-	FIELDVALUE                               //expects map of field values
-	COMBINECONDTITIONS                       //combine conditions
-	SORTASC
-	SORTDESC
+	ODATA ConditionType = iota // expects first value as field name and second value as array of values
+	MATCHMULTIPLEVALUES
+	MATCHANCESTOR //expects collection name and id
+	FIELDVALUE    //expects map of field values
 )
 
 const (
@@ -35,31 +33,12 @@ const (
 	DATA_TOTALRECS         = "totalrecords"
 )
 
-type OperandType string
-
-const (
-	Property    OperandType = "Property"
-	StaticValue OperandType = "Value"
-	Expression  OperandType = "Expression"
-	Param       OperandType = "Param"
-)
-
-type FilterCondition struct {
-	Type    ConditionType
-	Lhs     string
-	LhsType OperandType
-	Op      string
-	Rhs     string
-	RhsType OperandType
-}
-
 type Dataset struct {
 	Name       string
 	Entity     string
-	Properties utils.StringsMap
+	QueryType  string
+	QueryData  interface{}
 	Params     utils.StringsMap
-	Filters    []FilterCondition
-	Sort       string
 	Cache      bool
 	Permission string
 }

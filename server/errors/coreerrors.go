@@ -24,6 +24,7 @@ const (
 	CORE_ERROR_NOT_IMPLEMENTED    = "Core_Not_Implemented"
 	CORE_ERROR_PLUGIN_NOT_LOADED  = "Core_Plugin_Not_Loaded"
 	CORE_ERROR_TENANT_MISMATCH    = "Core_Tenant_Mismatch"
+	CORE_ERROR_INVALID_PAYLOAD    = "Core_Invalid_Payload"
 	CORE_ERROR_INTERNAL_ERROR     = "Core_Internal_Error"
 )
 
@@ -117,4 +118,8 @@ func Unauthorized(ctx ctx.Context, info ...interface{}) error {
 
 func InternalError(ctx ctx.Context, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_INTERNAL_ERROR, info...)
+}
+
+func InvalidPayload(ctx ctx.Context, key string, errorReason string, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_INVALID_PAYLOAD, append(info, "Key", key, "Error Reason", errorReason)...)
 }
