@@ -42,6 +42,7 @@ const (
 
 type Dataset struct {
 	Name       string
+	Properties utils.StringsMap
 	Entity     string
 	QueryType  string
 	QueryData  interface{}
