@@ -133,8 +133,8 @@ func (svc *DataPlugin) GetById(ctx core.RequestContext, id string) (Storable, er
 }
 
 // Get multiple objects by id
-func (svc *DataPlugin) GetMulti(ctx core.RequestContext, ids []string, orderBy []string) ([]Storable, error) {
-	return svc.PluginDataComponent.GetMulti(ctx, ids, orderBy)
+func (svc *DataPlugin) GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string) ([]Storable, error) {
+	return svc.PluginDataComponent.GetMulti(ctx, props, ids, orderBy)
 }
 
 // Gets the value of a key
@@ -152,8 +152,8 @@ func (svc *DataPlugin) DeleteValue(ctx core.RequestContext, key string) error {
 	return svc.PluginDataComponent.DeleteValue(ctx, key)
 }
 
-func (svc *DataPlugin) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]Storable, error) {
-	return svc.PluginDataComponent.GetMultiHash(ctx, ids)
+func (svc *DataPlugin) GetMultiHash(ctx core.RequestContext, props []string, ids []string) (map[string]Storable, error) {
+	return svc.PluginDataComponent.GetMultiHash(ctx, props, ids)
 }
 
 func (svc *DataPlugin) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
@@ -164,16 +164,16 @@ func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{
 	return svc.PluginDataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
-func (svc *DataPlugin) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
+func (svc *DataPlugin) GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	return svc.PluginDataComponent.GetList(ctx, props, pageSize, pageNum, mode, orderBy)
 }
 
-func (svc *DataPlugin) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
+func (svc *DataPlugin) Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	return svc.PluginDataComponent.Get(ctx, props, queryCond, pageSize, pageNum, mode, orderBy)
 }
 
-func (svc *DataPlugin) GetOne(ctx core.RequestContext, queryCond interface{}) (dataToReturn Storable, err error) {
-	return svc.PluginDataComponent.GetOne(ctx, queryCond)
+func (svc *DataPlugin) GetOne(ctx core.RequestContext, props []string, queryCond interface{}) (dataToReturn Storable, err error) {
+	return svc.PluginDataComponent.GetOne(ctx, props, queryCond)
 }
 
 // create condition for passing to data service
