@@ -110,9 +110,9 @@ type DataComponent interface {
 	//Get an object by id
 	GetById(ctx core.RequestContext, id string) (Storable, error)
 	//get storables in a hashtable
-	GetMultiHash(ctx core.RequestContext, props []string, ids []string) (map[string]Storable, error)
+	GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]Storable, error)
 	//Get multiple objects by id
-	GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string) ([]Storable, error)
+	GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string, dao string) ([]Storable, error)
 	//Gets the value of a key.
 	GetValue(ctx core.RequestContext, key string) (interface{}, error)
 	//Puts the value of a key
@@ -127,9 +127,9 @@ type DataComponent interface {
 	Transaction(ctx core.RequestContext, callback func(ctx core.RequestContext) error) error
 
 	//Get all object with given conditions
-	Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get one record satisfying condition
-	GetOne(ctx core.RequestContext, props []string, queryCond interface{}) (dataToReturn Storable, err error)
+	GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn Storable, err error)
 	//Get a list of all items
-	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
 }
