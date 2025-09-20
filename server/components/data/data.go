@@ -48,6 +48,7 @@ type Dataset struct {
 	QueryData  interface{}
 	Params     utils.StringsMap
 	Cache      bool
+	Dao        string
 	Permission string
 }
 
