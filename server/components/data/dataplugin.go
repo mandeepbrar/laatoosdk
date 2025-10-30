@@ -128,8 +128,8 @@ func (svc *DataPlugin) DeleteAll(ctx core.RequestContext, queryCond interface{},
 	return svc.PluginDataComponent.DeleteAll(ctx, queryCond, getids)
 }
 
-func (svc *DataPlugin) GetById(ctx core.RequestContext, id string) (Storable, error) {
-	return svc.PluginDataComponent.GetById(ctx, id)
+func (svc *DataPlugin) GetById(ctx core.RequestContext, id string, dao string) (Storable, error) {
+	return svc.PluginDataComponent.GetById(ctx, id, dao)
 }
 
 // Get multiple objects by id

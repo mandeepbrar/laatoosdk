@@ -109,7 +109,7 @@ type DataComponent interface {
 	//delete with condition
 	DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error)
 	//Get an object by id
-	GetById(ctx core.RequestContext, id string) (Storable, error)
+	GetById(ctx core.RequestContext, id string, dao string) (Storable, error)
 	//get storables in a hashtable
 	GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]Storable, error)
 	//Get multiple objects by id
