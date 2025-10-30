@@ -40,7 +40,7 @@ type DataManager interface {
 	//delete with condition
 	DeleteAll(ctx core.RequestContext, obj string, queryCond interface{}, getids bool) ([]string, error)
 	//Get an object by id
-	GetById(ctx core.RequestContext, obj string, id string) (data.Storable, error)
+	GetById(ctx core.RequestContext, obj string, id string, dao string) (data.Storable, error)
 	//get storables in a hashtable
 	GetMultiHash(ctx core.RequestContext, props []string, obj string, ids []string, dao string) (map[string]data.Storable, error)
 	//Get multiple objects by id
