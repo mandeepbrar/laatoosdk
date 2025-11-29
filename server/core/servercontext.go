@@ -48,6 +48,7 @@ const (
 	ServerElementExpressionManager
 	ServerElementActionsManager
 	ServerElementDataManager
+	ServerElementAgentManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3

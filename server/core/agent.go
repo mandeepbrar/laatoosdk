@@ -1,16 +1,16 @@
-package elements
+package core
 
 import (
-	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
 type InformationBucket interface {
-	core.ConfigurableObjectInfo
+	ConfigurableObjectInfo
 }
 
 type Agent interface {
 	Service
+	GetAgentEngine() string
 	GetModel() string
 	GetVersion() string
 	GetInstructions() string
@@ -19,10 +19,10 @@ type Agent interface {
 	Tools() []Service
 }
 
-type Conversation interface {
+type AgentConversation interface {
 	GetId() string
 	AssignAgent(Agent)
 	GetPresentAgent() Agent
 	GetHistory() utils.StringsMap
-	AddHistory(ctx core.RequestContext, actor string, input utils.StringMap)
+	AddHistory(ctx RequestContext, actor string, input utils.StringMap)
 }
