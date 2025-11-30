@@ -11,12 +11,9 @@ type InformationBucket interface {
 type Agent interface {
 	Service
 	GetAgentEngine() string
-	GetModel() string
 	GetVersion() string
-	GetInstructions() string
 	GetDescription() string
-	Information() []InformationBucket
-	Tools() []Service
+	GetAgentProperties() utils.StringMap
 }
 
 type AgentConversation interface {
