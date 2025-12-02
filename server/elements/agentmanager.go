@@ -10,7 +10,7 @@ type AgentManager interface {
 	GetAgent(ctx core.ServerContext, alias string) (core.Agent, error)
 	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
 	List(ctx core.ServerContext) utils.StringsMap
-	RegisterAgentType(ctx core.ServerContext, agenttype string, agentengine string, factory Factory) error
+	RegisterAgentType(ctx core.ServerContext, agenttype string, agentengine string, factory core.ServiceFactory) error
 }
 
 type AgentEngine interface {
