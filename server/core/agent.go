@@ -10,7 +10,7 @@ type InformationBucket interface {
 
 type Agent interface {
 	Service
-	GetAgentEngine() string
+	GetAgentType() string
 	GetVersion() string
 	GetDescription() string
 	GetAgentProperties() utils.StringMap

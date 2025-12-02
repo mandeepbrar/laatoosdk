@@ -49,6 +49,7 @@ const (
 	ServerElementActionsManager
 	ServerElementDataManager
 	ServerElementAgentManager
+	ServerElementAgentEngine
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -91,6 +92,8 @@ type ServerContext interface {
 	GetLogLevel() int
 	GetLogFormat() string
 	GetTenant() auth.TenantInfo
+	GetTools(toolNames []string) utils.StringsMap
+	GetModel(modelsName string) (interface{}, error)
 }
 
 type EngineContext interface {
