@@ -92,7 +92,7 @@ type ServerContext interface {
 	GetLogLevel() int
 	GetLogFormat() string
 	GetTenant() auth.TenantInfo
-	GetTools(toolNames []string) utils.StringsMap
+	GetTools(toolNames []string) (utils.StringsMap, error)
 	GetModel(modelsName string) (interface{}, error)
 }
 
