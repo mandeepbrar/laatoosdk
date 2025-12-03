@@ -21,5 +21,6 @@ type Module interface {
 	Tasks(ctx ServerContext) map[string]config.Config
 	Workflows(ctx ServerContext) map[string]config.Config
 	Activities(ctx ServerContext) map[string]config.Config
-	GetContext(ctx ServerContext, variable string) (interface{}, bool)
+	GetContext() ServerContext
+	//	GetContext(ctx ServerContext, variable string) (interface{}, bool)
 }
