@@ -26,7 +26,7 @@ type ModInfo struct {
 }
 
 func (info *ModInfo) GetContext(ctx core.ServerContext, variable string) (interface{}, bool) {
-	return info.Mod.GetContext(ctx, variable)
+	return info.Mod.GetContext().Get(variable)
 }
 
 type ModuleManagerPlugin interface {
