@@ -9,6 +9,7 @@ type ServiceFactoryProvider func(ctx ServerContext, config config.Config) (Servi
 // Service interface that needs to be implemented by any service of a system
 type ServiceFactory interface {
 	ConfigurableObject
+	Metadata() ServiceFactoryInfo
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error

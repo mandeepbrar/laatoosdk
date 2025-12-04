@@ -7,6 +7,7 @@ import (
 
 type Module interface {
 	ConfigurableObject
+	Metadata() ModuleInfo
 	MetaInfo(ctx ServerContext) utils.StringMap
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error

@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	ConfigurableObject
+	Metadata() ServiceInfo
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error
