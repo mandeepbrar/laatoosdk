@@ -8,6 +8,7 @@ import (
 
 type Configuration interface {
 	GetName() string
+	GetDescription() string
 	IsRequired() bool
 	GetDefaultValue() interface{}
 	GetValue() interface{}

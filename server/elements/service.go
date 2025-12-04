@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	core.ServerElement
+	Metadata() core.ServiceInfo
 	Service() core.Service
 	ServiceContext() core.ServerContext
 	GetConfiguration() config.Config

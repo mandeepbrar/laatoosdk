@@ -9,4 +9,5 @@ type Module interface {
 	core.ServerElement
 	GetObject() core.Module
 	GetModuleProperties() utils.StringMap
+	Metadata() core.ModuleInfo
 }

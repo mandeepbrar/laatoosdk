@@ -7,4 +7,5 @@ import (
 type Factory interface {
 	core.ServerElement
 	Factory() core.ServiceFactory
+	Metadata() core.ServiceFactoryInfo
 }

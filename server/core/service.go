@@ -14,19 +14,19 @@ type Service interface {
 	Stop(ctx ServerContext) error
 	Unload(ctx ServerContext) error
 	AddParams(ServerContext, map[string]datatypes.DataType, bool) error
-	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
-	AddStringParam(ctx ServerContext, name string)
-	AddCustomObjectParam(ctx ServerContext, name string, customObjectType string, collection, required, stream bool) error
-	AddParam(ctx ServerContext, name string, datatype datatypes.DataType, collection, required, stream bool) error
-	AddParamWithType(ctx ServerContext, name string, datatype datatypes.DataType) error
-	AddOptionalParamWithType(ctx ServerContext, name string, datatype datatypes.DataType) error
-	AddCollectionParams(ctx ServerContext, params map[string]datatypes.DataType) error
+	//	AddStringParams(ctx ServerContext, params utils.StringsMap, defaultValues []string)
+	AddStringParam(ctx ServerContext, name string, desc string)
+	AddCustomObjectParam(ctx ServerContext, name string, desc string, customObjectType string, collection, required, stream bool) error
+	AddParam(ctx ServerContext, name string, desc string, datatype datatypes.DataType, collection, required, stream bool) error
+	AddParamWithType(ctx ServerContext, name string, desc string, datatype datatypes.DataType) error
+	AddOptionalParamWithType(ctx ServerContext, name string, desc string, datatype datatypes.DataType) error
+	//AddCollectionParams(ctx ServerContext, params map[string]datatypes.DataType) error
 	//	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
 	//	SetResponseType(ctx ServerContext, stream bool)
 	SetDescription(ServerContext, string)
 	SetComponent(ServerContext, bool)
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
-	ConfigureService(ctx ServerContext, params []string, config []string, description string)
+	//ConfigureService(ctx ServerContext, params []string, config []string, description string)
 }
 
 type UserInvokableService interface {
@@ -36,6 +36,7 @@ type UserInvokableService interface {
 
 type Param interface {
 	GetName() string
+	GetDescription() string
 	IsCollection() bool
 	IsStream() bool
 	IsRequired() bool
