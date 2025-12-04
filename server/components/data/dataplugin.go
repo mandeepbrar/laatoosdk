@@ -23,7 +23,7 @@ func NewDataPluginWithBase(ctx core.ServerContext, comp DataComponent) *DataPlug
 }
 func (svc *DataPlugin) Describe(ctx core.ServerContext) error {
 	if svc.PluginDataComponent == nil {
-		svc.AddStringConfiguration(ctx, CONF_BASE_SVC)
+		svc.AddStringConfiguration(ctx, CONF_BASE_SVC, "Base data service for this plugin", "")
 	}
 	return nil
 }
