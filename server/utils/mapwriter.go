@@ -1,4 +1,4 @@
-package datatypes
+package utils
 
 import (
 	"io"
@@ -54,6 +54,8 @@ func (w *MapSerializableWriter) WriteBytes(ctx ctx.Context, cdc datatypes.Codec,
 			*val = b
 		} else if s, ok := v.(string); ok {
 			*val = []byte(s)
+		} else {
+			return errors.SerializationError(ctx, "Value is not a byte array", prop)
 		}
 	}
 	return nil
@@ -66,6 +68,8 @@ func (w *MapSerializableWriter) WriteInt(ctx ctx.Context, cdc datatypes.Codec, p
 		// Handle float64 which is common in JSON maps
 		if f, ok := v.(float64); ok {
 			*val = int(f)
+		} else {
+			return errors.SerializationError(ctx, "Value is not an int", prop)
 		}
 	}
 	return nil
@@ -79,6 +83,8 @@ func (w *MapSerializableWriter) WriteInt32(ctx ctx.Context, cdc datatypes.Codec,
 			*val = int32(i)
 		} else if f, ok := v.(float64); ok {
 			*val = int32(f)
+		} else {
+			return errors.SerializationError(ctx, "Value is not an int32", prop)
 		}
 	}
 	return nil
@@ -92,6 +98,8 @@ func (w *MapSerializableWriter) WriteInt64(ctx ctx.Context, cdc datatypes.Codec,
 			*val = int64(i)
 		} else if f, ok := v.(float64); ok {
 			*val = int64(f)
+		} else {
+			return errors.SerializationError(ctx, "Value is not an int64", prop)
 		}
 	}
 	return nil
@@ -100,6 +108,8 @@ func (w *MapSerializableWriter) WriteInt64(ctx ctx.Context, cdc datatypes.Codec,
 func (w *MapSerializableWriter) WriteString(ctx ctx.Context, cdc datatypes.Codec, prop string, val *string) error {
 	if v, ok := w.Data.GetString(prop); ok {
 		*val = v
+	} else {
+		return errors.SerializationError(ctx, "Value is not a string", prop)
 	}
 	return nil
 }
@@ -110,6 +120,8 @@ func (w *MapSerializableWriter) WriteFloat32(ctx ctx.Context, cdc datatypes.Code
 			*val = f
 		} else if f, ok := v.(float64); ok {
 			*val = float32(f)
+		} else {
+			return errors.SerializationError(ctx, "Value is not a float32", prop)
 		}
 	}
 	return nil
@@ -121,14 +133,19 @@ func (w *MapSerializableWriter) WriteFloat64(ctx ctx.Context, cdc datatypes.Code
 			*val = f
 		} else if f, ok := v.(float32); ok {
 			*val = float64(f)
+		} else {
+			return errors.SerializationError(ctx, "Value is not a float64", prop)
 		}
 	}
 	return nil
 }
 
 func (w *MapSerializableWriter) WriteBool(ctx ctx.Context, cdc datatypes.Codec, prop string, val *bool) error {
-	if v, ok := w.Data.GetBool(prop); ok {
+	v, ok := w.Data.GetBool(prop)
+	if ok {
 		*val = v
+	} else {
+		return errors.SerializationError(ctx, "Field is not boolean", prop)
 	}
 	return nil
 }
@@ -139,6 +156,8 @@ func (w *MapSerializableWriter) WriteObject(ctx ctx.Context, cdc datatypes.Codec
 			subWriter := &MapSerializableWriter{Data: subMap}
 			return ser.WriteAll(ctx, cdc, subWriter)
 		}
+	} else {
+		return errors.SerializationError(ctx, "Field is not string map", prop)
 	}
 	return nil
 }
@@ -163,6 +182,8 @@ func (w *MapSerializableWriter) WriteTime(ctx ctx.Context, cdc datatypes.Codec, 
 			if t, err := time.Parse(time.RFC3339, s); err == nil {
 				*val = t
 			}
+		} else {
+			return errors.SerializationError(ctx, "Field is not time", prop)
 		}
 	}
 	return nil
