@@ -1,0 +1,7 @@
+g,Teacher,Student
+p,Teacher,*,courses.create
+p,Teacher,*,courses.update
+p,Teacher,*,courses.delete
+p,Teacher,*,grades.create
+p,Teacher,*,grades.update
+p,Teacher,*,students.read

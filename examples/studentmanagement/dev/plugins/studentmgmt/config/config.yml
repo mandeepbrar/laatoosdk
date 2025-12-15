@@ -1,0 +1,21 @@
+version: 1.0.0
+description: Student Management System Plugin
+permissions:
+  students.create: "Create Student"
+  students.read: "Read Student"
+  students.update: "Update Student"
+  students.delete: "Delete Student"
+  courses.create: "Create Course"
+  courses.read: "Read Course"
+  courses.update: "Update Course"
+  courses.delete: "Delete Course"
+  grades.create: "Create Grade"
+  grades.read: "Read Grade"
+  grades.update: "Update Grade"
+  enrollment.create: "Create Enrollment"
+  enrollment.read: "Read Enrollment"
+  enrollment.approve: "Approve Enrollment"
+dependencies:
+  dataadapter: ">=0.0.1"
+  email: ">=0.0.1"
+  datapipeline: ">=0.0.1"

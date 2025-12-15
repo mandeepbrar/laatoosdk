@@ -1,0 +1,29 @@
+[
+  {
+    "Id": "student-001",
+    "Name": "Alice Johnson",
+    "Email": "alice.johnson@example.com",
+    "Grade": 10,
+    "DateOfBirth": "2008-05-15T00:00:00Z",
+    "Phone": "+1-555-0101",
+    "Status": "active"
+  },
+  {
+    "Id": "student-002",
+    "Name": "Bob Smith",
+    "Email": "bob.smith@example.com",
+    "Grade": 11,
+    "DateOfBirth": "2007-08-22T00:00:00Z",
+    "Phone": "+1-555-0102",
+    "Status": "active"
+  },
+  {
+    "Id": "student-003",
+    "Name": "Carol White",
+    "Email": "carol.white@example.com",
+    "Grade": 10,
+    "DateOfBirth": "2008-03-10T00:00:00Z",
+    "Phone": "+1-555-0103",
+    "Status": "active"
+  }
+]

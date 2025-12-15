@@ -1,0 +1,4 @@
+id: api
+path: /api
+service: root
+method: GET

@@ -1,0 +1,5 @@
+g,Teacher,Student
+p,Teacher,*,dataadapter.*.Course
+p,Teacher,*,dataadapter.*.StudentResult
+p,Teacher,*,courses.*
+p,Teacher,*,grades.*

@@ -1,0 +1,4 @@
+plugin: mongodatabase
+settings:
+  factoryname: database
+  mongodatabase: studentmanagement

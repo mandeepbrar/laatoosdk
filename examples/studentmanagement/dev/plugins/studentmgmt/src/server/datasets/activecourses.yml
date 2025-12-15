@@ -1,0 +1,14 @@
+Entity: studentmgmt.Course
+Properties:
+  CourseId: string
+  CourseName: string
+  CourseCode: string
+  Credits: int
+  Department: string
+Filters:
+  - Lhs: Active
+    LhsType: Property
+    Rhs: "true"
+    RhsType: Constant
+Sort: "Department asc, CourseName asc"
+Cache: true

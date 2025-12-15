@@ -1,0 +1,6 @@
+actiontype: executeservice
+servicename: studentmgmt.Student.Create
+successaction: navigateToDashboard
+erroraction: showSaveError
+params:
+  data: {{jsreplace "ctx.formData"}}

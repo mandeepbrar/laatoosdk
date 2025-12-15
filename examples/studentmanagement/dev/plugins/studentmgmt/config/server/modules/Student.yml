@@ -1,0 +1,4 @@
+plugin: entity
+settings:
+  object: studentmgmt.Student
+  dataservicefactory: database

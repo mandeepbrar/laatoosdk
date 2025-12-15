@@ -1,0 +1,11 @@
+name: Department
+titleField: Name
+fields:
+  DepartmentCode:
+    type: string
+    primary: true
+  Name:
+    type: string
+    required: true
+  HeadOfDepartment:
+    type: string

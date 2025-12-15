@@ -1,0 +1,10 @@
+name: Role
+titleField: Name
+fields:
+  Name:
+    type: string
+  Description:
+    type: string
+  Permissions:
+    type: string
+    list: true

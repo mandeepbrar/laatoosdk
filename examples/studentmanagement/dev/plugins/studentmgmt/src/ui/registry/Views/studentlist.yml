@@ -1,0 +1,16 @@
+id: studentlist
+title: Students
+dataset: studentlist
+layout: grid
+columns:
+  - field: Name
+    title: Name
+  - field: Email
+    title: Email
+  - field: Department.Name
+    title: Department
+actions:
+  - label: View
+    icon: eye
+    action: navigate
+    url: /student/:StudentId

@@ -1,0 +1,7 @@
+type: service
+description: Student management service
+configurations:
+  maxStudents:
+    description: Maximum number of students allowed
+    type: int
+    default: 1000

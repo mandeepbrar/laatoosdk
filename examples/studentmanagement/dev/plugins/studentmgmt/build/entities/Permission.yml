@@ -1,0 +1,6 @@
+name: Permission
+fields:
+  Name:
+    type: string
+  Description:
+    type: string

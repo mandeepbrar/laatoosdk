@@ -1,0 +1,10 @@
+name: default
+description: Default Tenant
+
+database:
+  type: postgres
+  host: localhost
+  port: 5432
+  database: studentdb
+  user: laatoo
+  password: laatoo

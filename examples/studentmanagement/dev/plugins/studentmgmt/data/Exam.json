@@ -1,0 +1,22 @@
+[
+    {
+        "Id": "exam-math-001",
+        "Name": "Mathematics Midterm",
+        "Subject": "Mathematics",
+        "Description": "Midterm examination covering algebra and geometry",
+        "MaxScore": 100,
+        "PassingScore": 60,
+        "StartDate": "2024-06-01T09:00:00Z",
+        "EndDate": "2024-06-01T11:00:00Z"
+    },
+    {
+        "Id": "exam-science-001",
+        "Name": "Science Final",
+        "Subject": "Science",
+        "Description": "Final examination covering physics and chemistry",
+        "MaxScore": 100,
+        "PassingScore": 65,
+        "StartDate": "2024-06-15T09:00:00Z",
+        "EndDate": "2024-06-15T11:30:00Z"
+    }
+]

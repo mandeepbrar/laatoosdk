@@ -1,0 +1,33 @@
+name: StudentResult
+titleField: Description
+multitenant: true
+postsave: true
+fields:
+  ResultId:
+    type: string
+    primary: true
+  
+  Student:
+    type: storableref
+    entity: students.Student
+    required: true
+  
+  Course:
+    type: storableref
+    entity: courses.Course
+    required: true
+  
+  Semester:
+    type: string
+    required: true
+  Grade:
+    type: string
+  Score:
+    type: float
+    min: 0
+    max: 100
+  CreditsEarned:
+    type: int
+  Status:
+    type: string
+    default: "Pending"

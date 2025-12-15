@@ -1,0 +1,4 @@
+servicemethod: csvprocessor.CsvImporter
+importstorageservice: datadir
+csvinputfile: students.csv
+importcsvhasheaders: true

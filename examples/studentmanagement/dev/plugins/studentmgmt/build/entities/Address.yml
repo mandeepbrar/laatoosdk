@@ -1,0 +1,12 @@
+name: Address
+fields:
+  Street:
+    type: string
+  City:
+    type: string
+  State:
+    type: string
+  ZipCode:
+    type: string
+  Country:
+    type: string

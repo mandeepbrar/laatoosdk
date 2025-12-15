@@ -7,25 +7,26 @@ import (
 )
 
 const (
-	CORE_ERROR_WRAPPER            = "Wrapper"
-	CORE_ERROR_PROVIDER_NOT_FOUND = "Core_Provider_Not_Found"
-	CORE_ERROR_CODEC_NOT_FOUND    = "Core_Codec_Not_Found"
-	CORE_ERROR_MISSING_SERVICE    = "Core_Missing_Service"
-	CORE_ERROR_BAD_ARG            = "Core_Bad_Arg"
-	CORE_ERROR_BAD_REQUEST        = "Core_Bad_Request"
-	CORE_ERROR_MISSING_ARG        = "Core_Missing_Arg"
-	CORE_ERROR_MISSING_CONF       = "Core_Missing_Conf"
-	CORE_ERROR_MISSING_PLUGIN     = "Core_Missing_Plugin"
-	CORE_ERROR_BAD_CONF           = "Core_Bad_Conf"
-	CORE_ERROR_UNAUTHORIZED       = "Core_Error_Unauthorized"
-	CORE_ERROR_RES_NOT_FOUND      = "Core_Resource_Not_Found"
-	CORE_ERROR_DEP_NOT_MET        = "Core_Dep_Not_Met"
-	CORE_ERROR_TYPE_MISMATCH      = "Core_Type_Mismatch"
-	CORE_ERROR_NOT_IMPLEMENTED    = "Core_Not_Implemented"
-	CORE_ERROR_PLUGIN_NOT_LOADED  = "Core_Plugin_Not_Loaded"
-	CORE_ERROR_TENANT_MISMATCH    = "Core_Tenant_Mismatch"
-	CORE_ERROR_INVALID_PAYLOAD    = "Core_Invalid_Payload"
-	CORE_ERROR_INTERNAL_ERROR     = "Core_Internal_Error"
+	CORE_ERROR_WRAPPER             = "Wrapper"
+	CORE_ERROR_PROVIDER_NOT_FOUND  = "Core_Provider_Not_Found"
+	CORE_ERROR_CODEC_NOT_FOUND     = "Core_Codec_Not_Found"
+	CORE_ERROR_MISSING_SERVICE     = "Core_Missing_Service"
+	CORE_ERROR_BAD_ARG             = "Core_Bad_Arg"
+	CORE_ERROR_BAD_REQUEST         = "Core_Bad_Request"
+	CORE_ERROR_MISSING_ARG         = "Core_Missing_Arg"
+	CORE_ERROR_MISSING_CONF        = "Core_Missing_Conf"
+	CORE_ERROR_MISSING_PLUGIN      = "Core_Missing_Plugin"
+	CORE_ERROR_BAD_CONF            = "Core_Bad_Conf"
+	CORE_ERROR_UNAUTHORIZED        = "Core_Error_Unauthorized"
+	CORE_ERROR_RES_NOT_FOUND       = "Core_Resource_Not_Found"
+	CORE_ERROR_DEP_NOT_MET         = "Core_Dep_Not_Met"
+	CORE_ERROR_TYPE_MISMATCH       = "Core_Type_Mismatch"
+	CORE_ERROR_NOT_IMPLEMENTED     = "Core_Not_Implemented"
+	CORE_ERROR_PLUGIN_NOT_LOADED   = "Core_Plugin_Not_Loaded"
+	CORE_ERROR_TENANT_MISMATCH     = "Core_Tenant_Mismatch"
+	CORE_ERROR_INVALID_PAYLOAD     = "Core_Invalid_Payload"
+	CORE_ERROR_INTERNAL_ERROR      = "Core_Internal_Error"
+	CORE_ERROR_SERIALIZATION_ERROR = "Core_Serialization_Error"
 )
 
 func init() {
@@ -47,6 +48,7 @@ func init() {
 	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
 	RegisterCode(CORE_ERROR_TENANT_MISMATCH, WARNING, fmt.Errorf("Tenant Mismatch."))
 	RegisterCode(CORE_ERROR_INTERNAL_ERROR, FATAL, fmt.Errorf("Internal Error"))
+	RegisterCode(CORE_ERROR_SERIALIZATION_ERROR, FATAL, fmt.Errorf("Serialization error"))
 }
 
 func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
@@ -122,4 +124,7 @@ func InternalError(ctx ctx.Context, info ...interface{}) error {
 
 func InvalidPayload(ctx ctx.Context, key string, errorReason string, info ...interface{}) error {
 	return ThrowError(ctx, CORE_ERROR_INVALID_PAYLOAD, append(info, "Key", key, "Error Reason", errorReason)...)
+}
+func SerializationError(ctx ctx.Context, info ...interface{}) error {
+	return ThrowError(ctx, CORE_ERROR_SERIALIZATION_ERROR, info...)
 }

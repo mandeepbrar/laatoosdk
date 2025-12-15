@@ -1,0 +1,23 @@
+name: User
+titleField: Username
+multitenant: true
+cacheable: true
+presave: true
+fields:
+  Username:
+    type: string
+  Password:
+    type: string
+    widget:
+      props:
+        password: true
+  Email:
+    type: string
+  Name:
+    type: string
+  Status:
+    type: int
+  Roles:
+    type: storableref
+    entity: role.Role
+    list: true

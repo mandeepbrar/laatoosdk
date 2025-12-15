@@ -1,0 +1,18 @@
+Entity: studentmgmt.StudentResult
+Params:
+  StudentId: string
+Properties:
+  CourseName: string
+  CourseCode: string
+  Grade: string
+  Score: float
+  Semester: string
+  CreditsEarned: int
+Filters:
+  - Lhs: Student.Id
+    LhsType: Property
+    Rhs: StudentId
+    RhsType: Param
+Sort: "Semester desc, CourseName asc"
+Expand:
+  Course: false

@@ -1,0 +1,31 @@
+name: Enrollment
+titleField: Description
+multitenant: true
+fields:
+  EnrollmentId:
+    type: string
+    primary: true
+  
+  Student:
+    type: storableref
+    entity: students.Student
+    required: true
+  
+  Course:
+    type: storableref
+    entity: courses.Course
+    required: true
+  
+  Semester:
+    type: string
+    required: true
+  EnrollmentDate:
+    type: datetime
+  Status:
+    type: string
+    default: "Pending"
+  
+  # Embedded payment information
+  Payment:
+    type: storable
+    entity: enrollment.PaymentInfo
