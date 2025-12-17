@@ -11,7 +11,7 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
-func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.StringMap) (datatypes.Serializable, error) {
+func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.StringMap, transformations utils.StringMap) (datatypes.Serializable, error) {
 	obj, err := ctx.CreateObject(objType)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -20,12 +20,53 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 	if !ok {
 		return nil, errors.SerializationError(ctx, "Object type is not serializable", objType)
 	}
-	wr := &MapSerializableWriter{smap}
+
+	finalMap := smap
+	if transformations != nil {
+		finalMap = applyTransformations(smap, transformations)
+	}
+
+	wr := &MapSerializableWriter{finalMap}
 	err = serObj.WriteAll(ctx, nil, wr)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	return serObj, nil
+}
+
+func applyTransformations(data utils.StringMap, transformations utils.StringMap) utils.StringMap {
+	if len(transformations) == 0 {
+		return data
+	}
+
+	finalMap := make(utils.StringMap)
+	for k, v := range data {
+		newKey := k
+		var subTransforms utils.StringMap
+
+		if tVal, ok := transformations[k]; ok {
+			if sVal, ok := tVal.(string); ok {
+				newKey = sVal
+			} else if mVal, ok := tVal.(map[string]interface{}); ok {
+				subTransforms = utils.StringMap(mVal)
+				if keyVal, ok := subTransforms.GetString("__key"); ok {
+					newKey = keyVal
+				}
+			} else if mVal, ok := tVal.(utils.StringMap); ok {
+				subTransforms = mVal
+				if keyVal, ok := subTransforms.GetString("__key"); ok {
+					newKey = keyVal
+				}
+			}
+		}
+
+		if subMap, ok := data.GetStringMap(k); ok {
+			finalMap[newKey] = applyTransformations(subMap, subTransforms)
+		} else {
+			finalMap[newKey] = v
+		}
+	}
+	return finalMap
 }
 
 type MapSerializableWriter struct {
