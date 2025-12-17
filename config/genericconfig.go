@@ -208,6 +208,10 @@ func (conf GenericConfig) GetStringMap(ctx ctx.Context, configurationName string
 		if ok {
 			return cf, ok
 		}
+		conf, ok := val.(GenericConfig)
+		if ok {
+			return utils.StringMap(conf.ToMap()), ok
+		}
 	}
 	return nil, false
 }
