@@ -203,3 +203,44 @@ func (n *NestedObject) ReadAll(ctx ctx.Context, cdc datatypes.Codec, r datatypes
 func (n *NestedObject) GetId() string   { return "" }
 func (n *NestedObject) SetId(id string) {}
 func (n *NestedObject) GetType() string { return "NestedObject" }
+
+func TestDotNotationTransformations(t *testing.T) {
+
+	srcMap := utils.StringMap{
+		"Application": utils.StringMap{
+			"Identifier": "123",
+			"Name":       "TestApp",
+		},
+		"Other": "Value",
+	}
+
+	// Transform Application.Identifier -> Id
+	// Transform Application.Name -> AppName
+	transforms := utils.StringMap{
+		"Application.Identifier": "Id",
+		"Application.Name":       "AppName",
+	}
+
+	// We expect the result map to be:
+	// Application: { Id: "123", AppName: "TestApp" }
+	// Other: "Value"
+
+	resMap := applyTransformations(srcMap, unflattenTransformations(transforms))
+
+	appMap, ok := resMap["Application"].(utils.StringMap)
+	if !ok {
+		t.Fatalf("Expected Application to be utils.StringMap, got %T", resMap["Application"])
+	}
+
+	if val, ok := appMap["Id"]; !ok || val != "123" {
+		t.Errorf("Expected Application.Id to be '123', got %v", val)
+	}
+
+	if val, ok := appMap["AppName"]; !ok || val != "TestApp" {
+		t.Errorf("Expected Application.AppName to be 'TestApp', got %v", val)
+	}
+
+	if val, ok := resMap["Other"]; !ok || val != "Value" {
+		t.Errorf("Expected Other to be 'Value', got %v", val)
+	}
+}

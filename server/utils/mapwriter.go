@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"laatoo.io/sdk/ctx"
@@ -23,7 +24,7 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 
 	finalMap := smap
 	if transformations != nil {
-		finalMap = applyTransformations(smap, transformations)
+		finalMap = applyTransformations(smap, unflattenTransformations(transformations))
 	}
 
 	wr := &MapSerializableWriter{finalMap}
@@ -67,6 +68,40 @@ func applyTransformations(data utils.StringMap, transformations utils.StringMap)
 		}
 	}
 	return finalMap
+}
+
+func unflattenTransformations(transformations utils.StringMap) utils.StringMap {
+	result := make(utils.StringMap)
+	for k, v := range transformations {
+		parts := strings.Split(k, ".")
+		current := result
+		for i, part := range parts {
+			if i == len(parts)-1 {
+				current[part] = v
+			} else {
+				if _, ok := current[part]; !ok {
+					current[part] = make(utils.StringMap)
+				}
+				if nextMap, ok := current[part].(utils.StringMap); ok {
+					current = nextMap
+				} else if nextMap, ok := current[part].(map[string]interface{}); ok {
+					// Convert map[string]interface{} to utils.StringMap if needed
+					newMap := utils.StringMap(nextMap)
+					current[part] = newMap
+					current = newMap
+				} else {
+					// If we encounter a conflict where a path is both a value and a map, the map taking precedence or error handling might be needed.
+					// For now, let's assume valid input or overwrite.
+					// But wait, if 'v' (the leaf) is just a string rename, it's fine.
+					// If we are building a nested structure of transformations, intermediate nodes must be maps.
+					newMap := make(utils.StringMap)
+					current[part] = newMap
+					current = newMap
+				}
+			}
+		}
+	}
+	return result
 }
 
 type MapSerializableWriter struct {
