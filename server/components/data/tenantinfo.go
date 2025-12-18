@@ -7,7 +7,6 @@ import (
 )
 
 type TenantInfo struct {
-	datatypes.Serializable
 	TenantName string `json:"TenantName" protobuf:"bytes,73,opt,name=tenantname,proto3" bson:"TenantName" sql:"type:varchar(100);"`
 	TenantId   string `json:"TenantId" protobuf:"bytes,61,opt,name=tenantid,proto3" bson:"TenantId" sql:"type:varchar(100);"`
 }
