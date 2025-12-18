@@ -72,7 +72,6 @@ type Storable interface {
 }
 
 type StorageInfo struct {
-	datatypes.Serializable
 	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key;" gorm:"primary_key"`
 	selfRef interface{} `json:"-" datastore:"-" bson:"-" sql:"-"`
 }
@@ -156,7 +155,6 @@ func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 }
 
 type StorableRef struct {
-	datatypes.Serializable
 	Id     string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
 	Type   string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
 	Name   string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
