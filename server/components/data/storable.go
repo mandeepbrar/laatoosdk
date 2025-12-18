@@ -156,10 +156,39 @@ func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 }
 
 type StorableRef struct {
+	datatypes.Serializable
 	Id     string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
 	Type   string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
 	Name   string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
 	Entity Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
+}
+
+func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
+	var err error
+	if err = rdr.ReadString(c, cdc, "Id", &si.Id); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "Type", &si.Type); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "Name", &si.Name); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
+	var err error
+	if err = wtr.WriteString(c, cdc, "Id", &si.Id); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "Type", &si.Type); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "Name", &si.Name); err != nil {
+		return err
+	}
+	return nil
 }
 
 func StorableArrayToMap(items []Storable) map[string]Storable {
