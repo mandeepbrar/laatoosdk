@@ -24,7 +24,7 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 
 	finalMap := smap
 	if transformations != nil {
-		finalMap = applyTransformations(smap, unflattenTransformations(transformations))
+		finalMap = applyTransformations(smap, transformations)
 	}
 
 	wr := &MapSerializableWriter{finalMap}
@@ -62,46 +62,45 @@ func applyTransformations(data utils.StringMap, transformations utils.StringMap)
 		}
 
 		if subMap, ok := data.GetStringMap(k); ok {
-			finalMap[newKey] = applyTransformations(subMap, subTransforms)
+			// If we have sub-transformations for this key (which is a map), apply them recursively
+			transformedSubMap := applyTransformations(subMap, subTransforms)
+			// Then insert the transformed map at the new key locaion
+			insertDeep(finalMap, newKey, transformedSubMap)
 		} else {
-			finalMap[newKey] = v
+			insertDeep(finalMap, newKey, v)
 		}
 	}
 	return finalMap
 }
 
-func unflattenTransformations(transformations utils.StringMap) utils.StringMap {
-	result := make(utils.StringMap)
-	for k, v := range transformations {
-		parts := strings.Split(k, ".")
-		current := result
-		for i, part := range parts {
-			if i == len(parts)-1 {
-				current[part] = v
-			} else {
-				if _, ok := current[part]; !ok {
-					current[part] = make(utils.StringMap)
-				}
-				if nextMap, ok := current[part].(utils.StringMap); ok {
-					current = nextMap
-				} else if nextMap, ok := current[part].(map[string]interface{}); ok {
-					// Convert map[string]interface{} to utils.StringMap if needed
-					newMap := utils.StringMap(nextMap)
-					current[part] = newMap
-					current = newMap
-				} else {
-					// If we encounter a conflict where a path is both a value and a map, the map taking precedence or error handling might be needed.
-					// For now, let's assume valid input or overwrite.
-					// But wait, if 'v' (the leaf) is just a string rename, it's fine.
-					// If we are building a nested structure of transformations, intermediate nodes must be maps.
-					newMap := make(utils.StringMap)
-					current[part] = newMap
-					current = newMap
-				}
-			}
+func insertDeep(data utils.StringMap, path string, value interface{}) {
+	parts := strings.Split(path, ".")
+	if len(parts) == 1 {
+		data[parts[0]] = value
+		return
+	}
+
+	current := data
+	for i := 0; i < len(parts)-1; i++ {
+		part := parts[i]
+		if _, ok := current[part]; !ok {
+			current[part] = make(utils.StringMap)
+		}
+
+		if nextMap, ok := current[part].(utils.StringMap); ok {
+			current = nextMap
+		} else if nextMap, ok := current[part].(map[string]interface{}); ok {
+			newMap := utils.StringMap(nextMap)
+			current[part] = newMap
+			current = newMap
+		} else {
+			// Conflict: path segment exists but is not a map. Overwrite with new map.
+			newMap := make(utils.StringMap)
+			current[part] = newMap
+			current = newMap
 		}
 	}
-	return result
+	current[parts[len(parts)-1]] = value
 }
 
 type MapSerializableWriter struct {
@@ -184,6 +183,9 @@ func (w *MapSerializableWriter) WriteInt64(ctx ctx.Context, cdc datatypes.Codec,
 func (w *MapSerializableWriter) WriteString(ctx ctx.Context, cdc datatypes.Codec, prop string, val *string) error {
 	if v, ok := w.Data.GetString(prop); ok {
 		*val = v
+	} else if _, ok := w.Data[prop]; !ok {
+		// Ignore missing values
+		return nil
 	} else {
 		return errors.SerializationError(ctx, "Value is not a string", prop)
 	}
@@ -220,6 +222,8 @@ func (w *MapSerializableWriter) WriteBool(ctx ctx.Context, cdc datatypes.Codec, 
 	v, ok := w.Data.GetBool(prop)
 	if ok {
 		*val = v
+	} else if _, ok := w.Data[prop]; !ok {
+		return nil
 	} else {
 		return errors.SerializationError(ctx, "Field is not boolean", prop)
 	}
@@ -232,6 +236,8 @@ func (w *MapSerializableWriter) WriteObject(ctx ctx.Context, cdc datatypes.Codec
 			subWriter := &MapSerializableWriter{Data: subMap}
 			return ser.WriteAll(ctx, cdc, subWriter)
 		}
+	} else if _, ok := w.Data[prop]; !ok {
+		return nil
 	} else {
 		return errors.SerializationError(ctx, "Field is not string map", prop)
 	}

@@ -121,6 +121,13 @@ func (c *TestContext) CreateObject(t string) (interface{}, error) {
 	return &TestObject{}, nil
 }
 
+func (c *TestContext) LogFatal(msg string, args ...interface{}) {}
+func (c *TestContext) LogError(msg string, args ...interface{}) {}
+func (c *TestContext) LogWarn(msg string, args ...interface{})  {}
+func (c *TestContext) LogInfo(msg string, args ...interface{})  {}
+func (c *TestContext) LogDebug(msg string, args ...interface{}) {}
+func (c *TestContext) LogTrace(msg string, args ...interface{}) {}
+
 func TestTransformations(t *testing.T) {
 	ctx := &TestContext{}
 	srcMap := utils.StringMap{
@@ -191,8 +198,8 @@ type NestedObject struct {
 }
 
 func (n *NestedObject) WriteAll(ctx ctx.Context, cdc datatypes.Codec, w datatypes.SerializableWriter) error {
-	w.WriteString(ctx, cdc, "NewChild", &n.NewChild)
-	w.WriteString(ctx, cdc, "NewChild2", &n.NewChild2)
+	_ = w.WriteString(ctx, cdc, "NewChild", &n.NewChild)
+	_ = w.WriteString(ctx, cdc, "NewChild2", &n.NewChild2)
 	return nil
 }
 
@@ -207,25 +214,23 @@ func (n *NestedObject) GetType() string { return "NestedObject" }
 func TestDotNotationTransformations(t *testing.T) {
 
 	srcMap := utils.StringMap{
-		"Application": utils.StringMap{
-			"Identifier": "123",
-			"Name":       "TestApp",
-		},
-		"Other": "Value",
+		"Application": "123",
+		"Name":        "TestApp",
+		"Other":       "Value",
 	}
 
-	// Transform Application.Identifier -> Id
-	// Transform Application.Name -> AppName
+	// Transform Application -> Application.Id
+	// Transform Name -> Application.Name
 	transforms := utils.StringMap{
-		"Application.Identifier": "Id",
-		"Application.Name":       "AppName",
+		"Application": "Application.Id",
+		"Name":        "Application.Name",
 	}
 
 	// We expect the result map to be:
-	// Application: { Id: "123", AppName: "TestApp" }
+	// Application: { Id: "123", Name: "TestApp" }
 	// Other: "Value"
 
-	resMap := applyTransformations(srcMap, unflattenTransformations(transforms))
+	resMap := applyTransformations(srcMap, transforms)
 
 	appMap, ok := resMap["Application"].(utils.StringMap)
 	if !ok {
@@ -236,11 +241,36 @@ func TestDotNotationTransformations(t *testing.T) {
 		t.Errorf("Expected Application.Id to be '123', got %v", val)
 	}
 
-	if val, ok := appMap["AppName"]; !ok || val != "TestApp" {
-		t.Errorf("Expected Application.AppName to be 'TestApp', got %v", val)
+	if val, ok := appMap["Name"]; !ok || val != "TestApp" {
+		t.Errorf("Expected Application.Name to be 'TestApp', got %v", val)
 	}
 
 	if val, ok := resMap["Other"]; !ok || val != "Value" {
 		t.Errorf("Expected Other to be 'Value', got %v", val)
+	}
+}
+
+func TestMissingValues(t *testing.T) {
+	ctx := &TestContext{}
+	srcMap := utils.StringMap{
+		"Name": "John",
+	}
+	// "Age" and "Other" are missing from srcMap, expected to be ignored
+
+	obj, err := CreateObjectFromMap(ctx, "TestObject", srcMap, nil)
+	if err != nil {
+		t.Fatalf("CreateObjectFromMap failed: %v", err)
+	}
+
+	tObj := obj.(*TestObject)
+
+	if tObj.Name != "John" {
+		t.Errorf("Expected Name='John', got '%s'", tObj.Name)
+	}
+	if tObj.Age != 0 {
+		t.Errorf("Expected Age=0 (default), got %d", tObj.Age)
+	}
+	if tObj.Other != "" {
+		t.Errorf("Expected Other='' (default), got '%s'", tObj.Other)
 	}
 }
