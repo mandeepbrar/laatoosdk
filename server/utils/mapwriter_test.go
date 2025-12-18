@@ -55,7 +55,7 @@ func TestCreateObjectFromMap(t *testing.T) {
 	}
 
 	// Case 1: No transformations
-	_, err := CreateObjectFromMap(mockCtx, "MockObject", smap, nil)
+	_, err := CreateObjectFromMap(mockCtx, "MockObject", smap, nil, false)
 	if err != nil {
 		t.Errorf("CreateObjectFromMap failed: %v", err)
 	}
@@ -165,7 +165,7 @@ func TestTransformations(t *testing.T) {
 	// Our TestObject writes to itself.
 	// Let's UPDATE TestObject to support testing these nested fields.
 
-	obj, err := CreateObjectFromMap(ctx, "TestObject", srcMap, transforms)
+	obj, err := CreateObjectFromMap(ctx, "TestObject", srcMap, transforms, false)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}
@@ -230,7 +230,7 @@ func TestDotNotationTransformations(t *testing.T) {
 	// Application: { Id: "123", Name: "TestApp" }
 	// Other: "Value"
 
-	resMap := applyTransformations(srcMap, transforms)
+	resMap := applyTransformations(srcMap, transforms, false)
 
 	appMap, ok := resMap["Application"].(utils.StringMap)
 	if !ok {
@@ -257,7 +257,7 @@ func TestMissingValues(t *testing.T) {
 	}
 	// "Age" and "Other" are missing from srcMap, expected to be ignored
 
-	obj, err := CreateObjectFromMap(ctx, "TestObject", srcMap, nil)
+	obj, err := CreateObjectFromMap(ctx, "TestObject", srcMap, nil, false)
 	if err != nil {
 		t.Fatalf("CreateObjectFromMap failed: %v", err)
 	}
@@ -272,5 +272,44 @@ func TestMissingValues(t *testing.T) {
 	}
 	if tObj.Other != "" {
 		t.Errorf("Expected Other='' (default), got '%s'", tObj.Other)
+	}
+}
+
+func TestTransformFieldsOnly(t *testing.T) {
+
+	srcMap := utils.StringMap{
+		"Name":  "John",
+		"Age":   30,
+		"Extra": "ShouldBeIgnored",
+	}
+
+	// Transform Name -> Name (Explicit keep)
+	// Age is NOT in transformations, should be ignored when flag is true
+	transforms := utils.StringMap{
+		"Name": "Name",
+	}
+
+	// 1. Test with Flag = true
+	resMapTrue := applyTransformations(srcMap, transforms, true)
+	if _, ok := resMapTrue["Name"]; !ok {
+		t.Error("Flag=true: Expected Name to be present")
+	}
+	if _, ok := resMapTrue["Age"]; ok {
+		t.Error("Flag=true: Expected Age to be absent (filtered out)")
+	}
+	if _, ok := resMapTrue["Extra"]; ok {
+		t.Error("Flag=true: Expected Extra to be absent (filtered out)")
+	}
+
+	// 2. Test with Flag = false (Default behavior)
+	resMapFalse := applyTransformations(srcMap, transforms, false)
+	if _, ok := resMapFalse["Name"]; !ok {
+		t.Error("Flag=false: Expected Name to be present")
+	}
+	if _, ok := resMapFalse["Age"]; !ok {
+		t.Error("Flag=false: Expected Age to be present (preserved)")
+	}
+	if _, ok := resMapFalse["Extra"]; !ok {
+		t.Error("Flag=false: Expected Extra to be present (preserved)")
 	}
 }

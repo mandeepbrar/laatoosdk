@@ -12,7 +12,7 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
-func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.StringMap, transformations utils.StringMap) (datatypes.Serializable, error) {
+func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.StringMap, transformations utils.StringMap, transformFieldsOnly bool) (datatypes.Serializable, error) {
 	obj, err := ctx.CreateObject(objType)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -24,7 +24,7 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 
 	finalMap := smap
 	if transformations != nil {
-		finalMap = applyTransformations(smap, transformations)
+		finalMap = applyTransformations(smap, transformations, transformFieldsOnly)
 	}
 
 	wr := &MapSerializableWriter{finalMap}
@@ -35,8 +35,11 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 	return serObj, nil
 }
 
-func applyTransformations(data utils.StringMap, transformations utils.StringMap) utils.StringMap {
+func applyTransformations(data utils.StringMap, transformations utils.StringMap, transformFieldsOnly bool) utils.StringMap {
 	if len(transformations) == 0 {
+		if transformFieldsOnly {
+			return make(utils.StringMap)
+		}
 		return data
 	}
 
@@ -44,8 +47,10 @@ func applyTransformations(data utils.StringMap, transformations utils.StringMap)
 	for k, v := range data {
 		newKey := k
 		var subTransforms utils.StringMap
+		hasTransformation := false
 
 		if tVal, ok := transformations[k]; ok {
+			hasTransformation = true
 			if sVal, ok := tVal.(string); ok {
 				newKey = sVal
 			} else if mVal, ok := tVal.(map[string]interface{}); ok {
@@ -61,9 +66,13 @@ func applyTransformations(data utils.StringMap, transformations utils.StringMap)
 			}
 		}
 
+		if transformFieldsOnly && !hasTransformation {
+			continue
+		}
+
 		if subMap, ok := data.GetStringMap(k); ok {
 			// If we have sub-transformations for this key (which is a map), apply them recursively
-			transformedSubMap := applyTransformations(subMap, subTransforms)
+			transformedSubMap := applyTransformations(subMap, subTransforms, transformFieldsOnly)
 			// Then insert the transformed map at the new key locaion
 			insertDeep(finalMap, newKey, transformedSubMap)
 		} else {

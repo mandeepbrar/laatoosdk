@@ -72,6 +72,7 @@ type Storable interface {
 }
 
 type StorageInfo struct {
+	datatypes.Serializable
 	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key;" gorm:"primary_key"`
 	selfRef interface{} `json:"-" datastore:"-" bson:"-" sql:"-"`
 }
