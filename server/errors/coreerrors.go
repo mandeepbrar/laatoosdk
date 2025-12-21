@@ -2,8 +2,8 @@ package errors
 
 import (
 	"fmt"
-
 	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/log"
 )
 
 const (
@@ -55,6 +55,7 @@ func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 	if err != nil {
 		_, ok := err.(Error)
 		if ok {
+			log.Debug(ctx, "Creating wrapped error", "error", err.Error(), info...)
 			return err
 		} else {
 			return RethrowError(ctx, CORE_ERROR_WRAPPER, err, info...)
