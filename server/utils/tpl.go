@@ -125,7 +125,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return fmt.Sprintf("\"javascript###replace@@@%s###\"", b.String())
 	})
 
-	re2 := regexp.MustCompile(`\$\$([.*?]*)\$\$`)
+	re2 := regexp.MustCompile(`\$\$(.*?)\$\$`)
 	c = re2.ReplaceAllStringFunc(c, func(inp string) string {
 		b.Reset()
 		mval := inp[2 : len(inp)-2]
