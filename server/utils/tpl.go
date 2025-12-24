@@ -117,7 +117,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	wr := io.Writer(&b)
 
 	c := result.String()
-	re1 := regexp.MustCompile(`\[\[([^\[\]]*)\]\]`)
+	re1 := regexp.MustCompile(`\[\[([^\]]*(?:(?!\]\])[^\]]*)*)\]\]`)
 	c = re1.ReplaceAllStringFunc(c, func(inp string) string {
 		b.Reset()
 		mval := inp[2 : len(inp)-2]
