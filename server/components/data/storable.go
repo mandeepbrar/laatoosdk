@@ -106,7 +106,7 @@ func (si *StorageInfo) GetLabel() string {
 	return ""
 }
 
-func (si *StorageInfo) GetVersion(ctx ctx.Context) string {
+func (si *StorageInfo) GetVersion() string {
 	return si.Version
 }
 
