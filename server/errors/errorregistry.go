@@ -79,7 +79,8 @@ func throwError(ctx ctx.Context, internalErrorCode string, thrownErr error, info
 	if thrownErr != nil {
 		rethrownError, ok := thrownErr.(*Error)
 		if ok {
-			infoArr = append(infoArr, "Root Error", rethrownError.error.Error(), "Root Error code", rethrownError.InternalErrorCode, rethrownError.info)
+			infoArr = append(infoArr, "Root Error", rethrownError.error.Error(), "Root Error code", rethrownError.InternalErrorCode)
+			infoArr = append(infoArr, rethrownError.info...)
 		} else {
 			infoArr = append(infoArr, "Stack", string(debug.Stack()), "Root Error", thrownErr.Error())
 		}
