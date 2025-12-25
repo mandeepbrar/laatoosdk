@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"fmt"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/log"
 )
@@ -30,32 +29,32 @@ const (
 )
 
 func init() {
-	RegisterCode(CORE_ERROR_WRAPPER, FATAL, fmt.Errorf("Wrapped error."))
-	RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, FATAL, fmt.Errorf("Factory not registered."))
-	RegisterCode(CORE_ERROR_CODEC_NOT_FOUND, FATAL, fmt.Errorf("Codec not registered."))
-	RegisterCode(CORE_ERROR_MISSING_SERVICE, FATAL, fmt.Errorf("Expected service is missing."))
-	RegisterCode(CORE_ERROR_PLUGIN_NOT_LOADED, FATAL, fmt.Errorf("Plugins could not be loaded."))
-	RegisterCode(CORE_ERROR_MISSING_ARG, FATAL, fmt.Errorf("All arguments have not been provided for the call."))
-	RegisterCode(CORE_ERROR_MISSING_PLUGIN, FATAL, fmt.Errorf("Required plugin is missing."))
-	RegisterCode(CORE_ERROR_BAD_ARG, FATAL, fmt.Errorf("Invalid argument was provided."))
-	RegisterCode(CORE_ERROR_BAD_REQUEST, FATAL, fmt.Errorf("Invalid request was sent."))
-	RegisterCode(CORE_ERROR_MISSING_CONF, FATAL, fmt.Errorf("All configurations have not been provided."))
-	RegisterCode(CORE_ERROR_BAD_CONF, FATAL, fmt.Errorf("Configuration is not correct."))
-	RegisterCode(CORE_ERROR_UNAUTHORIZED, FATAL, fmt.Errorf("You are not allowed to access this resource."))
-	RegisterCode(CORE_ERROR_RES_NOT_FOUND, FATAL, fmt.Errorf("Requested resource was not found."))
-	RegisterCode(CORE_ERROR_DEP_NOT_MET, FATAL, fmt.Errorf("Dependency could not be met."))
-	RegisterCode(CORE_ERROR_TYPE_MISMATCH, FATAL, fmt.Errorf("Type Mismatch."))
-	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, FATAL, fmt.Errorf("Method has not been implemented by this service."))
-	RegisterCode(CORE_ERROR_TENANT_MISMATCH, WARNING, fmt.Errorf("Tenant Mismatch."))
-	RegisterCode(CORE_ERROR_INTERNAL_ERROR, FATAL, fmt.Errorf("Internal Error"))
-	RegisterCode(CORE_ERROR_SERIALIZATION_ERROR, FATAL, fmt.Errorf("Serialization error"))
+	RegisterCode(CORE_ERROR_WRAPPER, "Wrapped error.")
+	RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, "Factory not registered.")
+	RegisterCode(CORE_ERROR_CODEC_NOT_FOUND, "Codec not registered.")
+	RegisterCode(CORE_ERROR_MISSING_SERVICE, "Expected service is missing.")
+	RegisterCode(CORE_ERROR_PLUGIN_NOT_LOADED, "Plugins could not be loaded.")
+	RegisterCode(CORE_ERROR_MISSING_ARG, "All arguments have not been provided for the call.")
+	RegisterCode(CORE_ERROR_MISSING_PLUGIN, "Required plugin is missing.")
+	RegisterCode(CORE_ERROR_BAD_ARG, "Invalid argument was provided.")
+	RegisterCode(CORE_ERROR_BAD_REQUEST, "Invalid request was sent.")
+	RegisterCode(CORE_ERROR_MISSING_CONF, "All configurations have not been provided.")
+	RegisterCode(CORE_ERROR_BAD_CONF, "Configuration is not correct.")
+	RegisterCode(CORE_ERROR_UNAUTHORIZED, "You are not allowed to access this resource.")
+	RegisterCode(CORE_ERROR_RES_NOT_FOUND, "Requested resource was not found.")
+	RegisterCode(CORE_ERROR_DEP_NOT_MET, "Dependency could not be met.")
+	RegisterCode(CORE_ERROR_TYPE_MISMATCH, "Type Mismatch.")
+	RegisterCode(CORE_ERROR_NOT_IMPLEMENTED, "Method has not been implemented by this service.")
+	RegisterCode(CORE_ERROR_TENANT_MISMATCH, "Tenant Mismatch.")
+	RegisterCode(CORE_ERROR_INTERNAL_ERROR, "Internal Error")
+	RegisterCode(CORE_ERROR_SERIALIZATION_ERROR, "Serialization error")
 }
 
 func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 	if err != nil {
-		_, ok := err.(Error)
+		laatooErr, ok := err.(*Error)
 		if ok {
-			log.Debug(ctx, err.Error(), info...)
+			log.Debug(ctx, laatooErr.error.Error(), append(laatooErr.info, info)...)
 			return err
 		} else {
 			return RethrowError(ctx, CORE_ERROR_WRAPPER, err, info...)
@@ -66,7 +65,7 @@ func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 
 func WrapErrorWithCode(ctx ctx.Context, err error, errCode string, info ...interface{}) error {
 	if err != nil {
-		_, ok := err.(Error)
+		_, ok := err.(*Error)
 		if ok {
 			return err
 		} else {

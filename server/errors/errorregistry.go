@@ -5,7 +5,6 @@ import (
 	"runtime/debug"
 
 	"laatoo.io/sdk/ctx"
-	"laatoo.io/sdk/server/log"
 )
 
 type ErrorLevel int
@@ -23,7 +22,14 @@ const (
 type Error struct {
 	error
 	InternalErrorCode string
-	Loglevel          ErrorLevel
+	info              []interface{}
+}
+
+func (err *Error) UnderlyingError() error {
+	return err.error
+}
+func (err *Error) Error() string {
+	return fmt.Sprint("Root Error: ", err.error.Error(), ", Error code: ", err.InternalErrorCode, err.info)
 }
 
 var ShowStack = true
@@ -34,18 +40,14 @@ type ErrorHandler func(ctx ctx.Context, err *Error, info ...interface{}) bool
 
 var (
 	//errors register to store all errors in the process
-	ErrorsRegister = make(map[string]*Error, 50)
+	ErrorsRegister = make(map[string]string, 50)
 	//registered handlers for errors
 	ErrorsHandlersRegister = make(map[string][]ErrorHandler, 20)
 )
 
 // register error code
-func RegisterCode(internalErrorCode string, loglevel ErrorLevel, err error) {
-	ErrorsRegister[internalErrorCode] = &Error{err, internalErrorCode, loglevel}
-}
-
-func (err *Error) UnderlyingError() error {
-	return err.error
+func RegisterCode(internalErrorCode string, errMessage string) {
+	ErrorsRegister[internalErrorCode] = errMessage
 }
 
 // register error handler for an internal error code
@@ -67,47 +69,51 @@ func ThrowError(ctx ctx.Context, internalErrorCode string, info ...interface{}) 
 }
 
 func RethrowError(ctx ctx.Context, internalErrorCode string, err error, info ...interface{}) error {
-	registeredErr, ok := ErrorsRegister[internalErrorCode]
-	if !ok {
-		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
-	}
-	return throwError(ctx, registeredErr, err, info...)
+	return throwError(ctx, internalErrorCode, err, info...)
 }
 
 // throw a registered error code
 // rethrow an error with an internal error code
-func throwError(ctx ctx.Context, registeredError *Error, rethrownError error, info ...interface{}) error {
-	var errDetails []interface{}
-	if rethrownError == nil {
-		errDetails = []interface{}{"Err", registeredError.Error(), "Internal Error Code", registeredError.InternalErrorCode}
+func throwError(ctx ctx.Context, internalErrorCode string, thrownErr error, info ...interface{}) error {
+	infoArr := []interface{}{"Internal Error Code", internalErrorCode}
+	if thrownErr != nil {
+		rethrownError, ok := thrownErr.(*Error)
+		if ok {
+			infoArr = append(infoArr, "Root Error", rethrownError.error.Error(), "Root Error code", rethrownError.InternalErrorCode, rethrownError.info)
+		} else {
+			infoArr = append(infoArr, "Stack", string(debug.Stack()), "Root Error", thrownErr.Error())
+		}
 	} else {
-		errDetails = []interface{}{"Err", registeredError.Error(), "Internal Error Code", registeredError.InternalErrorCode, "Root Error", rethrownError}
-	}
-	var infoArr []interface{}
-	if ShowStack {
-		infoArr = append(errDetails, info...)
 		infoArr = append(infoArr, "Stack", string(debug.Stack()))
-	} else {
-		infoArr = append(errDetails, info...)
 	}
-	switch registeredError.Loglevel {
-	case FATAL:
-		log.Fatal(ctx, "Encountered error", infoArr...)
-	case ERROR:
-		log.Error(ctx, "Encountered error", infoArr...)
-	case WARNING:
-		log.Warn(ctx, "Encountered warning", infoArr...)
-	case INFO:
-		log.Info(ctx, "Info Error", infoArr...)
-	case DEBUG:
-		log.Debug(ctx, "Debug Error", infoArr...)
+	infoArr = append(infoArr, info...)
+	/*	switch registeredError.Loglevel {
+		case FATAL:
+			log.Fatal(ctx, "Encountered error", infoArr...)
+		case ERROR:
+			log.Error(ctx, "Encountered error", infoArr...)
+		case WARNING:
+			log.Warn(ctx, "Encountered warning", infoArr...)
+		case INFO:
+			log.Info(ctx, "Info Error", infoArr...)
+		case DEBUG:
+			log.Debug(ctx, "Debug Error", infoArr...)
+		}*/
+	errMsg, ok := ErrorsRegister[internalErrorCode]
+	if !ok {
+		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
+	}
+	err := &Error{
+		error:             fmt.Errorf(errMsg),
+		info:              infoArr,
+		InternalErrorCode: internalErrorCode,
 	}
 	//call the handlers while throwing an error
-	handlers := ErrorsHandlersRegister[registeredError.InternalErrorCode]
+	handlers := ErrorsHandlersRegister[internalErrorCode]
 	if handlers != nil {
 		handled := false
 		for _, val := range handlers {
-			handled = val(ctx, registeredError, info...) || handled
+			handled = val(ctx, err, info...) || handled
 		}
 		//if an error has been handled, dont throw it
 		if handled {
@@ -115,5 +121,5 @@ func throwError(ctx ctx.Context, registeredError *Error, rethrownError error, in
 		}
 	}
 	//thwo the error
-	return *registeredError
+	return err
 }
