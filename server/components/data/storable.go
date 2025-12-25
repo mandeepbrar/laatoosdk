@@ -36,6 +36,7 @@ SoftDeleteAuditableMT=70
 SerializableBase=71
 collection=72
 tenantname=73
+version=74
 */
 
 type StorableConfig struct {
@@ -62,6 +63,7 @@ type Storable interface {
 	GetId() string
 	SetId(string)
 	GetLabel() string
+	GetVersion() string
 	SetValues(ctx.Context, interface{}, utils.StringMap) error
 	PreSave(ctx ctx.Context) error
 	PostSave(ctx ctx.Context) error
@@ -72,7 +74,8 @@ type Storable interface {
 }
 
 type StorageInfo struct {
-	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key;" gorm:"primary_key"`
+	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(50); primary key;" gorm:"primary_key"`
+	Version string      `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
 	selfRef interface{} `json:"-" datastore:"-" bson:"-" sql:"-"`
 }
 
@@ -101,6 +104,10 @@ func (si *StorageInfo) GetLabel() string {
 		return f.String()
 	}
 	return ""
+}
+
+func (si *StorageInfo) GetVersion(ctx ctx.Context) string {
+	return si.Version
 }
 
 func (si *StorageInfo) PreSave(ctx ctx.Context) error {
@@ -135,7 +142,7 @@ func (si *StorageInfo) Config() *StorableConfig {
 func (si *StorageInfo) GetObjectRef() *StorableRef {
 	stor := si.selfRef.(Storable)
 	c := stor.Config()
-	return &StorableRef{Id: si.Id, Type: c.ObjectType, Name: stor.GetLabel()}
+	return &StorableRef{Id: si.Id, Type: c.ObjectType, Name: stor.GetLabel(), Version: stor.GetVersion()}
 }
 
 func (si *StorageInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
@@ -155,10 +162,11 @@ func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 }
 
 type StorableRef struct {
-	Id     string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
-	Type   string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
-	Name   string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
-	Entity Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
+	Id      string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
+	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
+	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
+	Version string   `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
+	Entity  Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
 }
 
 func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
@@ -170,6 +178,9 @@ func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes
 		return err
 	}
 	if err = rdr.ReadString(c, cdc, "Name", &si.Name); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "Version", &si.Version); err != nil {
 		return err
 	}
 	return nil
@@ -184,6 +195,9 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 		return err
 	}
 	if err = wtr.WriteString(c, cdc, "Name", &si.Name); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "Version", &si.Version); err != nil {
 		return err
 	}
 	return nil

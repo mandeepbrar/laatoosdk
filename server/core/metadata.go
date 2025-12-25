@@ -6,9 +6,9 @@ import (
 )
 
 type MetaDataProvider interface {
-	CreateServiceInfo(name, description string, reqInfo RequestInfo, resInfo ResponseInfo, configurations []Configuration) ServiceInfo
-	CreateFactoryInfo(name, description string, configurations []Configuration) ServiceFactoryInfo
-	CreateModuleInfo(name, description string, configurations []Configuration) ModuleInfo
+	CreateServiceInfo(name, description, version string, reqInfo RequestInfo, resInfo ResponseInfo, configurations []Configuration) ServiceInfo
+	CreateFactoryInfo(name, description, version string, configurations []Configuration) ServiceFactoryInfo
+	CreateModuleInfo(name, description, version string, configurations []Configuration) ModuleInfo
 	CreateRequestInfo(params map[string]Param) RequestInfo
 	CreateResponseInfo(params map[string]Param) ResponseInfo
 	CreateConfiguration(name string, desc string, conftype datatypes.DataType, required bool, defaultValue interface{}, varToSet string) Configuration
@@ -18,6 +18,7 @@ type MetaDataProvider interface {
 type Info interface {
 	GetDescription() string
 	GetType() string
+	GetVersion() string
 	GetProperty(string) interface{}
 }
 
@@ -52,11 +53,12 @@ type ServiceFactoryInfo interface {
 type defaultInfo struct {
 	description string
 	objtype     string
+	objversion  string
 	properties  utils.StringMap
 }
 
-func NewInfo(description, objtype string, props utils.StringMap) Info {
-	return &defaultInfo{description, objtype, props}
+func NewInfo(description, objtype, objversion string, props utils.StringMap) Info {
+	return &defaultInfo{description, objtype, objversion, props}
 }
 
 func (inf *defaultInfo) GetDescription() string {
@@ -64,6 +66,9 @@ func (inf *defaultInfo) GetDescription() string {
 }
 func (inf *defaultInfo) GetType() string {
 	return inf.objtype
+}
+func (inf *defaultInfo) GetVersion() string {
+	return inf.objversion
 }
 
 func (inf *defaultInfo) GetProperty(prop string) interface{} {
