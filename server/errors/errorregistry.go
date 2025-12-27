@@ -75,7 +75,7 @@ func RethrowError(ctx ctx.Context, internalErrorCode string, err error, info ...
 // throw a registered error code
 // rethrow an error with an internal error code
 func throwError(ctx ctx.Context, internalErrorCode string, thrownErr error, info ...interface{}) error {
-	infoArr := []interface{}{"Internal Error Code", internalErrorCode}
+	infoArr := []interface{}{"Internal Error Code", internalErrorCode, "Context", ctx.GetName(), "Path", ctx.GetPath(), "ContextID", ctx.GetId()}
 	if thrownErr != nil {
 		rethrownError, ok := thrownErr.(*Error)
 		if ok {

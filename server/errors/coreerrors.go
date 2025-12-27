@@ -53,7 +53,7 @@ func init() {
 func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
 	if err != nil {
 		laatooErr, ok := err.(*Error)
-		if ok {
+		if ok && len(info) > 0 {
 			log.Debug(ctx, laatooErr.error.Error(), append(laatooErr.info, info...)...)
 			return err
 		} else {
