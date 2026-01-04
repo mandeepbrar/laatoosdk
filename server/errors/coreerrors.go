@@ -1,6 +1,8 @@
 package errors
 
 import (
+	"log/slog"
+
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/log"
 )
@@ -50,81 +52,81 @@ func init() {
 	RegisterCode(CORE_ERROR_SERIALIZATION_ERROR, "Serialization error")
 }
 
-func WrapError(ctx ctx.Context, err error, info ...interface{}) error {
+func WrapError(ctx ctx.Context, err error, info ...slog.Attr) error {
 	if err != nil {
 		laatooErr, ok := err.(*Error)
 		if ok && len(info) > 0 {
 			log.Debug(ctx, laatooErr.error.Error(), append(laatooErr.info, info...)...)
 			return err
 		} else {
-			return RethrowError(ctx, CORE_ERROR_WRAPPER, err, info...)
+			return RethrowError(ctx, "Wrapped Error", CORE_ERROR_WRAPPER, err, info...)
 		}
 	}
 	return nil
 }
 
-func WrapErrorWithCode(ctx ctx.Context, err error, errCode string, info ...interface{}) error {
+func WrapErrorWithCode(ctx ctx.Context, err error, errCode string, info ...slog.Attr) error {
 	if err != nil {
 		_, ok := err.(*Error)
 		if ok {
 			return err
 		} else {
-			return RethrowError(ctx, errCode, err, info...)
+			return RethrowError(ctx, "Wrapped Error", errCode, err, info...)
 		}
 	}
 	return nil
 }
 
-func BadRequest(ctx ctx.Context, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_BAD_REQUEST, info...)
+func BadRequest(ctx ctx.Context, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_BAD_REQUEST, info...)
 }
 
-func BadArg(ctx ctx.Context, argName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_BAD_ARG, append(info, "Argument", argName)...)
+func BadArg(ctx ctx.Context, argName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_BAD_ARG, append(info, slog.String("Argument", argName))...)
 }
 
-func MissingArg(ctx ctx.Context, argName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_MISSING_ARG, append(info, "Argument", argName)...)
+func MissingArg(ctx ctx.Context, argName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_MISSING_ARG, append(info, slog.String("Argument", argName))...)
 }
 
-func BadConf(ctx ctx.Context, confName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_BAD_CONF, append(info, "Configuration", confName)...)
+func BadConf(ctx ctx.Context, confName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_BAD_CONF, append(info, slog.String("Configuration", confName))...)
 }
 
-func DepNotMet(ctx ctx.Context, dep string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_DEP_NOT_MET, append(info, "Dependency", dep)...)
+func DepNotMet(ctx ctx.Context, dep string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_DEP_NOT_MET, append(info, slog.String("Dependency", dep))...)
 }
 
-func MissingConf(ctx ctx.Context, confName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_MISSING_CONF, append(info, "Configuration", confName)...)
+func MissingConf(ctx ctx.Context, confName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_MISSING_CONF, append(info, slog.String("Configuration", confName))...)
 }
 
-func MissingService(ctx ctx.Context, svcName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_MISSING_SERVICE, append(info, "Service", svcName)...)
+func MissingService(ctx ctx.Context, svcName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_MISSING_SERVICE, append(info, slog.String("Service", svcName))...)
 }
 
-func NotImplemented(ctx ctx.Context, methodName string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_NOT_IMPLEMENTED, append(info, "Method", methodName)...)
+func NotImplemented(ctx ctx.Context, methodName string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_NOT_IMPLEMENTED, append(info, slog.String("Method", methodName))...)
 }
 
-func NotFound(ctx ctx.Context, resource string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_RES_NOT_FOUND, append(info, "Resource", resource)...)
+func NotFound(ctx ctx.Context, resource string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_RES_NOT_FOUND, append(info, slog.String("Resource", resource))...)
 }
-func TypeMismatch(ctx ctx.Context, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_TYPE_MISMATCH, info...)
-}
-
-func Unauthorized(ctx ctx.Context, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_UNAUTHORIZED, info...)
+func TypeMismatch(ctx ctx.Context, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_TYPE_MISMATCH, info...)
 }
 
-func InternalError(ctx ctx.Context, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_INTERNAL_ERROR, info...)
+func Unauthorized(ctx ctx.Context, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_UNAUTHORIZED, info...)
 }
 
-func InvalidPayload(ctx ctx.Context, key string, errorReason string, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_INVALID_PAYLOAD, append(info, "Key", key, "Error Reason", errorReason)...)
+func InternalError(ctx ctx.Context, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_INTERNAL_ERROR, info...)
 }
-func SerializationError(ctx ctx.Context, info ...interface{}) error {
-	return ThrowError(ctx, CORE_ERROR_SERIALIZATION_ERROR, info...)
+
+func InvalidPayload(ctx ctx.Context, key string, errorReason string, info ...slog.Attr) error {
+	return throwStandardError(ctx, CORE_ERROR_INVALID_PAYLOAD, append(info, slog.String("Key", key))...)
+}
+func SerializationError(ctx ctx.Context, message string, info ...slog.Attr) error {
+	return ThrowError(ctx, message, CORE_ERROR_SERIALIZATION_ERROR, info...)
 }

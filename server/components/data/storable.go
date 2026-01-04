@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"log/slog"
 	"reflect"
 
 	"laatoo.io/sdk/ctx"
@@ -247,7 +248,7 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []
 			retVal[j] = stor
 			j++
 		} else {
-			log.Warn(cx, "Nil object received", "index", i)
+			log.Warn(cx, "Nil object received", slog.Int("index", i))
 		}
 	}
 	return retVal[0:j], ids, nil

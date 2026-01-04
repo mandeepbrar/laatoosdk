@@ -1,14 +1,18 @@
 package components
 
-import "laatoo.io/sdk/ctx"
+import (
+	"log/slog"
+
+	"laatoo.io/sdk/ctx"
+)
 
 type Logger interface {
-	Trace(reqContext ctx.Context, msg string, args ...interface{})
-	Debug(reqContext ctx.Context, msg string, args ...interface{})
-	Info(reqContext ctx.Context, msg string, args ...interface{})
-	Warn(reqContext ctx.Context, msg string, args ...interface{})
-	Error(reqContext ctx.Context, msg string, args ...interface{})
-	Fatal(reqContext ctx.Context, msg string, args ...interface{})
+	Trace(reqContext ctx.Context, msg string, args ...slog.Attr)
+	Debug(reqContext ctx.Context, msg string, args ...slog.Attr)
+	Info(reqContext ctx.Context, msg string, args ...slog.Attr)
+	Warn(reqContext ctx.Context, msg string, args ...slog.Attr)
+	Error(reqContext ctx.Context, msg string, args ...slog.Attr)
+	Fatal(reqContext ctx.Context, msg string, args ...slog.Attr)
 
 	SetLevel(int)
 	SetFormat(string)

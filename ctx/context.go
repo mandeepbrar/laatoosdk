@@ -2,6 +2,7 @@ package ctx
 
 import (
 	"context"
+	"log/slog"
 	"time"
 )
 
@@ -32,10 +33,10 @@ type Context interface {
 	WithContext(parent context.Context) Context
 	CompleteContext()
 	Dump()
-	LogTrace(msg string, args ...interface{})
-	LogDebug(msg string, args ...interface{})
-	LogInfo(msg string, args ...interface{})
-	LogWarn(msg string, args ...interface{})
-	LogError(msg string, args ...interface{})
-	LogFatal(msg string, args ...interface{})
+	LogTrace(msg string, args ...slog.Attr)
+	LogDebug(msg string, args ...slog.Attr)
+	LogInfo(msg string, args ...slog.Attr)
+	LogWarn(msg string, args ...slog.Attr)
+	LogError(msg string, args ...slog.Attr)
+	LogFatal(msg string, args ...slog.Attr)
 }

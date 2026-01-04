@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log/slog"
 	"regexp"
 	"strings"
 	"text/template"
@@ -33,7 +34,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 			}
 			retval, err := json.Marshal(val)
 			if err != nil {
-				log.Error(ctx, "Error in conf", "Err", err)
+				log.Error(ctx, "Error in conf", slog.Any("Err", err))
 			}
 			return string(retval)
 		}

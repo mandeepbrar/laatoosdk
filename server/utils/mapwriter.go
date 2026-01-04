@@ -2,6 +2,7 @@ package utils
 
 import (
 	"io"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -19,7 +20,7 @@ func CreateObjectFromMap(ctx core.ServerContext, objType string, smap utils.Stri
 	}
 	serObj, ok := obj.(datatypes.Serializable)
 	if !ok {
-		return nil, errors.SerializationError(ctx, "Object type is not serializable", objType)
+		return nil, errors.SerializationError(ctx, "Object type is not serializable", slog.String("Object Type", objType))
 	}
 
 	finalMap := smap
@@ -139,7 +140,7 @@ func (w *MapSerializableWriter) WriteBytes(ctx ctx.Context, cdc datatypes.Codec,
 		} else if s, ok := v.(string); ok {
 			*val = []byte(s)
 		} else {
-			return errors.SerializationError(ctx, "Value is not a byte array", prop)
+			return errors.SerializationError(ctx, "Value is not a byte array", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -153,7 +154,7 @@ func (w *MapSerializableWriter) WriteInt(ctx ctx.Context, cdc datatypes.Codec, p
 		if f, ok := v.(float64); ok {
 			*val = int(f)
 		} else {
-			return errors.SerializationError(ctx, "Value is not an int", prop)
+			return errors.SerializationError(ctx, "Value is not an int", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -168,7 +169,7 @@ func (w *MapSerializableWriter) WriteInt32(ctx ctx.Context, cdc datatypes.Codec,
 		} else if f, ok := v.(float64); ok {
 			*val = int32(f)
 		} else {
-			return errors.SerializationError(ctx, "Value is not an int32", prop)
+			return errors.SerializationError(ctx, "Value is not an int32", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -183,7 +184,7 @@ func (w *MapSerializableWriter) WriteInt64(ctx ctx.Context, cdc datatypes.Codec,
 		} else if f, ok := v.(float64); ok {
 			*val = int64(f)
 		} else {
-			return errors.SerializationError(ctx, "Value is not an int64", prop)
+			return errors.SerializationError(ctx, "Value is not a int64", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -196,7 +197,7 @@ func (w *MapSerializableWriter) WriteString(ctx ctx.Context, cdc datatypes.Codec
 		// Ignore missing values
 		return nil
 	} else {
-		return errors.SerializationError(ctx, "Value is not a string", prop)
+		return errors.SerializationError(ctx, "Value is not a string", slog.String("Field", prop))
 	}
 	return nil
 }
@@ -208,7 +209,7 @@ func (w *MapSerializableWriter) WriteFloat32(ctx ctx.Context, cdc datatypes.Code
 		} else if f, ok := v.(float64); ok {
 			*val = float32(f)
 		} else {
-			return errors.SerializationError(ctx, "Value is not a float32", prop)
+			return errors.SerializationError(ctx, "Value is not a float32", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -221,7 +222,7 @@ func (w *MapSerializableWriter) WriteFloat64(ctx ctx.Context, cdc datatypes.Code
 		} else if f, ok := v.(float32); ok {
 			*val = float64(f)
 		} else {
-			return errors.SerializationError(ctx, "Value is not a float64", prop)
+			return errors.SerializationError(ctx, "Value is not a float64", slog.String("Field", prop))
 		}
 	}
 	return nil
@@ -234,7 +235,7 @@ func (w *MapSerializableWriter) WriteBool(ctx ctx.Context, cdc datatypes.Codec, 
 	} else if _, ok := w.Data[prop]; !ok {
 		return nil
 	} else {
-		return errors.SerializationError(ctx, "Field is not boolean", prop)
+		return errors.SerializationError(ctx, "Field is not boolean", slog.String("Field", prop))
 	}
 	return nil
 }
@@ -248,7 +249,7 @@ func (w *MapSerializableWriter) WriteObject(ctx ctx.Context, cdc datatypes.Codec
 	} else if _, ok := w.Data[prop]; !ok {
 		return nil
 	} else {
-		return errors.SerializationError(ctx, "Field is not string map", prop)
+		return errors.SerializationError(ctx, "Field is not string map", slog.String("Field", prop))
 	}
 	return nil
 }
@@ -274,7 +275,7 @@ func (w *MapSerializableWriter) WriteTime(ctx ctx.Context, cdc datatypes.Codec, 
 				*val = t
 			}
 		} else {
-			return errors.SerializationError(ctx, "Field is not time", prop)
+			return errors.SerializationError(ctx, "Field is not time", slog.String("Field", prop))
 		}
 	}
 	return nil
