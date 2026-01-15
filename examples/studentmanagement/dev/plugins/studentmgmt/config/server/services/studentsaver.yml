@@ -1,2 +1,0 @@
-servicemethod: datastoreprocessor.DataExporter
-exportdataservice: dataadapter.dataservice.studentmgmt.Student

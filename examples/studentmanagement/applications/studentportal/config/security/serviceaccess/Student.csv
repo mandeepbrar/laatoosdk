@@ -1,5 +1,0 @@
-p,Student,*,profile.read
-p,Student,*,profile.update.own
-p,Student,*,grades.read.own
-p,Student,*,courses.list
-p,Student,*,enrollment.create

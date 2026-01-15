@@ -1,5 +1,0 @@
-name: root
-enginetype: http
-address: ":8080"
-framework: "::framework"
-path: "/"

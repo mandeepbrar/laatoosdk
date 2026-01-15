@@ -1,9 +1,0 @@
-plugin: datapipeline
-settings:
-  datasource: studentcsv
-  datadestination: studentsaver
-  processors:
-    - studentmapper
-  pipelinename: studentimportpipeline
-  errorprocessor: importerror
-  retrysource: importerror

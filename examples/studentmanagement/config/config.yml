@@ -1,6 +1,0 @@
-name: studentmanagement
-logging:
-  level: debug
-  format: text
-workflows:
-  workflowmanager: laatoo.workflowservice

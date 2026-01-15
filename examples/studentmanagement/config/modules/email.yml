@@ -1,6 +1,0 @@
-plugin: email
-settings:
-  mailserver: smtp.example.com
-  mailport: '587'
-  mailsender: notifications@studentportal.com
-  mailpass: "secret"

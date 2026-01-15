@@ -1,8 +1,0 @@
-route: /register-student
-title: Register Student
-component:
-  type: layout
-  layout: 1col
-  items:
-    - type: form
-      id: studentform
