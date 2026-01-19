@@ -29,8 +29,13 @@ type Error struct {
 func (err *Error) UnderlyingError() error {
 	return err.error
 }
+
+func (err *Error) ErrorInfo() []slog.Attr {
+	return err.info
+}
+
 func (err *Error) Error() string {
-	return fmt.Sprint("Root Error: ", err.error.Error(), ", Error code: ", err.InternalErrorCode, err.info)
+	return fmt.Sprintf("Root Error: %s \n Error code: %s \n Info: %v", err.error.Error(), err.InternalErrorCode, err.info)
 }
 
 var ShowStack = true
