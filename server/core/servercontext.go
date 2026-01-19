@@ -128,4 +128,8 @@ type ServerContext interface {
 
 type EngineContext interface {
 	GetRequest() interface{}
+	GetRequestStream() (interface{}, error)
+	GetResponseStream() (interface{}, error)
+	GetConnection() interface{}
+	GetUnderlyingContext() interface{}
 }

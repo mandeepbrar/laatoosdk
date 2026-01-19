@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"log/slog"
 
 	"laatoo.io/sdk/ctx"
@@ -55,11 +56,11 @@ func init() {
 func WrapError(ctx ctx.Context, err error, info ...slog.Attr) error {
 	if err != nil {
 		laatooErr, ok := err.(*Error)
-		if ok && len(info) > 0 {
+		if ok {
 			log.Debug(ctx, laatooErr.error.Error(), append(laatooErr.info, info...)...)
 			return err
 		} else {
-			return RethrowError(ctx, "Wrapped Error", CORE_ERROR_WRAPPER, err, info...)
+			return RethrowError(ctx, fmt.Sprintf("Wrapped Error: %s", err.Error()), CORE_ERROR_WRAPPER, err, info...)
 		}
 	}
 	return nil
