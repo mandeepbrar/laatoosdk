@@ -7,8 +7,7 @@ import (
 
 type NotificationManager interface {
 	core.ServerElement
-	components.NotifiersRegistry
 	SendNotification(ctx core.RequestContext, notification *core.Notification) error
 	Broadcast(ctx core.RequestContext, notif *core.Notification) error
-	RegisterNotificationHandler(ctx core.ServerContext, notifType core.NotificationType, queue string, reg components.NotifiersRegistry) error
+	RegisterNotificationHandler(ctx core.ServerContext, notifType core.NotificationType, reg components.NotificationChannel) error
 }

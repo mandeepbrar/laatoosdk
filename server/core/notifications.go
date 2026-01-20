@@ -6,6 +6,7 @@ type NotificationType string
 
 const (
 	INAPP       NotificationType = "INAPP"
+	WEBSOCKET   NotificationType = "WEBSOCKET"
 	SERVEREVENT NotificationType = "SERVEREVENT"
 	AIMESSAGE   NotificationType = "AIMESSAGE"
 	EMAIL       NotificationType = "EMAIL"
@@ -17,12 +18,13 @@ const (
 
 type Notification struct {
 	NotificationType NotificationType
+	Category         string //different types of notifications to be sent on one channel
 	Subject          string
 	Mime             string
 	Attachments      []string
-	Recipients       map[string]string
-	Message          []byte
-	Info             utils.StringMap
+	Recipient        string
+	Message          utils.StringMap
+	Info             utils.StringMap // Info should contain a string map of Recipients if it has to be sent to multiple users, BroadcastGroup if it has to be sent to some group
 }
 
 func ParseNotificationType(str string) (NotificationType, bool) {
