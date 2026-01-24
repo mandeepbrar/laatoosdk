@@ -6,8 +6,15 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
+type ModelDetails struct {
+	Name string
+	Provider string
+	APIKey string
+}
+
 type AgentManager interface {
 	core.ServerElement
+	GetModelDetails(ctx core.ServerContext, name string) (ModelDetails, error)
 	GetAgent(ctx core.ServerContext, alias string) (core.Agent, error)
 //	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
 	List(ctx core.ServerContext) utils.StringsMap
