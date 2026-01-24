@@ -49,7 +49,6 @@ const (
 	ServerElementActionsManager
 	ServerElementDataManager
 	ServerElementAgentManager
-	ServerElementAgentEngine
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -120,10 +119,6 @@ type ServerContext interface {
 	GetLogFormat() string
 	// GetTenant returns the tenant info for the context.
 	GetTenant() auth.TenantInfo
-	// GetTools retrieves tools by name.
-	GetTools(toolNames []string) (utils.StringMap, error)
-	// GetModel retrieves a model by name.
-	GetModel(modelsName string) (interface{}, error)
 }
 
 type EngineContext interface {
