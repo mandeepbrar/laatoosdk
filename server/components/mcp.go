@@ -2,6 +2,7 @@ package components
 
 import (
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 // Mcp defines the interface for an MCP Engine wrapper.
@@ -13,6 +14,7 @@ type Mcp interface {
 	RemoveTools(ctx core.ServerContext, names ...string) error
 	GetTool(ctx core.ServerContext, name string) (interface{}, error)
 	ListTools(ctx core.ServerContext) ([]interface{}, error)
+	CallTool(ctx core.RequestContext, name string, args utils.StringMap) (interface{}, error)
 
 	// Prompts
 	AddPrompt(ctx core.ServerContext, prompt interface{}, handler interface{}) error
