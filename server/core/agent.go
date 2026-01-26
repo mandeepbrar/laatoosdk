@@ -14,6 +14,10 @@ type Agent interface {
 	GetVersion() string
 	GetDescription() string
 	GetAgentProperties() utils.StringMap
+	
+	// Memory Management
+	GetMemory(ctx RequestContext, id string) (MemoryBank, error)
+	AddMemory(ctx RequestContext,  bank MemoryBank) error
 }
 
 type AgentConversation interface {
@@ -23,6 +27,43 @@ type AgentConversation interface {
 	GetHistory() utils.StringsMap
 	AddHistory(ctx RequestContext, actor string, input utils.StringMap)
 }
+
+// ------------------------------
+// Memory System Interfaces
+// ------------------------------
+
+type MemoryType string
+
+const (
+	MemoryTypeSession    MemoryType = "Session"
+	MemoryTypeShared     MemoryType = "Shared"
+	MemoryTypeReferences MemoryType = "References"
+	MemoryTypeData       MemoryType = "Data"
+)
+
+// MemoryItem is a logical unit of memory (DTO).
+// It acts as a data transfer object between Agents and MemoryBanks.
+type MemoryItem struct {
+	Type       string                 `json:"type"` // e.g., "message", "artifact", "datarecord"
+	Content    interface{}            `json:"content"`
+	Importance float64                `json:"importance"`
+	Timestamp  string                 `json:"timestamp"` // ISO8601 string
+	Tags       []string               `json:"tags"`
+	Metadata   utils.StringMap `json:"metadata"`
+}
+
+// MemoryBank manages storage and retrieval of MemoryItems.
+type MemoryBank interface {
+	GetId() string
+	// Add stores an item.
+	Add(ctx RequestContext, item MemoryItem) error
+	
+	// Retrieve fetches items based on a query.
+	Retrieve(ctx RequestContext, query string, opts utils.StringMap) ([]MemoryItem, error)
+	
+	Clear(ctx RequestContext) error
+	Synthesize(ctx RequestContext) error
+} // End of MemoryBank interface
 
 // Skill represents a modular expertise package that agents can discover and use
 type Skill interface {

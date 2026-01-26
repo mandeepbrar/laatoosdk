@@ -30,6 +30,10 @@ type AgentManager interface {
 	GetSkill(ctx core.ServerContext, name string) (core.Skill, error)
 	GetSkillsByCategory(ctx core.ServerContext, category string) []core.Skill
 	GetSkillsByTag(ctx core.ServerContext, tag string) []core.Skill
+
+	CreateMemory(ctx core.RequestContext, memorytype core.MemoryType, id string, config map[string]interface{}) (core.MemoryBank, error)
+
+	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype core.MemoryType,mgr components.AgentMemoryManager) error
 }
 /*
 type AgentEngine interface {
