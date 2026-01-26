@@ -28,7 +28,8 @@ type AgentConversation interface {
 type Skill struct {
 	Metadata     SkillMetadata     `json:"metadata"`
 	Instructions SkillInstruction  `json:"instructions"`
-	Service      *SkillServiceRef  `json:"service,omitempty"`
+	Tools        []ToolDefinition  `json:"tools"`
+	Resources    []SkillResource   `json:"resources,omitempty"`
 	CreatedAt    string            `json:"created_at,omitempty"`
 	UpdatedAt    string            `json:"updated_at,omitempty"`
 }
@@ -45,13 +46,14 @@ type SkillMetadata struct {
 
 // SkillInstruction contains procedural knowledge (Level 2)
 type SkillInstruction struct {
-	Title         string         `json:"title"`
-	Overview      string         `json:"overview"`
-	Steps         []string       `json:"steps"`
-	BestPractices []string       `json:"best_practices,omitempty"`
-	Examples      []SkillExample `json:"examples,omitempty"`
-	References    []Reference    `json:"references,omitempty"`
-	ContextHints  string         `json:"context_hints,omitempty"`
+	Title          string         `json:"title"`
+	Overview       string         `json:"overview"`
+	Steps          []string       `json:"steps"`
+	BestPractices  []string       `json:"best_practices,omitempty"`
+	Examples       []SkillExample `json:"examples,omitempty"`
+	References     []Reference    `json:"references,omitempty"`
+	ContextHints   string         `json:"context_hints,omitempty"`
+	ErrorHandling  map[string]string `json:"error_handling,omitempty"`
 }
 
 // SkillExample shows concrete application patterns
@@ -69,9 +71,32 @@ type Reference struct {
 	Type  string `json:"type"` // "documentation", "best-practice", "template"
 }
 
-// SkillServiceRef references a Laatoo service for execution
-type SkillServiceRef struct {
-	ServiceName string `json:"service_name"`
-	Method      string `json:"method,omitempty"` // defaults to "Invoke"
+// ToolDefinition describes what tools this skill can invoke
+type ToolDefinition struct {
+	ToolName    string                 `json:"tool_name"`
+	Description string                 `json:"description"`
+	Parameters  map[string]interface{} `json:"parameters"`
+	Required    []string               `json:"required"`
+	Annotations ToolAnnotations        `json:"annotations"`
 }
+
+// ToolAnnotations provide hints about tool behavior
+type ToolAnnotations struct {
+	ReadOnly     bool `json:"read_only"`
+	Destructive  bool `json:"destructive"`
+	Idempotent   bool `json:"idempotent"`
+	OpenWorld    bool `json:"open_world"`     // accesses external resources
+	RequiresAuth bool `json:"requires_auth"`
+}
+
+// SkillResource represents Level 3: Executable tools and templates
+type SkillResource struct {
+	Name         string   `json:"name"`
+	Type         string   `json:"type"` // "script", "template", "reference"
+	ContentPath  string   `json:"content_path"`
+	Executable   bool     `json:"executable"`
+	Dependencies []string `json:"dependencies,omitempty"`
+	Timeout      int      `json:"timeout,omitempty"` // seconds
+}
+
 
