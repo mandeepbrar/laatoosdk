@@ -54,7 +54,7 @@ type Dataset struct {
 
 
 type VectorResult struct {
-	Item  Storable
+	Item  core.Storable
 	Score float64
 	Dist  float64
 }
@@ -88,17 +88,17 @@ type DataComponent interface {
 	//create condition for passing to data service
 	CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error)
 	//save an object
-	Save(ctx core.RequestContext, item Storable) error
+	Save(ctx core.RequestContext, item core.Storable) error
 	//adds an item to an array field
 	AddToArray(ctx core.RequestContext, id string, fieldName string, item interface{}) error
 	//execute function
 	Execute(ctx core.RequestContext, name string, data interface{}, params utils.StringMap) (interface{}, error)
 	//Store an object against an id
-	Put(ctx core.RequestContext, id string, item Storable) error
+	Put(ctx core.RequestContext, id string, item core.Storable) error
 	//Store multiple objects
-	CreateMulti(ctx core.RequestContext, items []Storable) error
+	CreateMulti(ctx core.RequestContext, items []core.Storable) error
 	//Store multiple objects
-	PutMulti(ctx core.RequestContext, items []Storable) error
+	PutMulti(ctx core.RequestContext, items []core.Storable) error
 	//upsert an object by id, fields to be updated should be provided as key value pairs
 	UpsertId(ctx core.RequestContext, id string, newVals utils.StringMap) error
 	//upsert by condition
@@ -116,11 +116,11 @@ type DataComponent interface {
 	//delete with condition
 	DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error)
 	//Get an object by id
-	GetById(ctx core.RequestContext, id string, dao string) (Storable, error)
+	GetById(ctx core.RequestContext, id string, dao string) (core.Storable, error)
 	//get storables in a hashtable
-	GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]Storable, error)
+	GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]core.Storable, error)
 	//Get multiple objects by id
-	GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string, dao string) ([]Storable, error)
+	GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string, dao string) ([]core.Storable, error)
 	//Gets the value of a key.
 	GetValue(ctx core.RequestContext, key string) (interface{}, error)
 	//Puts the value of a key
@@ -135,11 +135,11 @@ type DataComponent interface {
 	Transaction(ctx core.RequestContext, callback func(ctx core.RequestContext) error) error
 
 	//Get all object with given conditions
-	Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Get one record satisfying condition
-	GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn Storable, err error)
+	GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn core.Storable, err error)
 	//Get a list of all items
-	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Vector Search
 	VectorSearch(ctx core.RequestContext, vector []float32, limit int, filter interface{}) ([]VectorResult, error)
 }

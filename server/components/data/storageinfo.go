@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
-
+	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/log"
@@ -40,40 +40,6 @@ tenantname=73
 version=74
 */
 
-type StorableConfig struct {
-	ObjectType        string
-	LabelField        string
-	PartialLoadFields []string
-	FullLoadFields    []string
-	PreSave           bool
-	PostSave          bool
-	PostUpdate        bool
-	PostLoad          bool
-	Trackable         bool
-	Collection        string
-	Cacheable         bool
-	RefOps            bool
-	Workflow          bool
-	Multitenant       bool
-}
-
-// Object stored by data service
-type Storable interface {
-	Constructor(ctx.Context)
-	Config() *StorableConfig
-	GetId() string
-	SetId(string)
-	GetLabel() string
-	GetVersion() string
-	SetValues(ctx.Context, interface{}, utils.StringMap) error
-	PreSave(ctx ctx.Context) error
-	PostSave(ctx ctx.Context) error
-	PostLoad(ctx ctx.Context) error
-	IsMultitenant() bool
-	Join(item Storable)
-	GetObjectRef() *StorableRef
-}
-
 type StorageInfo struct {
 	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(50); primary key;" gorm:"primary_key"`
 	Version string      `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
@@ -97,7 +63,7 @@ func (si *StorageInfo) SetId(val string) {
 }
 
 func (si *StorageInfo) GetLabel() string {
-	stor := si.selfRef.(Storable)
+	stor := si.selfRef.(core.Storable)
 	c := stor.Config()
 	if c != nil && c.LabelField != "" {
 		v := reflect.ValueOf(stor).Elem()
@@ -134,14 +100,14 @@ func (si *StorageInfo) IsMultitenant() bool {
 	return false
 }
 
-func (si *StorageInfo) Join(item Storable) {
+func (si *StorageInfo) Join(item core.Storable) {
 }
-func (si *StorageInfo) Config() *StorableConfig {
+func (si *StorageInfo) Config() *core.StorableConfig {
 	return nil
 }
 
-func (si *StorageInfo) GetObjectRef() *StorableRef {
-	stor := si.selfRef.(Storable)
+func (si *StorageInfo) GetObjectRef() interface{} {
+	stor := si.selfRef.(core.Storable)
 	c := stor.Config()
 	return &StorableRef{Id: si.Id, Type: c.ObjectType, Name: stor.GetLabel(), Version: stor.GetVersion()}
 }
@@ -167,7 +133,7 @@ type StorableRef struct {
 	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
 	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
 	Version string   `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
-	Entity  Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
+	Entity  core.Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
 }
 
 func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
@@ -204,8 +170,8 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 	return nil
 }
 
-func StorableArrayToMap(items []Storable) map[string]Storable {
-	res := make(map[string]Storable, len(items))
+func StorableArrayToMap(items []core.Storable) map[string]core.Storable {
+	res := make(map[string]core.Storable, len(items))
 	for _, item := range items {
 		res[item.GetId()] = item
 	}
@@ -215,7 +181,7 @@ func StorableArrayToMap(items []Storable) map[string]Storable {
 //Factory function for creating storable
 //type StorableCreator func() interface{}
 
-func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []string, error) {
+func CastToStorableCollection(cx ctx.Context, items interface{}) ([]core.Storable, []string, error) {
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
 		arr = arr.Elem()
@@ -224,7 +190,7 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []
 		return nil, nil, fmt.Errorf("Invalid cast to Storable. Type of Item: %s", arr.Kind())
 	}
 	length := arr.Len()
-	retVal := make([]Storable, length)
+	retVal := make([]core.Storable, length)
 	ids := make([]string, length)
 	j := 0
 	for i := 0; i < length; i++ {
@@ -236,7 +202,7 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []
 			valPtr = arr.Index(i).Addr().Interface()
 		}
 		if valPtr != nil {
-			stor, ok := valPtr.(Storable)
+			stor, ok := valPtr.(core.Storable)
 			if !ok {
 				return nil, nil, fmt.Errorf("Invalid cast to Storable. Item: %s", valPtr)
 			}
@@ -254,7 +220,7 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]Storable, []
 	return retVal[0:j], ids, nil
 }
 
-func CastToStorableHash(items interface{}) (map[string]Storable, error) {
+func CastToStorableHash(items interface{}) (map[string]core.Storable, error) {
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
 		arr = arr.Elem()
@@ -263,7 +229,7 @@ func CastToStorableHash(items interface{}) (map[string]Storable, error) {
 		return nil, fmt.Errorf("Invalid cast to Storable. Type of Item: %s", arr.Kind())
 	}
 	length := arr.Len()
-	retVal := make(map[string]Storable, length)
+	retVal := make(map[string]core.Storable, length)
 	for i := 0; i < length; i++ {
 		itemKind := arr.Index(i).Kind()
 		var valPtr interface{}
@@ -272,7 +238,7 @@ func CastToStorableHash(items interface{}) (map[string]Storable, error) {
 		} else {
 			valPtr = arr.Index(i).Addr().Interface()
 		}
-		stor, ok := valPtr.(Storable)
+		stor, ok := valPtr.(core.Storable)
 		if !ok {
 			return nil, fmt.Errorf("Invalid cast to Storable. Item: %s %s %t", valPtr, arr.Index(i).Kind(), arr.Index(i).IsNil())
 		}

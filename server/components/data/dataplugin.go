@@ -75,19 +75,19 @@ func (svc *DataPlugin) Supports(feature Feature) bool {
 	return svc.PluginDataComponent.Supports(feature)
 }
 
-func (svc *DataPlugin) Save(ctx core.RequestContext, item Storable) error {
+func (svc *DataPlugin) Save(ctx core.RequestContext, item core.Storable) error {
 	return svc.PluginDataComponent.Save(ctx, item)
 }
 
-func (svc *DataPlugin) PutMulti(ctx core.RequestContext, items []Storable) error {
+func (svc *DataPlugin) PutMulti(ctx core.RequestContext, items []core.Storable) error {
 	return svc.PluginDataComponent.PutMulti(ctx, items)
 }
 
-func (svc *DataPlugin) CreateMulti(ctx core.RequestContext, items []Storable) error {
+func (svc *DataPlugin) CreateMulti(ctx core.RequestContext, items []core.Storable) error {
 	return svc.PluginDataComponent.CreateMulti(ctx, items)
 }
 
-func (svc *DataPlugin) Put(ctx core.RequestContext, id string, item Storable) error {
+func (svc *DataPlugin) Put(ctx core.RequestContext, id string, item core.Storable) error {
 	return svc.PluginDataComponent.Put(ctx, id, item)
 }
 
@@ -128,12 +128,12 @@ func (svc *DataPlugin) DeleteAll(ctx core.RequestContext, queryCond interface{},
 	return svc.PluginDataComponent.DeleteAll(ctx, queryCond, getids)
 }
 
-func (svc *DataPlugin) GetById(ctx core.RequestContext, id string, dao string) (Storable, error) {
+func (svc *DataPlugin) GetById(ctx core.RequestContext, id string, dao string) (core.Storable, error) {
 	return svc.PluginDataComponent.GetById(ctx, id, dao)
 }
 
 // Get multiple objects by id
-func (svc *DataPlugin) GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string, dao string) ([]Storable, error) {
+func (svc *DataPlugin) GetMulti(ctx core.RequestContext, props []string, ids []string, orderBy []string, dao string) ([]core.Storable, error) {
 	return svc.PluginDataComponent.GetMulti(ctx, props, ids, orderBy, dao)
 }
 
@@ -152,7 +152,7 @@ func (svc *DataPlugin) DeleteValue(ctx core.RequestContext, key string) error {
 	return svc.PluginDataComponent.DeleteValue(ctx, key)
 }
 
-func (svc *DataPlugin) GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]Storable, error) {
+func (svc *DataPlugin) GetMultiHash(ctx core.RequestContext, props []string, ids []string, dao string) (map[string]core.Storable, error) {
 	return svc.PluginDataComponent.GetMultiHash(ctx, props, ids, dao)
 }
 
@@ -164,15 +164,15 @@ func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{
 	return svc.PluginDataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
-func (svc *DataPlugin) GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *DataPlugin) GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.GetList(ctx, props, pageSize, pageNum, mode, orderBy, dao)
 }
 
-func (svc *DataPlugin) Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *DataPlugin) Get(ctx core.RequestContext, props []string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.Get(ctx, props, queryCond, pageSize, pageNum, mode, orderBy, dao)
 }
 
-func (svc *DataPlugin) GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn Storable, err error) {
+func (svc *DataPlugin) GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn core.Storable, err error) {
 	return svc.PluginDataComponent.GetOne(ctx, props, queryCond, dao)
 }
 

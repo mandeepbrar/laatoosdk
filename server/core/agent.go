@@ -45,7 +45,7 @@ const (
 // It acts as a data transfer object between Agents and MemoryBanks.
 type MemoryItem struct {
 	Type       string                 `json:"type"` // e.g., "message", "artifact", "datarecord"
-	Content    interface{}            `json:"content"`
+	Content    Storable            `json:"content"`
 	Importance float64                `json:"importance"`
 	Timestamp  string                 `json:"timestamp"` // ISO8601 string
 	Tags       []string               `json:"tags"`
