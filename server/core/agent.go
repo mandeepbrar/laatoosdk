@@ -25,11 +25,21 @@ type AgentConversation interface {
 }
 
 // Skill represents a modular expertise package that agents can discover and use
-type Skill struct {
+type Skill interface {
+	Service
+	GetSkillMetadata() SkillMetadata
+	GetInstructions() SkillInstruction
+	GetTools() []ToolDefinition
+	GetResources() []SkillResource
+}
+
+// SkillInfo contains the complete skill definition (Level 1 + 2 + 3) (rename of previous Skill struct)
+type SkillInfo struct {
 	Metadata     SkillMetadata     `json:"metadata"`
 	Instructions SkillInstruction  `json:"instructions"`
 	Tools        []ToolDefinition  `json:"tools"`
 	Resources    []SkillResource   `json:"resources,omitempty"`
+	Type         string            `json:"type,omitempty"`
 	CreatedAt    string            `json:"created_at,omitempty"`
 	UpdatedAt    string            `json:"updated_at,omitempty"`
 }

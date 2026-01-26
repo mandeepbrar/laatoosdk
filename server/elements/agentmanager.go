@@ -26,9 +26,10 @@ type AgentManager interface {
 
 	// Skill Support
 	ListSkills(ctx core.ServerContext) []core.SkillMetadata
-	GetSkill(ctx core.ServerContext, name string) (*core.Skill, error)
-	GetSkillsByCategory(ctx core.ServerContext, category string) []*core.Skill
-	GetSkillsByTag(ctx core.ServerContext, tag string) []*core.Skill
+	RegisterSkillType(ctx core.ServerContext, skillType string, factory core.ServiceFactory) error
+	GetSkill(ctx core.ServerContext, name string) (core.Skill, error)
+	GetSkillsByCategory(ctx core.ServerContext, category string) []core.Skill
+	GetSkillsByTag(ctx core.ServerContext, tag string) []core.Skill
 }
 /*
 type AgentEngine interface {
