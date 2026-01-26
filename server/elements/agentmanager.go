@@ -23,6 +23,12 @@ type AgentManager interface {
 	// MCP Support
 	GetMCPServer(ctx core.ServerContext, rootpath string) (components.Mcp, error)
 	RegisterMCPServer(ctx core.ServerContext, rootpath string, mcpsvr components.Mcp) error
+
+	// Skill Support
+	ListSkills(ctx core.ServerContext) []core.SkillMetadata
+	GetSkill(ctx core.ServerContext, name string) (*core.Skill, error)
+	GetSkillsByCategory(ctx core.ServerContext, category string) []*core.Skill
+	GetSkillsByTag(ctx core.ServerContext, tag string) []*core.Skill
 }
 /*
 type AgentEngine interface {

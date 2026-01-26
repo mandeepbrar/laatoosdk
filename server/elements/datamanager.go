@@ -66,4 +66,7 @@ type DataManager interface {
 	GetOne(ctx core.RequestContext, props []string, obj string, queryCond interface{}, dao string) (dataToReturn data.Storable, err error)
 	//Get a list of all items
 	GetList(ctx core.RequestContext, props []string, obj string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
+
+	//Vector Search
+	VectorSearch(ctx core.RequestContext, obj string, vector []float32, limit int, filter interface{}) ([]data.VectorResult, error)
 }

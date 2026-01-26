@@ -52,6 +52,13 @@ type Dataset struct {
 	Permission string
 }
 
+
+type VectorResult struct {
+	Item  Storable
+	Score float64
+	Dist  float64
+}
+
 // Service that provides data from various data sources
 // Service interface that needs to be implemented by any data service
 type DataComponent interface {
@@ -133,4 +140,7 @@ type DataComponent interface {
 	GetOne(ctx core.RequestContext, props []string, queryCond interface{}, dao string) (dataToReturn Storable, err error)
 	//Get a list of all items
 	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
+	//Vector Search
+	VectorSearch(ctx core.RequestContext, vector []float32, limit int, filter interface{}) ([]VectorResult, error)
 }
+
