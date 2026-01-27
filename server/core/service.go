@@ -22,6 +22,8 @@ type Service interface {
 	Stop(ctx ServerContext) error
 	// Unload unloads the service.
 	Unload(ctx ServerContext) error
+	//Parameters for the service
+	RequestParameters(ctx ServerContext) map[string]Param
 	// AddParams adds parameters to the service definition.
 	AddParams(ServerContext, map[string]datatypes.DataType, bool) error
 	//	AddStringParams(ctx ServerContext, params utils.StringsMap, defaultValues []string)
@@ -42,8 +44,16 @@ type Service interface {
 	SetDescription(ServerContext, string)
 	// SetComponent marks the service as a component.
 	SetComponent(ServerContext, bool)
+	// Get tags for a service
+	GetTags(ServerContext) []*Tag
+
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
 	//ConfigureService(ctx ServerContext, params []string, config []string, description string)
+}
+type Tag struct {
+	Name string
+	Description string
+	ParentTag *Tag
 }
 
 type UserInvokableService interface {
@@ -64,6 +74,7 @@ type Param interface {
 type ServiceFunc func(ctx RequestContext) error
 
 type Request interface {
+	GetService(RequestContext) Service
 	//GetBody() interface{}
 	GetParam(RequestContext, string) (Param, bool)
 	GetParams(RequestContext) map[string]Param

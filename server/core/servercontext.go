@@ -117,8 +117,7 @@ type ServerContext interface {
 	GetLogLevel() int
 	// GetLogFormat returns the current log format.
 	GetLogFormat() string
-	// GetTenant returns the tenant info for the context.
-	GetTenant() auth.TenantInfo
+
 }
 
 type EngineContext interface {

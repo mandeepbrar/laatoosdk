@@ -16,6 +16,8 @@ type Configuration interface {
 
 type ConfigurableObject interface {
 	GetName() string
+	GetDescription() string
+	GetVersion() string
 	GetConfigurations() map[string]Configuration
 	//AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
 	AddStringConfiguration(ctx ServerContext, name string, desc string, defaultValue string)

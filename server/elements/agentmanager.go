@@ -1,39 +1,48 @@
 package elements
 
 import (
-	"laatoo.io/sdk/server/components"
+	"laatoo.io/sdk/server/components/ai"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
-type ModelDetails struct {
-	Name string
-	Provider string
-	APIKey string
-}
+
 
 type AgentManager interface {
 	core.ServerElement
-	GetModelDetails(ctx core.ServerContext, name string) (ModelDetails, error)
-	GetAgent(ctx core.ServerContext, alias string) (core.Agent, error)
+
+	GetAgent(ctx core.ServerContext, alias string) (ai.Agent, error)
 //	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
-	List(ctx core.ServerContext) utils.StringsMap
+
+	ListAgents(ctx core.ServerContext) utils.StringsMap
 	RegisterAgentType(ctx core.ServerContext, agenttype string, factory core.ServiceFactory) error
 
+
+	// Complete sends a prompt and gets a response
+	LLMRequest(ctx core.RequestContext, req *ai.CompletionRequest) (*ai.CompletionResponse, error)
+
+	// Stream sends a prompt and streams back responses
+	// Returns a channel of StreamEvent
+	LLMStreamingRequest(ctx core.RequestContext, req *ai.CompletionRequest) (<-chan ai.StreamEvent, error)
+
+
 	// MCP Support
-	GetMCPServer(ctx core.ServerContext, rootpath string) (components.Mcp, error)
-	RegisterMCPServer(ctx core.ServerContext, rootpath string, mcpsvr components.Mcp) error
+	GetMCPServer(ctx core.ServerContext, rootpath string) (ai.Mcp, error)
+	RegisterMCPServer(ctx core.ServerContext, rootpath string, mcpsvr ai.Mcp) error
+
+	//LLM Providers Support
+	GetLLMProvider(ctx core.ServerContext, name string) (ai.LLMProvider, error)
+	RegisterLLMProvider(ctx core.ServerContext, name string, llmprovider ai.LLMProvider) error
 
 	// Skill Support
-	ListSkills(ctx core.ServerContext) []core.SkillMetadata
+	ListSkills(ctx core.ServerContext) map[string]ai.Skill
 	RegisterSkillType(ctx core.ServerContext, skillType string, factory core.ServiceFactory) error
-	GetSkill(ctx core.ServerContext, name string) (core.Skill, error)
-	GetSkillsByCategory(ctx core.ServerContext, category string) []core.Skill
-	GetSkillsByTag(ctx core.ServerContext, tag string) []core.Skill
+	GetSkill(ctx core.ServerContext, name string) (ai.Skill, error)
+	GetSkillsByTag(ctx core.ServerContext, tag *core.Tag) []ai.Skill
 
-	CreateMemory(ctx core.RequestContext, memorytype core.MemoryType, id string, config map[string]interface{}) (core.MemoryBank, error)
+	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
 
-	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype core.MemoryType,mgr components.AgentMemoryManager) error
+	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType,mgr ai.AgentMemoryManager) error
 }
 /*
 type AgentEngine interface {
