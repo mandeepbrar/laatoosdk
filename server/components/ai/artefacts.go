@@ -5,8 +5,8 @@ import "laatoo.io/sdk/server/core"
 // Example shows concrete application patterns
 type Example struct {
 	Description    string                 `json:"description"`
-	Request        core.RequestInfo `json:"request,omitempty"`
-	Response       core.ResponseInfo `json:"response,omitempty"`
+	Input          map[string]interface{} `json:"input,omitempty"`
+	ExpectedOutput string                 `json:"expected_output,omitempty"`
 	Notes          string                 `json:"notes,omitempty"`
 }
 
