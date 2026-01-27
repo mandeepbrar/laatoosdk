@@ -18,16 +18,16 @@ type LLMProvider interface {
 	Stream(ctx core.RequestContext, req *CompletionRequest) (<-chan StreamEvent, error)
 
 	// CountTokens estimates tokens for input text
-	CountTokens(ctx core.RequestContext, text string, model string) (int, error)
+	CountTokens(ctx core.ServerContext, text string, model string) (int, error)
 
 	// GetConfig returns model configuration
-	GetConfig(ctx core.RequestContext, model string) (*ModelConfig, error)
+	GetConfig(ctx core.ServerContext, model string) (*ModelConfig, error)
 
 	// ListModels returns available models
-	ListModels(ctx core.RequestContext) ([]string, error)
+	ListModels(ctx core.ServerContext) ([]string, error)
 
 	// Health checks if provider is accessible
-	Health(ctx core.RequestContext) error
+	Health(ctx core.ServerContext) error
 
 	// Name returns provider name
 	Name() string

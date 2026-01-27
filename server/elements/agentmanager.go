@@ -14,7 +14,7 @@ type AgentManager interface {
 	GetAgent(ctx core.ServerContext, alias string) (ai.Agent, error)
 //	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
 
-	ListAgents(ctx core.ServerContext) utils.StringsMap
+	ListAgents(ctx core.ServerContext) map[string]ai.Agent
 	RegisterAgentType(ctx core.ServerContext, agenttype string, factory core.ServiceFactory) error
 
 
