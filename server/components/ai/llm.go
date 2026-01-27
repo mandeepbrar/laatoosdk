@@ -83,11 +83,18 @@ type CompletionResponse struct {
 	Tokens           TokenUsage          // Token breakdown
 	Cost             Cost                // Request cost
 	FinishReason     FinishReason        // Why generation stopped
-	ToolRequests    []core.Request      // Tool calls made
+	FunctionCalls   []FunctionCall      // Simple function calls
 	RequestID        string              // For tracking
 	Latency          time.Duration       // Response time
 	Timestamp        time.Time           // When request was made
 	Metadata         utils.StringMap   // Response metadata
+}
+
+// FunctionCall represents a function call made by LLM
+type FunctionCall struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"` // JSON string
+	ID        string `json:"id,omitempty"`
 }
 
 // TokenUsage tracks token consumption
