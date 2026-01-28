@@ -12,6 +12,7 @@ type CacheComponent interface {
 	PutObject(ctx core.RequestContext, bucket string, key string, item interface{}) error
 	PutObjects(ctx core.RequestContext, bucket string, vals utils.StringMap) error
 	GetObject(ctx core.RequestContext, bucket string, key string, objectType string) (interface{}, bool)
+	GetIntoObject(ctx core.RequestContext, bucket string, key string, obj interface{}) error
 	Get(ctx core.RequestContext, bucket string, key string) (interface{}, bool)
 	GetObjects(ctx core.RequestContext, bucket string, keys []string, objectType string) utils.StringMap
 	GetMulti(ctx core.RequestContext, bucket string, keys []string) utils.StringMap
