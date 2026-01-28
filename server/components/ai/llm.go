@@ -74,6 +74,119 @@ type CompletionRequest struct {
 	ObjectResponse     bool      // JSON schema, text, etc.
 	ResponseObjectName datatypes.Serializable
 	Metadata           utils.StringMap   // Custom metadata
+
+	// NEW: Cost Optimization
+	CostBudget              *CostBudget
+	TokenCostEstimate       *TokenCostEstimate
+	EnableCostTracking      bool
+	CostAlert               *CostAlert
+
+	// NEW: Streaming Configuration
+	StreamingConfig         *StreamingConfig
+	EnableThinkingStream    bool
+	TokenStreamingGranularity int
+	EnableCostStream        bool
+
+	// NEW: Cache & Performance
+	CacheControl            *CacheControl
+	PreRequestCacheCheck    bool
+	AllowCachedResponse     bool
+	CacheMaxAge             int
+
+	// NEW: Priority & Routing
+	Priority                int
+	PreferredModels         []string
+	FallbackModels          []string
+	RouteByComplexity       bool
+
+	// NEW: Request Tracking
+	RequestID               string
+	CorrelationID           string
+	AgentName               string
+	SessionID               string
+	UserID                  string
+
+	// NEW: Advanced Reasoning
+	ThinkingConfig          *ThinkingConfig
+
+	// NEW: Batch Operations
+	BatchID                 string
+	IsBatchItem             bool
+
+	// NEW: Timeout & Reliability
+	RequestTimeoutMs        int
+	FirstTokenTimeoutMs     int
+	RetryStrategy           *RetryStrategy
+}
+
+// CostBudget Control
+type CostBudget struct {
+	MaxCostUSD            float64 // Hard limit
+	AlertThresholdUSD     float64 // Alert when exceeded
+	BudgetExceededAction  string  // "fail", "truncate", "fallback_model"
+	AllowPartialExecution bool    // Allow returning partial response
+}
+
+type TokenCostEstimate struct {
+	EstimatedInputTokens  int
+	EstimatedOutputTokens int
+	EstimatedCostUSD      float64
+	Confidence            float32 // 0.0-1.0
+	LastUpdated           time.Time
+}
+
+type CostAlert struct {
+	Enabled        bool
+	ThresholdUSD   float64
+	AlertHandler   func(alert *CostAlertEvent)
+	IncludeMetrics bool
+}
+
+type CostAlertEvent struct {
+	RequestID         string
+	EstimatedCost     float64
+	ThresholdUSD      float64
+	Percentage        float32
+	Timestamp         time.Time
+	Model             string
+	TokenEstimate     *TokenCostEstimate
+	RecommendedAction string
+}
+
+type StreamingConfig struct {
+	Enabled            bool
+	BufferSize         int
+	ChunkSize          int
+	TimeoutMs          int
+	EventFilters       []string
+	CompressionEnabled bool
+	PingIntervalMs     int
+}
+
+type CacheControl struct {
+	Mode             CacheMode // "auto", "force", "disable", "refresh"
+	TTLSeconds       int
+	CacheKeyCustom   string
+	EphemeralCache   bool
+	ReturnCacheStats bool
+}
+
+type ThinkingConfig struct {
+	Enabled                 bool
+	BudgetTokens           int    // 1024-8000
+	Quality                ThinkingQuality // "fast", "standard", "thorough"
+	Type                   string
+	StreamThinking         bool
+	IncludeThinkingInOutput bool
+}
+
+type RetryStrategy struct {
+	MaxRetries        int
+	InitialBackoffMs  int
+	MaxBackoffMs      int
+	BackoffMultiplier float64
+	JitterEnabled     bool
+	RetryableErrors   []string
 }
 
 // CompletionResponse represents a response from LLM
@@ -125,15 +238,78 @@ const (
 )
 
 
+// StreamEventType why generation stopped
+type StreamEventType string
+
+const (
+	StreamEventToken        StreamEventType = "token"
+	StreamEventFunctionCall StreamEventType = "function_call"
+	StreamEventError        StreamEventType = "error"
+	StreamEventDone         StreamEventType = "done"
+	StreamEventThinking     StreamEventType = "thinking"
+	StreamEventCost         StreamEventType = "cost"
+)
+
+// CacheMode defines caching behavior
+type CacheMode string
+
+const (
+	CacheModeAuto    CacheMode = "auto"
+	CacheModeForce   CacheMode = "force"
+	CacheModeDisable CacheMode = "disable"
+	CacheModeRefresh CacheMode = "refresh"
+)
+
+// ThinkingQuality defines reasoning quality levels
+type ThinkingQuality string
+
+const (
+	ThinkingQualityFast     ThinkingQuality = "fast"
+	ThinkingQualityStandard ThinkingQuality = "standard"
+	ThinkingQualityThorough ThinkingQuality = "thorough"
+)
+
 // StreamEvent represents a single streaming event
 type StreamEvent struct {
-	Type      string    // "token", "function_call", "error", "done"
-	Token     string    // For token events
-	Delta     TokenUsage // Incremental tokens
-	Cost      Cost      // Incremental cost
-	ToolRequest core.Request // For function calls
-	Error     error     // For errors
-	Timestamp time.Time
+	Type            StreamEventType // "token", "function_call", "error", "done", "thinking", "cost"
+	Token           string          // For token events
+	ThinkingContent string          // For thinking events
+	Delta           TokenUsage      // Incremental tokens
+	Cost            Cost            // Incremental cost
+	ToolRequest     core.Request    // For function calls
+	Error           error           // For errors
+	Timestamp       time.Time
+	CostDelta       *StreamingCostEvent
+	TokenDelta      *StreamingTokenEvent
+	ThinkingDelta   *StreamingThinkingEvent
+	Index           int
+	Metadata        map[string]interface{}
+}
+
+type StreamingCostEvent struct {
+	DeltaCostUSD           float64
+	CumulativeCostUSD      float64
+	ChunkInputTokens       int
+	ChunkOutputTokens      int
+	CumulativeInputTokens  int
+	CumulativeOutputTokens int
+	BudgetPercentage       float32
+	ProjectedTotalCost     float64
+}
+
+type StreamingTokenEvent struct {
+	Text             string
+	TokenCount       int
+	CumulativeTokens int
+	TokensPerSecond  float64
+	TimeToFirstToken time.Duration
+}
+
+type StreamingThinkingEvent struct {
+	Content                 string
+	ThinkingTokensUsed      int
+	ThinkingBudgetRemaining int
+	QualityIndicator        string
 }
 
 
