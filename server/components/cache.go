@@ -19,4 +19,5 @@ type CacheComponent interface {
 	Delete(ctx core.RequestContext, bucket string, key string) error
 	Increment(ctx core.RequestContext, bucket string, key string) error
 	Decrement(ctx core.RequestContext, bucket string, key string) error
+	ListKeys(ctx core.RequestContext, bucket string) ([]string, error)
 }
