@@ -191,16 +191,18 @@ type RetryStrategy struct {
 
 // CompletionResponse represents a response from LLM
 type CompletionResponse struct {
-	Model            string              // Model used
-	Content          string              // Generated text
-	Tokens           TokenUsage          // Token breakdown
-	Cost             Cost                // Request cost
-	FinishReason     FinishReason        // Why generation stopped
-	FunctionCalls   []FunctionCall      // Simple function calls
-	RequestID        string              // For tracking
-	Latency          time.Duration       // Response time
-	Timestamp        time.Time           // When request was made
-	Metadata         utils.StringMap   // Response metadata
+	Model         string            // Model used
+	Content       string            // Generated text
+	Tokens        TokenUsage        // Token breakdown
+	Cost          Cost              // Request cost
+	FinishReason  FinishReason      // Why generation stopped
+	FunctionCalls []FunctionCall    // Simple function calls
+	RequestID     string            // For tracking
+	Latency       time.Duration     // Response time
+	CacheUsed     bool              // If cache was used
+	CacheMetadata utils.StringMap   // Cache details
+	Timestamp     time.Time         // When request was made
+	Metadata      utils.StringMap   // Response metadata
 }
 
 // FunctionCall represents a function call made by LLM
