@@ -23,5 +23,6 @@ type Module interface {
 	Workflows(ctx ServerContext) map[string]config.Config
 	Activities(ctx ServerContext) map[string]config.Config
 	GetContext() ServerContext
+	ServerElement() ServerElement
 	//	GetContext(ctx ServerContext, variable string) (interface{}, bool)
 }

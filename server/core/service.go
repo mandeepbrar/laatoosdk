@@ -47,6 +47,7 @@ type Service interface {
 	// Get tags for a service
 	GetTags(ServerContext) []*Tag
 
+	ServerElement() ServerElement
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
 	//ConfigureService(ctx ServerContext, params []string, config []string, description string)
 }

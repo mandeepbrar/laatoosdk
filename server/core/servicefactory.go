@@ -25,4 +25,5 @@ type ServiceFactory interface {
 	Unload(ctx ServerContext) error
 	// CreateService creates a new service instance configured for the factory.
 	CreateService(ctx ServerContext, name string, method string, conf config.Config) (Service, error)
+	ServerElement() ServerElement
 }
