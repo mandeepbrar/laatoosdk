@@ -50,6 +50,7 @@ type Dataset struct {
 	Cache      bool
 	Dao        string
 	Permission string
+	Module core.Module
 }
 
 

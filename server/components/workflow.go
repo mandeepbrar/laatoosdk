@@ -11,6 +11,7 @@ type Workflow interface {
 	Spec(ctx context.Context) interface{}
 	Type() string
 	GetName() string
+	GetModule() core.Module
 }
 
 type WorkflowInstance interface {
@@ -30,7 +31,7 @@ const (
 )
 
 type WorkflowManager interface {
-	LoadWorkflows(ctx core.ServerContext, dir string) (map[string]Workflow, error)
+	LoadWorkflows(ctx core.ServerContext, dir string, module core.Module) (map[string]Workflow, error)
 	StartWorkflow(ctx core.RequestContext, workflowName string, initVal utils.StringMap, insconf utils.StringMap) (WorkflowInstance, error)
 	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
 	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal utils.StringMap) error

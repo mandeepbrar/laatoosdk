@@ -8,6 +8,7 @@ import (
 type Activity interface {
 	GetName(ctx core.ServerContext) string
 	GetParams(ctx core.ServerContext) map[string]core.Param
+	GetModule() core.Module
 }
 
 type ActivityManager interface {
