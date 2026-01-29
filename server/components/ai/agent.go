@@ -25,7 +25,7 @@ const (
 	AgentTypeSimple       AgentType = "SimpleAgent"
 	AgentTypeDeepResearch AgentType = "DeepResearchAgent"
 	AgentTypeFlow         AgentType = "FlowAgent"
-	AgentTypeSkill        AgentType = "SkillAgent"
+	AgentTypeGoal         AgentType = "GoalAgent"
 	AgentTypeOthers       AgentType = "Others"
 )
 

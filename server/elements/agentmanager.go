@@ -14,7 +14,7 @@ type AgentManager interface {
 //	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
 
 	ListAgents(ctx core.ServerContext) map[string]ai.Agent
-	RegisterAgentType(ctx core.ServerContext, agenttype string, factory core.ServiceFactory) error
+	RegisterAgentType(ctx core.ServerContext, agenttype ai.AgentType, factory core.ServiceFactory) error
 
 
 	// Complete sends a prompt and gets a response
