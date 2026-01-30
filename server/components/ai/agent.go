@@ -22,10 +22,9 @@ const (
 type AgentType string
 
 const (
-	AgentTypeSimple       AgentType = "SimpleAgent"
-	AgentTypeDeepResearch AgentType = "DeepResearchAgent"
-	AgentTypeFlow         AgentType = "FlowAgent"
-	AgentTypeGoal         AgentType = "GoalAgent"
-	AgentTypeOthers       AgentType = "Others"
+	AgentTypeWorkflow       AgentType = "workflow"
+	AgentTypeResearch       AgentType = "research"
+	AgentTypeGoal         AgentType = "goal"
+	AgentTypeOthers       AgentType = "others"
 )
 
