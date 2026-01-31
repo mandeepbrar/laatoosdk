@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"time"
 	"laatoo.io/sdk/server/core"
 )
 
@@ -34,6 +35,8 @@ type HandoffRequest struct {
 	ConversationHistory []interface{}
 	ReturnControl       bool
 	Priority            int
+	Timeout             time.Duration
+	CreatedAt           time.Time
 }
 
 // HandoffResult represents the outcome of a handoff execution
@@ -43,6 +46,7 @@ type HandoffResult struct {
 	TargetAgentID   string
 	Output          map[string]interface{}
 	Error           string
+	Duration        time.Duration
 	ControlReturned bool
 	CostIncurred    float64
 }
