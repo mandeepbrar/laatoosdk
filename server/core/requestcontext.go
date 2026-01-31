@@ -78,7 +78,7 @@ type RequestContext interface {
 	// CreateObjectPointersCollection creates a collection of object pointers.
 	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)
 	// PublishMessage publishes a message to a topic.
-	PublishMessage(topic string, message interface{})
+	PublishMessage(topic string, message *core.Message)
 	// SendSynchronousMessage sends a synchronous message.
 	SendSynchronousMessage(msgType string, data interface{}) error
 	// PutInCache puts an item in the cache.
