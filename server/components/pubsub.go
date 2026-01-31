@@ -5,6 +5,6 @@ import (
 )
 
 type PubSubComponent interface {
-	Publish(ctx core.RequestContext, topic string, message interface{}) error
+	Publish(ctx core.RequestContext, topic string, message *core.Message) error
 	Subscribe(ctx core.ServerContext, topics []string, lstnr core.MessageListener) error
 }
