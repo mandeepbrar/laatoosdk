@@ -69,4 +69,6 @@ type DataManager interface {
 
 	//Vector Search
 	VectorSearch(ctx core.RequestContext, obj string, vector []float32, limit int, filter interface{}) ([]data.VectorResult, error)
+	//Subscribe to data events
+	Subscribe(ctx core.RequestContext, obj string, eventType data.DataEventType, handler core.MessageListener) error
 }

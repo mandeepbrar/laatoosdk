@@ -192,3 +192,7 @@ func (svc *DataPlugin) Execute(ctx core.RequestContext, name string, data interf
 func (svc *DataPlugin) VectorSearch(ctx core.RequestContext, vector []float32, limit int, filter interface{}) ([]VectorResult, error) {
 	return svc.PluginDataComponent.VectorSearch(ctx, vector, limit, filter)
 }
+	//Subscribe to data events
+func (svc *DataPlugin) Subscribe(ctx core.RequestContext, obj string, eventType DataEventType, handler core.MessageListener) error {
+	return svc.PluginDataComponent.Subscribe(ctx, obj, eventType, handler)
+}

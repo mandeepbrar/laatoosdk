@@ -40,6 +40,15 @@ const (
 	DATA_TOTALRECS         = "totalrecords"
 )
 
+type DataEventType string
+
+// Standard Data Events
+const (
+	EventDataCreated DataEventType = "data.object.created"
+	EventDataUpdated DataEventType = "data.object.updated"
+	EventDataDeleted DataEventType = "data.object.deleted"
+)
+
 type Dataset struct {
 	Name       string
 	Properties utils.StringsMap
@@ -143,5 +152,7 @@ type DataComponent interface {
 	GetList(ctx core.RequestContext, props []string, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error)
 	//Vector Search
 	VectorSearch(ctx core.RequestContext, vector []float32, limit int, filter interface{}) ([]VectorResult, error)
+	//Subscribe to data events
+	Subscribe(ctx core.RequestContext, obj string, eventType DataEventType, handler core.MessageListener) error
 }
 
