@@ -5,7 +5,35 @@ import (
 	"laatoo.io/sdk/server/core"
 )
 
+// ============================================================
+// HANDOFF MANAGER - Coordinates agent handoffs across the system
+// ============================================================
 
+// HandoffManager coordinates agent handoffs across the system
+type HandoffManager interface {
+	// Agent registration
+	RegisterAgent(agent ai.HandoffCapableAgent) error
+	UnregisterAgent(agentID string) error
+	GetAgent(agentID string) (ai.HandoffCapableAgent, error)
+	
+	// Handoff execution
+	ExecuteHandoff(ctx core.RequestContext, req *ai.HandoffRequest) (*ai.HandoffResult, error)
+	
+	// Agent discovery
+	FindAgentByCapability(ctx core.RequestContext, capabilities []string) (ai.HandoffCapableAgent, error)
+	FindAgentByID(agentID string) (ai.HandoffCapableAgent, error)
+	
+	// Lifecycle
+	Start(ctx core.ServerContext) error
+	Stop(ctx core.ServerContext) error
+	
+	// Monitoring
+	GetStatistics() map[string]interface{}
+}
+
+// ============================================================
+// AGENT MANAGER - Manages AI agents and their capabilities
+// ============================================================
 
 type AgentManager interface {
 	core.ServerElement
@@ -42,6 +70,16 @@ type AgentManager interface {
 	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
 
 	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType,mgr ai.AgentMemoryManager) error
+	
+	// ============================================================
+	// HANDOFF MANAGEMENT
+	// ============================================================
+	
+	// GetHandoffManager returns the centralized handoff manager
+	GetHandoffManager() HandoffManager
+	
+	// FindHandoffAgent discovers agents by capability for handoff targeting
+	FindHandoffAgent(ctx core.ServerContext, capabilities []string) (ai.HandoffCapableAgent, error)
 }
 /*
 type AgentEngine interface {
