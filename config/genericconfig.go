@@ -88,6 +88,62 @@ func (conf GenericConfig) GetBool(ctx ctx.Context, configurationName string) (bo
 	return false, false
 }
 
+// Get int configuration value
+func (conf GenericConfig) GetInt(ctx ctx.Context, configurationName string) (int, bool) {
+	val, found := conf[configurationName]
+	if found {
+		i, ok := val.(int)
+		if ok {
+			return i, true
+		}
+		val = fillVariables(ctx, val)
+		i, ok = val.(int)
+		if ok {
+			return i, true
+		}
+		f, ok := val.(float64)
+		if ok {
+			return int(f), true
+		}
+		s, ok := val.(string)
+		if ok {
+			i64, err := strconv.ParseInt(s, 10, 64)
+			if err == nil {
+				return int(i64), true
+			}
+		}
+	}
+	return 0, false
+}
+
+// Get float configuration value
+func (conf GenericConfig) GetFloat(ctx ctx.Context, configurationName string) (float64, bool) {
+	val, found := conf[configurationName]
+	if found {
+		f, ok := val.(float64)
+		if ok {
+			return f, true
+		}
+		val = fillVariables(ctx, val)
+		f, ok = val.(float64)
+		if ok {
+			return f, true
+		}
+		i, ok := val.(int)
+		if ok {
+			return float64(i), true
+		}
+		s, ok := val.(string)
+		if ok {
+			f, err := strconv.ParseFloat(s, 64)
+			if err == nil {
+				return f, true
+			}
+		}
+	}
+	return 0.0, false
+}
+
 // Get string configuration value
 func (conf GenericConfig) Get(ctx ctx.Context, configurationName string) (interface{}, bool) {
 	val, cok := conf[configurationName]

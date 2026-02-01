@@ -9,6 +9,8 @@ import (
 type Config interface {
 	GetString(ctx ctx.Context, configurationName string) (string, bool)
 	GetBool(ctx ctx.Context, configurationName string) (bool, bool)
+	GetInt(ctx ctx.Context, configurationName string) (int, bool)
+	GetFloat(ctx ctx.Context, configurationName string) (float64, bool)
 	GetStringArray(ctx ctx.Context, configurationName string) ([]string, bool)
 	GetSubConfig(ctx ctx.Context, configurationName string) (Config, bool)
 	GetStringsMap(ctx ctx.Context, configurationName string) (utils.StringsMap, bool)
