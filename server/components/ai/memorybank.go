@@ -20,7 +20,7 @@ const (
 
 type MemoryItem interface {
 	core.Storable
-	GetContent() any
+	GetContent() core.Storable
 	GetImportance() float64
 	GetTimestamp() string
 	GetTags() []string
