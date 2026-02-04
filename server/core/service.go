@@ -3,7 +3,6 @@ package core
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/datatypes"
-	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
@@ -47,7 +46,7 @@ type Service interface {
 	SetComponent(ServerContext, bool)
 	// Get tags for a service
 	GetTags(ServerContext) []*Tag
-	
+
 	GetNamespace(ctx ServerContext) string
 
 	ServerElement() ServerElement
