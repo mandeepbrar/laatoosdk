@@ -10,8 +10,8 @@ type SecurityHandler interface {
 	InitializeProps(ctx core.ServerContext, props utils.StringMap) error
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 	ListServices(ctx core.ServerContext) []string
-	AuthorizeService(ctx core.RequestContext, module string, service string, permission string) (bool, error)
-	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string) error
+	AuthorizeService(ctx core.RequestContext, module string, service string, permission string, namespace string) (bool, error)
+	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string, namespace string) error
 
 	RegisterPermission(ctx core.ServerContext, perm string) error
 	ListPermissions(ctx core.ServerContext) []string
