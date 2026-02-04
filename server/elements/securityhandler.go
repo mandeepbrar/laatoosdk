@@ -7,7 +7,7 @@ import (
 
 type SecurityHandler interface {
 	core.ServerElement
-	AuthorizeService(ctx core.RequestContext, module string, service string, permission string) (bool, error)
+	AuthorizeService(ctx core.RequestContext, module string, service string, permission string, namespace string) (bool, error)
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 	CanAccessObject(ctx core.RequestContext, module string, service string, object string, objectid string, action string) (bool, error)
 	HasPermission(ctx core.RequestContext, permission string) bool
@@ -18,6 +18,6 @@ type SecurityHandler interface {
 	GetRole(ctx core.RequestContext, name string) (auth.Role, error)
 	ListRoles(ctx core.RequestContext) (map[string]auth.Role, error)
 	ListServices(ctx core.ServerContext) []string
-	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string) error
+	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string, namespace string) error
 	AddRolePermissionPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string) error
 }
