@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/datatypes"
+	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
@@ -46,15 +47,17 @@ type Service interface {
 	SetComponent(ServerContext, bool)
 	// Get tags for a service
 	GetTags(ServerContext) []*Tag
+	
+	GetNamespace(ctx ServerContext) string
 
 	ServerElement() ServerElement
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
 	//ConfigureService(ctx ServerContext, params []string, config []string, description string)
 }
 type Tag struct {
-	Name string
+	Name        string
 	Description string
-	ParentTag *Tag
+	ParentTag   *Tag
 }
 
 type UserInvokableService interface {
