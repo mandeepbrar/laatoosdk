@@ -12,23 +12,23 @@ import (
 // HandoffManager coordinates agent handoffs across the system
 type HandoffManager interface {
 	// Agent registration
-	RegisterAgent(agent ai.HandoffCapableAgent) error
-	UnregisterAgent(agentID string) error
-	GetAgent(agentID string) (ai.HandoffCapableAgent, error)
-	
+	RegisterAgent(ctx core.ServerContext, agent ai.HandoffCapableAgent) error
+	UnregisterAgent(ctx core.ServerContext, agentID string) error
+	GetAgent(ctx core.ServerContext, agentID string) (ai.HandoffCapableAgent, error)
+
 	// Handoff execution
 	ExecuteHandoff(ctx core.RequestContext, req *ai.HandoffRequest) (*ai.HandoffResult, error)
-	
+
 	// Agent discovery
-	FindAgentByCapability(ctx core.RequestContext, capabilities []string) (ai.HandoffCapableAgent, error)
-	FindAgentByID(agentID string) (ai.HandoffCapableAgent, error)
-	
+	FindAgentByCapability(ctx core.ServerContext, capabilities []string) (ai.HandoffCapableAgent, error)
+	FindAgentByID(ctx core.ServerContext, agentID string) (ai.HandoffCapableAgent, error)
+
 	// Lifecycle
 	Start(ctx core.ServerContext) error
 	Stop(ctx core.ServerContext) error
-	
+
 	// Monitoring
-	GetStatistics() map[string]interface{}
+	GetStatistics(ctx core.ServerContext) map[string]interface{}
 }
 
 // ============================================================
@@ -39,11 +39,10 @@ type AgentManager interface {
 	core.ServerElement
 
 	GetAgent(ctx core.ServerContext, alias string) (ai.Agent, error)
-//	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
+	//	GetEngine(ctx core.ServerContext, name string) (AgentEngine, error)
 
 	ListAgents(ctx core.ServerContext) map[string]ai.Agent
 	RegisterAgentType(ctx core.ServerContext, agenttype ai.AgentType, factory core.ServiceFactory) error
-
 
 	// Complete sends a prompt and gets a response
 	LLMRequest(ctx core.RequestContext, req *ai.CompletionRequest) (*ai.CompletionResponse, error)
@@ -51,7 +50,6 @@ type AgentManager interface {
 	// Stream sends a prompt and streams back responses
 	// Returns a channel of StreamEvent
 	LLMStreamingRequest(ctx core.RequestContext, req *ai.CompletionRequest) (<-chan ai.StreamEvent, error)
-
 
 	// MCP Support
 	GetMCPServer(ctx core.ServerContext, rootpath string) (ai.Mcp, error)
@@ -69,18 +67,19 @@ type AgentManager interface {
 
 	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
 
-	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType,mgr ai.AgentMemoryManager) error
-	
+	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType, mgr ai.AgentMemoryManager) error
+
 	// ============================================================
 	// HANDOFF MANAGEMENT
 	// ============================================================
-	
+
 	// GetHandoffManager returns the centralized handoff manager
 	GetHandoffManager() HandoffManager
-	
+
 	// FindHandoffAgent discovers agents by capability for handoff targeting
 	FindHandoffAgent(ctx core.ServerContext, capabilities []string) (ai.HandoffCapableAgent, error)
 }
+
 /*
 type AgentEngine interface {
 	core.ServerElement
