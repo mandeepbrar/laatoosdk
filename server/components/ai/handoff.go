@@ -2,6 +2,7 @@ package ai
 
 import (
 	"time"
+
 	"laatoo.io/sdk/server/core"
 )
 
@@ -57,14 +58,13 @@ type HandoffRule struct {
 // HandoffCapableAgent defines agents that can participate in handoffs
 // This interface should be implemented by agent services that support handoff functionality
 type HandoffCapableAgent interface {
+	Agent
 	// Agent identification
-	GetAgentID() string
-	GetCapabilities() []string
-	GetAgentType() AgentType
-	
+	GetCapabilities(ctx core.ServerContext) []string
+
 	// Handoff capabilities
-	CanHandoff() bool
-	
+	CanHandoff(ctx core.ServerContext) bool
+
 	// Handoff execution
 	RequestHandoff(ctx core.RequestContext, req *HandoffRequest) (*HandoffResult, error)
 	AcceptHandoff(ctx core.RequestContext, req *HandoffRequest) (*HandoffResult, error)
