@@ -58,6 +58,9 @@ type AgentManager interface {
 	//LLM Providers Support
 	GetLLMProvider(ctx core.ServerContext, name string) (ai.LLMProvider, error)
 	RegisterLLMProvider(ctx core.ServerContext, name string, llmprovider ai.LLMProvider) error
+	
+	// HasModel checks if a model exists
+	HasModel(ctx core.ServerContext, modelName string) (bool, error)
 
 	// Skill Support
 	ListSkills(ctx core.ServerContext) map[string]ai.Skill
