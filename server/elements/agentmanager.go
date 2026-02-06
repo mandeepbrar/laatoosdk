@@ -69,6 +69,7 @@ type AgentManager interface {
 	GetSkillsByTag(ctx core.ServerContext, tag *core.Tag) []ai.Skill
 
 	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
+	GetMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string) (ai.MemoryBank, error)
 
 	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType, mgr ai.AgentMemoryManager) error
 

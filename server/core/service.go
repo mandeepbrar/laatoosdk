@@ -95,3 +95,7 @@ type Response struct {
 	Error    error
 	Return   bool
 }
+
+type ResponseHandler interface {
+	HandleResponse(ctx RequestContext, resp *Response, err error) error
+}
