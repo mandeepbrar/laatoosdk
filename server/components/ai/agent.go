@@ -15,6 +15,7 @@ const (
 	StakeholderUser    AgentStakeholder = "User"
 	StakeholderAgent   AgentStakeholder = "Agent"
 	StakeholderSystem  AgentStakeholder = "System"
+	StakeholderTool    AgentStakeholder = "tool"
 	StakeholderUnknown AgentStakeholder = "Unknown"
 )
 
