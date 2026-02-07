@@ -10,6 +10,7 @@ type Service interface {
 	core.ServerElement
 	Metadata() core.ServiceInfo
 	Service() core.Service
+	GetDescription() string
 	GetModule() core.Module
 	ServiceContext() core.ServerContext
 	GetConfiguration() config.Config
