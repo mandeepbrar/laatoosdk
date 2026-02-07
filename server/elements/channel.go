@@ -13,4 +13,5 @@ type Channel interface {
 	Destruct(ctx core.ServerContext, parentChannel Channel) error
 	GetModule() core.Module
 	GetEngine(ctx core.ServerContext) Engine
+	GetDescription(ctx core.ServerContext) string
 }
