@@ -97,10 +97,10 @@ type RequestContext interface {
 	DecrementInCache(bucket string, key string) error
 	// GetObjectsFromCache retrieves multiple objects from the cache.
 	GetObjectsFromCache(bucket string, keys []string, objectType string) utils.StringMap
-	// PushTask pushes a task to a queue.
-	PushTask(queue string, taskdata interface{}) error
+	// PushTask pushes a task to a queue. It returns the task ID on success.
+	PushTask(queue string, taskdata interface{}, metadata utils.StringMap) (string, error)
 	// SubscribeTaskCompletion subscribes to task completion events.
-	SubscribeTaskCompletion(queue string, callback func(ctx RequestContext, invocationId string, result interface{})) error
+	SubscribeTaskCompletion(topic string, handler MessageListener, subscriberId string) error
 	// StartWorkflow starts a workflow.
 	StartWorkflow(workflowName string, initData utils.StringMap, insconf utils.StringMap) (interface{}, error)
 	// InvalidateCache invalidates a cache entry.
@@ -115,8 +115,7 @@ type RequestContext interface {
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
 	// InvokeScript invokes a script.
 	InvokeScript(script string, params utils.StringMap) (interface{}, error)
-	// ExecuteAction executes an action.
-	ExecuteAction(actiontype ActionType, params utils.StringMap) (interface{}, error)
+
 	// SendNotification sends a notification.
 	SendNotification(notification *Notification) error
 	// CompleteRequest marks the request as complete.

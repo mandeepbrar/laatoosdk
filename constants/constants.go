@@ -19,6 +19,7 @@ const (
 	CONFIGDIR            = "configdir"
 	MODULEDIR            = "moduledir"
 	HTTP_METHOD          = "httpmethod"
+	CONF_TASKCOMPLETIONQUEUE = "task_completion_queue"
 )
 
 type HttpChannelMethod int

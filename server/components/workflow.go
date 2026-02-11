@@ -1,8 +1,6 @@
 package components
 
 import (
-	"context"
-
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
@@ -19,7 +17,7 @@ const (
 )
 
 type Workflow interface {
-	Spec(ctx context.Context) interface{}
+	GetDefinition() interface{}
 	Type() string
 	GetName() string
 	GetModule() core.Module

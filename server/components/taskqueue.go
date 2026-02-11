@@ -5,19 +5,21 @@ import (
 	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/auth"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type Task struct {
 	datatypes.Serializable
-	Queue  string
-	Data   []byte
-	Id     string
-	User   auth.User
-	Tenant auth.TenantInfo
+	Queue    string          `json:"queue"`
+	Data     []byte          `json:"data"`
+	Id       string          `json:"id"`
+	User     auth.User       `json:"user"`
+	Tenant   auth.TenantInfo `json:"tenant"`
+	Metadata utils.StringMap `json:"metadata,omitempty"`
 }
 
 type TaskManager interface {
-	PushTask(ctx core.RequestContext, task *Task) error
+	PushTask(ctx core.RequestContext, task *Task) (string, error)
 	SubsribeQueue(ctx core.ServerContext, queue string) error
 	UnsubsribeQueue(ctx core.ServerContext, queue string) error
 }
@@ -43,6 +45,9 @@ func (ent *Task) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.Seria
 	}
 	err = ent.Tenant.ReadAll(c, cdc, rdr)
 	if err != nil {
+		return err
+	}
+	if err = rdr.ReadObject(c, cdc, "Metadata", &ent.Metadata); err != nil {
 		return err
 	}
 
@@ -85,6 +90,18 @@ func (ent *Task) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.Seri
 			return err
 		}
 	}
+	if ent.Metadata != nil {
+		if err = wtr.WriteObject(c, cdc, "Metadata", &ent.Metadata); err != nil {
+			return err
+		}
+	}
 
 	return nil
+}
+type TaskCompletionMessage struct {
+	InvocationId string          `json:"invocation_id"`
+	Queue        string          `json:"queue"`
+	Result       interface{}     `json:"result"`
+	Metadata     utils.StringMap `json:"metadata,omitempty"`
+	Error        string          `json:"error,omitempty"`
 }

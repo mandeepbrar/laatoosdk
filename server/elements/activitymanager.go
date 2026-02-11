@@ -1,14 +1,13 @@
 package elements
 
 import (
-	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
 type ActivityManager interface {
 	core.ServerElement
-	GetActivity(ctx core.ServerContext, alias string) (components.Activity, error)
-	RegisterActivity(ctx core.ServerContext, alias string, act components.Activity) error
-	InvokeActivity(ctx core.RequestContext, activity string, params utils.StringMap) (interface{}, error)
+	RegisterActivity(ctx core.ServerContext, activityName string, executor core.ActivityExecutor) error
+	ExecuteActivity(ctx core.RequestContext, activityName string, params utils.StringMap) (interface{}, error)
+	ExecuteActivityObject(ctx core.RequestContext, activity core.Activity, params utils.StringMap) (interface{}, error)
 }
