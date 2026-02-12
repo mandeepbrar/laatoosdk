@@ -8,5 +8,5 @@ import (
 type WorkflowManager interface {
 	core.ServerElement
 	components.WorkflowManager
-	RegisterProvider(wfType components.WorkflowType, mgr components.WorkflowManager)
+	RegisterProvider(ctx core.ServerContext, wfType components.WorkflowType, mgr components.WorkflowManager) error
 }
