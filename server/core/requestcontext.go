@@ -113,8 +113,6 @@ type RequestContext interface {
 	GetExpressionValue(expression Expression, vars utils.StringMap) (interface{}, error)
 	// InvokeActivity invokes an activity.
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
-	// InvokeScript invokes a script.
-	InvokeScript(script string, params utils.StringMap) (interface{}, error)
 
 	// SendNotification sends a notification.
 	SendNotification(notification *Notification) error
