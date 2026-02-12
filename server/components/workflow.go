@@ -62,6 +62,15 @@ const (
 	EventActivityRetrying  WorkflowEventType = "activity.task.retrying"
 )
 
+type WorkflowType string
+
+const (
+	WorkflowTypeFunction WorkflowType = "function"
+	WorkflowTypeProcess  WorkflowType = "process"
+	WorkflowTypeDurable  WorkflowType = "durable"
+	WorkflowTypeAgent    WorkflowType = "agent"
+)
+
 // WorkflowEvent represents an event specifically related to workflow or activity execution
 type WorkflowEvent struct {
 	core.Event
@@ -78,5 +87,5 @@ type WorkflowManager interface {
 	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal utils.StringMap) error
 	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data utils.StringMap, err error) error
 	//Subscribe to workflow events
-	Subscribe(ctx core.RequestContext, wfType string, eventType WorkflowEventType, handler core.MessageListener) error
+	Subscribe(ctx core.RequestContext, wfType WorkflowType, eventType WorkflowEventType, handler core.MessageListener) error
 }
