@@ -78,5 +78,5 @@ type WorkflowManager interface {
 	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal utils.StringMap) error
 	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data utils.StringMap, err error) error
 	//Subscribe to workflow events
-	Subscribe(ctx core.RequestContext, eventType WorkflowEventType, handler core.MessageListener) error
+	Subscribe(ctx core.RequestContext, wfType string, eventType WorkflowEventType, handler core.MessageListener) error
 }
