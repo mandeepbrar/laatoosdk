@@ -73,7 +73,7 @@ type WorkflowEvent struct {
 type WorkflowManager interface {
 	LoadWorkflows(ctx core.ServerContext, dir string, module core.Module) (map[string]Workflow, error)
 	StartWorkflow(ctx core.RequestContext, workflowName string, initVal utils.StringMap, insconf utils.StringMap) (WorkflowInstance, error)
-	GetWorkflowInstance(ctx core.RequestContext, instanceId string) (WorkflowInstance, error)
+	GetWorkflowInstance(ctx core.RequestContext, workflowId string, instanceId string) (WorkflowInstance, error)
 	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
 	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal utils.StringMap) error
 	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data utils.StringMap, err error) error
