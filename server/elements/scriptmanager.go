@@ -3,7 +3,6 @@ package elements
 import (
 	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
-	"laatoo.io/sdk/utils"
 )
 
 type ScriptManager interface {
