@@ -9,5 +9,4 @@ type ActivityManager interface {
 	core.ServerElement
 	RegisterActivity(ctx core.ServerContext, activityName string, executor core.ActivityExecutor) error
 	ExecuteActivity(ctx core.RequestContext, activityName string, params utils.StringMap) (interface{}, error)
-	ExecuteActivityObject(ctx core.RequestContext, activity core.Activity, params utils.StringMap) (interface{}, error)
 }

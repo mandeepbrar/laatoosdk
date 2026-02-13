@@ -9,9 +9,9 @@ import (
 type ActivityType string
 
 const (
-	ActivityTypeAutomatic ActivityType = "automatic"
 	ActivityTypeManual    ActivityType = "manual"
-	ActivityTypeSystem    ActivityType = "system"
+	ActivityTypeService   ActivityType = "service"
+	ActivityTypeExecutor  ActivityType = "executor"
 	ActivityTypeScript    ActivityType = "script"
 )
 
