@@ -38,7 +38,13 @@ type WorkflowInstance interface {
 type WorkflowActivityType string
 
 const (
-	MANUAL    WorkflowActivityType = "manual"
+	// Aligned with workflow DSL `activity_type` and core.ActivityType
+	MANUAL   WorkflowActivityType = "manual"
+	SERVICE  WorkflowActivityType = "service"
+	SCRIPT   WorkflowActivityType = "script"
+	EXECUTOR WorkflowActivityType = "executor"
+
+	// Legacy values (deprecated; prefer SERVICE/SCRIPT/EXECUTOR + switch/decision statements)
 	AUTOMATIC WorkflowActivityType = "automatic"
 	DECISION  WorkflowActivityType = "decision"
 )

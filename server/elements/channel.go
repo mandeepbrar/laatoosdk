@@ -12,6 +12,7 @@ type Channel interface {
 	Child(ctx core.ServerContext, name string, channelConfig config.Config, module core.Module) (Channel, error)
 	Destruct(ctx core.ServerContext, parentChannel Channel) error
 	GetModule() core.Module
+	GetParent() Channel
 	GetEngine(ctx core.ServerContext) Engine
 	GetDescription(ctx core.ServerContext) string
 }
