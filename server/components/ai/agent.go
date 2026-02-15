@@ -25,7 +25,8 @@ type AgentType string
 const (
 	AgentTypeWorkflow       AgentType = "workflow"
 	AgentTypeResearch       AgentType = "research"
-	AgentTypeGoal         AgentType = "goal"
-	AgentTypeOthers       AgentType = "others"
+	AgentTypeGoal           AgentType = "goal"
+	AgentTypeOthers         AgentType = "others"
+	AgentTypeGolang         AgentType = "golangagent"
 )
 

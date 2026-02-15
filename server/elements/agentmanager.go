@@ -44,6 +44,9 @@ type AgentManager interface {
 	ListAgents(ctx core.ServerContext) map[string]ai.Agent
 	RegisterAgentType(ctx core.ServerContext, agenttype ai.AgentType, factory core.ServiceFactory) error
 
+	// RegisterAgent allows direct registration of pro-code agents (e.g. golangagent)
+	RegisterAgent(ctx core.ServerContext, agent ai.Agent) error
+
 	// Complete sends a prompt and gets a response
 	LLMRequest(ctx core.RequestContext, req *ai.CompletionRequest) (*ai.CompletionResponse, error)
 
