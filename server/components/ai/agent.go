@@ -2,6 +2,7 @@ package ai
 
 import (
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type Agent interface {
@@ -29,3 +30,18 @@ const (
 	AgentTypeOthers   AgentType = "others"
 	AgentTypeGolang   AgentType = "golangagent"
 )
+
+type AgentEventType string
+
+const (
+	THOUGHT       AgentEventType = "AITHOUGHT"
+	FINALRESPONSE AgentEventType = "AIFINALRESPONSE"
+	ERROR         AgentEventType = "AIERROR"
+)
+
+type AgentData struct {
+	Content   string          `json:"content"`
+	Metadata  utils.StringMap `json:"metadata,omitempty"`
+	TotalCost float64         `json:"totalCost,omitempty"`
+	Duration  string          `json:"duration,omitempty"`
+}
