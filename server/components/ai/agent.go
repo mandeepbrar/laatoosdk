@@ -6,6 +6,7 @@ import (
 
 type Agent interface {
 	core.Service
+	Invoke(ctx core.RequestContext) error
 	GetAgentType() AgentType
 }
 
@@ -19,14 +20,12 @@ const (
 	StakeholderUnknown AgentStakeholder = "Unknown"
 )
 
-
 type AgentType string
 
 const (
-	AgentTypeWorkflow       AgentType = "workflow"
-	AgentTypeResearch       AgentType = "research"
-	AgentTypeGoal           AgentType = "goal"
-	AgentTypeOthers         AgentType = "others"
-	AgentTypeGolang         AgentType = "golangagent"
+	AgentTypeWorkflow AgentType = "workflow"
+	AgentTypeResearch AgentType = "research"
+	AgentTypeGoal     AgentType = "goal"
+	AgentTypeOthers   AgentType = "others"
+	AgentTypeGolang   AgentType = "golangagent"
 )
-
