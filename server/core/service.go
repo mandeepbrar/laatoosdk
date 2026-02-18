@@ -99,3 +99,11 @@ type Response struct {
 type ResponseHandler interface {
 	HandleResponse(ctx RequestContext, resp *Response, err error) error
 }
+
+// StreamingResponseHandler adds streaming capability.
+type StreamingResponseHandler interface {
+	HandleStreamStart(ctx RequestContext) error
+	HandleStreamChunk(ctx RequestContext, chunk *StreamChunk) error
+	HandleStreamEnd(ctx RequestContext, err error) error
+}
+

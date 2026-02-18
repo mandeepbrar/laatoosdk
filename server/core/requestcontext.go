@@ -118,4 +118,17 @@ type RequestContext interface {
 	SendNotification(notification *Notification) error
 	// CompleteRequest marks the request as complete.
 	CompleteRequest()
+
+
+	// Streaming response support
+	// InitStream initializes a streaming response on this context.
+	InitStream(bufferSize int) *ResponseStream
+	// GetResponseStream returns the active stream, nil if not streaming.
+	GetResponseStream() *ResponseStream
+	// IsStreaming returns true if this request has an active stream.
+	IsStreaming() bool
+	// StreamResponse is the convenience method: sends a chunk with status + data.
+	StreamResponse(status int, data interface{}) error
+	// CompleteStream sends the final chunk and closes the stream.
+	CompleteStream(status int, data interface{}) error
 }
