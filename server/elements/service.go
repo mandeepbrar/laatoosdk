@@ -14,5 +14,5 @@ type Service interface {
 	GetModule() core.Module
 	ServiceContext() core.ServerContext
 	GetConfiguration() config.Config
-	HandleRequest(ctx core.RequestContext, vals utils.StringMap, encoding utils.StringsMap) (*core.Response, error)
+	HandleRequest(ctx core.RequestContext, vals utils.StringMap, encoding utils.StringsMap) error
 }

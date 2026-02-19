@@ -97,9 +97,9 @@ type Response struct {
 }
 
 type ResponseHandler interface {
-	HandleResponse(ctx RequestContext, resp *Response, err error) error
+	HandleResponse(ctx RequestContext, err error) error
 	// IsStreaming returns true if this handler supports streaming
 	IsStreaming() bool
 	// HandleStream handles a response stream
-	HandleStream(ctx RequestContext, stream *ResponseStream) error
+	HandleStream(ctx RequestContext) error
 }

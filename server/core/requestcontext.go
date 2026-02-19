@@ -28,6 +28,8 @@ type RequestContext interface {
 	GetRequest() Request
 	// SetResponse sets the response for the request.
 	SetResponse(*Response)
+	// SetResponseStream sets the response stream for the request.
+	SetResponseStream(*ResponseStream)
 	// AddResponseInfo adds additional metadata to the response.
 	AddResponseInfo(utils.StringMap)
 	// GetSession returns the session associated with the request.
@@ -58,7 +60,7 @@ type RequestContext interface {
 	// GetStringsMapParam retrieves a strings map parameter.
 	GetStringsMapParam(string) (utils.StringsMap, bool)
 	// Invoke invokes a service by alias with parameters.
-	Invoke(alias string, params utils.StringMap) (*Response, error)
+	Invoke(alias string, params utils.StringMap) error
 	// Forward forwards the request to another service.
 	Forward(string, utils.StringMap) error
 	// ForwardToService forwards the request to a specific service instance.
