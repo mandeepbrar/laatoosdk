@@ -98,13 +98,8 @@ type Response struct {
 
 type ResponseHandler interface {
 	HandleResponse(ctx RequestContext, resp *Response, err error) error
+	// IsStreaming returns true if this handler supports streaming
+	IsStreaming() bool
+	// HandleStream handles a response stream
+	HandleStream(ctx RequestContext, stream *ResponseStream) error
 }
-
-// StreamingResponseHandler adds streaming capability.
-type StreamingResponseHandler interface {
-	ResponseHandler
-	HandleStreamStart(ctx RequestContext) error
-	HandleStreamChunk(ctx RequestContext, chunk *StreamChunk) error
-	HandleStreamEnd(ctx RequestContext, err error) error
-}
-
