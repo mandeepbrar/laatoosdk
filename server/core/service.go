@@ -48,6 +48,8 @@ type Service interface {
 	GetTags(ServerContext) []*Tag
 
 	GetNamespace(ctx ServerContext) string
+	// IsStreaming returns true when the service is configured for streaming responses.
+	IsStreaming() bool
 
 	ServerElement() ServerElement
 	//ConfigureService(ctx ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string)
