@@ -102,6 +102,7 @@ type ResponseHandler interface {
 
 // StreamingResponseHandler adds streaming capability.
 type StreamingResponseHandler interface {
+	ResponseHandler
 	HandleStreamStart(ctx RequestContext) error
 	HandleStreamChunk(ctx RequestContext, chunk *StreamChunk) error
 	HandleStreamEnd(ctx RequestContext, err error) error
