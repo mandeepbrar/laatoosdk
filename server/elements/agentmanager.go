@@ -67,6 +67,8 @@ type AgentManager interface {
 
 	// Skill Support
 	ListSkills(ctx core.ServerContext) map[string]ai.Skill
+	// RegisterSkill allows direct registration of pro-code skills (e.g. golangskill)
+	RegisterSkill(ctx core.ServerContext, skill ai.Skill) error
 	RegisterSkillType(ctx core.ServerContext, skillType string, factory core.ServiceFactory) error
 	GetSkill(ctx core.ServerContext, name string) (ai.Skill, error)
 	GetSkillsByTag(ctx core.ServerContext, tag *core.Tag) []ai.Skill
