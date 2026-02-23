@@ -9,6 +9,14 @@ type Agent interface {
 	core.Service
 	Invoke(ctx core.RequestContext) error
 	GetAgentType() AgentType
+	GetAgentPreferences() *AgentPreferences
+}
+
+// AspiredUserExperienceProvider is optionally implemented by agents that prefer
+// a specific frontend experience URL. Returning nil means no preference.
+type AgentPreferences struct {
+	ExperienceURL string
+	Model         string
 }
 
 type AgentStakeholder string
