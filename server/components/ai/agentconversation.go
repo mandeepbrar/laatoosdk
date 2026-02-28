@@ -13,6 +13,8 @@ type ConversationMessage interface {
 	GetRole() AgentStakeholder
 	GetMessageContent() string
 	GetTimestamp() string
+	GetToolCallId() string
+	GetFunctionCalls() []FunctionCall
 	GetMetadata() utils.StringMap
 }
 
