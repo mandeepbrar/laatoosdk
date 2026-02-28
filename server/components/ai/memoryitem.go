@@ -8,9 +8,9 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
-// MemoryItem is a logical unit of memory (DTO).
+// AIMemoryItem is a logical unit of memory (DTO).
 // It acts as a data transfer object between Agents and MemoryBanks.
-type MemoryItem struct {
+type AIMemoryItem struct {
 	data.StorageInfo
 	data.TenantInfo
 	Type       string          `json:"Type"` // e.g., "message", "artifact", "datarecord"
@@ -22,15 +22,15 @@ type MemoryItem struct {
 	Vector     []float32       `json:"Vector"`
 }
 
-func (mi *MemoryItem) GetImportance() float64       { return mi.Importance }
-func (mi *MemoryItem) GetTimestamp() string         { return mi.Timestamp }
-func (mi *MemoryItem) GetTags() []string            { return mi.Tags }
-func (mi *MemoryItem) GetMetadata() utils.StringMap { return mi.Metadata }
-func (mi *MemoryItem) GetContent() any              { return mi.Content }
+func (mi *AIMemoryItem) GetImportance() float64       { return mi.Importance }
+func (mi *AIMemoryItem) GetTimestamp() string         { return mi.Timestamp }
+func (mi *AIMemoryItem) GetTags() []string            { return mi.Tags }
+func (mi *AIMemoryItem) GetMetadata() utils.StringMap { return mi.Metadata }
+func (mi *AIMemoryItem) GetContent() any              { return mi.Content }
 
-func (mi *MemoryItem) Config() *core.StorableConfig {
+func (mi *AIMemoryItem) Config() *core.StorableConfig {
 	return &core.StorableConfig{
-		ObjectType:  "ai.MemoryItem",
+		ObjectType:  "ai.AIMemoryItem",
 		LabelField:  "Id",
 		PreSave:     false,
 		PostSave:    false,
@@ -44,7 +44,7 @@ func (mi *MemoryItem) Config() *core.StorableConfig {
 	}
 }
 
-func (ent *MemoryItem) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
+func (ent *AIMemoryItem) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 
 	if err = rdr.ReadMap(c, cdc, "Metadata", &ent.Metadata); err != nil {
@@ -90,7 +90,7 @@ func (ent *MemoryItem) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes
 	return nil
 }
 
-func (ent *MemoryItem) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
+func (ent *AIMemoryItem) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 
 	if err = wtr.WriteMap(c, cdc, "Metadata", &ent.Metadata); err != nil {
@@ -128,3 +128,4 @@ func (ent *MemoryItem) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 
 	return ent.StorageInfo.WriteAll(c, cdc, wtr)
 }
+
