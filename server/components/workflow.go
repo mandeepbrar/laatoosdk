@@ -45,9 +45,27 @@ const (
 	EXECUTOR WorkflowActivityType = "executor"
 
 	// Legacy values (deprecated; prefer SERVICE/SCRIPT/EXECUTOR + switch/decision statements)
-	AUTOMATIC WorkflowActivityType = "automatic"
-	DECISION  WorkflowActivityType = "decision"
+//	AUTOMATIC WorkflowActivityType = "automatic"
+//	DECISION  WorkflowActivityType = "decision"
 )
+
+// IsAutomatic returns true for any activity type that should be executed
+// automatically by the workflow engine (i.e. not a human/manual step).
+// This covers the canonical types service, script, executor, the legacy
+// "automatic" value, and an empty string (the default when no type is set).
+func (t WorkflowActivityType) IsAutomatic() bool {
+	switch t {
+	case SERVICE, SCRIPT, EXECUTOR, "":
+		return true
+	}
+	return false
+}
+
+// IsManual returns true only when the activity type explicitly requires
+// human interaction.
+func (t WorkflowActivityType) IsManual() bool {
+	return t == MANUAL
+}
 
 type WorkflowEventType string
 
