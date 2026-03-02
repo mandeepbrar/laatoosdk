@@ -13,4 +13,7 @@ type ActivityManager interface {
 	// or nil if the activity is not found. Used by workflow engines to resolve activity
 	// metadata (e.g. ActivityType) without requiring it to be repeated in the workflow DSL.
 	GetActivityDefinition(ctx core.ServerContext, activityName string) *core.ActivityDefinition
+	// SetDefaultStreamingHandler registers the response handler used to drain streaming
+	// ResponseStream channels after an activity completes with ctx.IsStreaming() == true.
+	SetDefaultStreamingHandler(ctx core.ServerContext, handler core.ResponseHandler) error
 }
