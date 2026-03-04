@@ -20,6 +20,9 @@ type Activity interface {
 	UserInvokableService
 	// GetDefinition returns the configuration definition of the activity.
 	GetDefinition() *ActivityDefinition
+	// GetResponseHandler returns the response handler configured for this activity,
+	// or nil if no custom handler is set. The handler is resolved during Start().
+	GetResponseHandler() ResponseHandler
 }
 
 // ActivityDefinition represents the configuration of a step in the workflow (YAML schema)
@@ -39,6 +42,13 @@ type ActivityDefinition struct {
 	// When true, the service invoke path spawns a goroutine and the
 	// activity manager drains the ResponseStream channel after execution.
 	Streaming bool `json:"streaming,omitempty" yaml:"streaming,omitempty"`
+	// ResponseHandler is the registered object type name of a ResponseHandler implementation
+	// that processes the response (both streaming and non-streaming) after the activity executes.
+	// For streaming activities, the handler's HandleStream is called.
+	// For non-streaming activities, the handler's HandleResponse is called.
+	// If empty, the default streaming handler is used for streaming activities,
+	// and non-streaming activities return the response as-is.
+	ResponseHandler string `json:"response_handler,omitempty" yaml:"response_handler,omitempty"`
 }
 
 type RetryPolicy struct {
