@@ -10,5 +10,5 @@ type Engine interface {
 	core.ServerElement
 	GetRootChannel(ctx core.ServerContext) Channel
 	GetRequestParams(ctx core.RequestContext) utils.StringMap
-	GetDefaultResponseHandler(ctx core.ServerContext) ServiceResponseHandler
+	GetDefaultResponseHandler(ctx core.ServerContext) core.ResponseHandler
 }

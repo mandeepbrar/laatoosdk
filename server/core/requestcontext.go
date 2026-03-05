@@ -28,8 +28,6 @@ type RequestContext interface {
 	GetRequest() Request
 	// SetResponse sets the response for the request.
 	SetResponse(*Response)
-	// SetResponseStream sets the response stream for the request.
-	SetResponseStream(*ResponseStream)
 	// AddResponseInfo adds additional metadata to the response.
 	AddResponseInfo(utils.StringMap)
 	// GetSession returns the session associated with the request.
@@ -123,14 +121,15 @@ type RequestContext interface {
 
 
 	// Streaming response support
-	// InitStream initializes a streaming response on this context.
-	InitStream(bufferSize int) *ResponseStream
-	// GetResponseStream returns the active stream, nil if not streaming.
-	GetResponseStream() *ResponseStream
-	// IsStreaming returns true if this request has an active stream.
+	// IsStreaming returns true if this request has an active streaming ResponseHandler.
 	IsStreaming() bool
 	// StreamResponse is the convenience method: sends a chunk with status + data.
 	StreamResponse(status int, data interface{}) error
 	// CompleteStream sends the final chunk and closes the stream.
 	CompleteStream(status int, data interface{}) error
+
+	// GetResponseHandler returns the response handler set on this context, or nil.
+	GetResponseHandler() ResponseHandler
+	// GetResponseStream returns the response stream for this request.
+	GetResponseStream() ResponseStream
 }

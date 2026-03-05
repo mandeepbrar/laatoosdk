@@ -99,9 +99,15 @@ type Response struct {
 }
 
 type ResponseHandler interface {
+	Initialize(ctx ServerContext, conf config.Config) error
 	HandleResponse(ctx RequestContext, err error) error
 	// IsStreaming returns true if this handler supports streaming
 	IsStreaming() bool
-	// HandleStream handles a response stream
+	// HandleStream is called after execution to drain/handle the response stream.
 	HandleStream(ctx RequestContext) error
+	// GetResponseStream returns a ResponseStream for this handler and context.
+	// Called by RequestContext when streaming methods are invoked.
+	GetResponseStream(ctx RequestContext) ResponseStream
+	// GetName returns the name of the response handler.
+	GetName() string
 }

@@ -30,7 +30,6 @@ const (
 	ServerElementApplication
 	ServerElementRulesManager
 	ServerElementService
-	ServerElementServiceResponseHandler
 	ServerElementIsolation
 	ServerElementSessionManager
 	ServerElementSecurityHandler
@@ -82,7 +81,7 @@ type ServerContext interface {
 	// GetServerProperties returns the properties of the server.
 	GetServerProperties() utils.StringMap
 	// CreateNewRequest creates a new request context.
-	CreateNewRequest(name string, tenant auth.TenantInfo, engine interface{}, engineCtx EngineContext, sessionId string) (RequestContext, error)
+	CreateNewRequest(name string, tenant auth.TenantInfo, engine interface{}, engineCtx EngineContext, sessionId string, responseHandler ResponseHandler) (RequestContext, error)
 	// CreateCollection creates a collection of objects.
 	CreateCollection(objectName string, length int) (interface{}, error)
 	// CreateObjectPointersCollection creates a collection of object pointers.
@@ -94,7 +93,7 @@ type ServerContext interface {
 	// GetObjectMetadata retrieves metadata for an object.
 	GetObjectMetadata(objectName string) (Info, error)
 	// CreateSystemRequest creates a system request context (e.g., for background tasks).
-	CreateSystemRequest(name string, tenant auth.TenantInfo, behalfOf interface{}) RequestContext
+	CreateSystemRequest(name string, tenant auth.TenantInfo, behalfOf interface{}, responseHandler ResponseHandler) RequestContext
 	// SubscribeTopic subscribes to a message topic.
 	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error
 	// CreateConfig creates a new configuration object.

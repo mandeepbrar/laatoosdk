@@ -1,7 +1,6 @@
 package core
 
 import (
-	"context"
 	"fmt"
 
 	"laatoo.io/sdk/utils"
@@ -86,45 +85,17 @@ type StreamChunk struct {
 	Final    bool // true when this is the last chunk
 }
 
-// ResponseStream is the producer-side interface a service uses to push data.
-type ResponseStream struct {
-	chunks chan *StreamChunk
-	done   chan struct{}
-	ctx    RequestContext
-	cancel context.CancelFunc
-}
-
-func NewResponseStream(ctx RequestContext, bufferSize int) *ResponseStream {
-	streamCtx, cancel := ctx.WithCancel()
-	return &ResponseStream{
-		chunks: make(chan *StreamChunk, bufferSize),
-		done:   make(chan struct{}),
-		ctx:    streamCtx.(RequestContext),
-		cancel: cancel,
-	}
-}
-
-// Send sends a chunk to the stream. Blocks if buffer is full.
-func (rs *ResponseStream) Send(chunk *StreamChunk) error {
-	select {
-	case <-rs.ctx.Done():
-		return rs.ctx.Err()
-	case rs.chunks <- chunk:
-		return nil
-	}
-}
-
-// Close signals the end of the stream.
-func (rs *ResponseStream) Close() {
-	close(rs.chunks)
-}
-
-// Cancel aborts the stream from the consumer side.
-func (rs *ResponseStream) Cancel() {
-	rs.cancel()
-}
-
-// Chunks returns the read-only channel for consumers.
-func (rs *ResponseStream) Chunks() <-chan *StreamChunk {
-	return rs.chunks
+// ResponseStream is the high-level interface for streaming responses.
+// Implementations may use channels, push notifications, or other mechanisms.
+type ResponseStream interface {
+	// StreamResponse sends an intermediate response chunk.
+	StreamResponse(status int, data interface{}) error
+	// CompleteStream sends the final chunk and closes the stream.
+	CompleteStream(status int, data interface{}) error
+	// Close closes the stream (cleanup, no final chunk sent).
+	Close()
+	// Cancel aborts the stream from the consumer side.
+	Cancel()
+	// IsCompleted returns true if CompleteStream has been called.
+	IsCompleted() bool
 }
