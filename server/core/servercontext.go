@@ -110,8 +110,8 @@ type ServerContext interface {
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
 	// GetRegName retrieves the registered name of an object.
 	GetRegName(object interface{}) (string, bool, bool)
-	// GetRegisteredComponent retrieves a registered component by name.
-	GetRegisteredComponent(obj string) (interface{}, error)
+	// GetRegisteredDataComponent retrieves a registered data component by name.
+	GetRegisteredDataComponent(obj string) (interface{}, error)
 	// GetLogLevel returns the current log level.
 	GetLogLevel() int
 	// GetLogFormat returns the current log format.
