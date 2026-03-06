@@ -75,7 +75,6 @@ func UnauthorizedResponse(err string) *Response {
 	return newServiceResponse(StatusUnauthorized, nil, nil, fmt.Errorf(err), true)
 }
 
-
 // StreamChunk represents a single chunk in a streaming response.
 type StreamChunk struct {
 	Status   int
@@ -89,13 +88,13 @@ type StreamChunk struct {
 // Implementations may use channels, push notifications, or other mechanisms.
 type ResponseStream interface {
 	// StreamResponse sends an intermediate response chunk.
-	StreamResponse(status int, data interface{}) error
+	StreamResponse(ctx RequestContext, status int, data interface{}) error
 	// CompleteStream sends the final chunk and closes the stream.
-	CompleteStream(status int, data interface{}) error
+	CompleteStream(ctx RequestContext, status int, data interface{}) error
 	// Close closes the stream (cleanup, no final chunk sent).
-	Close()
+	Close(ctx RequestContext)
 	// Cancel aborts the stream from the consumer side.
-	Cancel()
+	Cancel(ctx RequestContext)
 	// IsCompleted returns true if CompleteStream has been called.
 	IsCompleted() bool
 }
