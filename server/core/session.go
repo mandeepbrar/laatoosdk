@@ -21,4 +21,8 @@ type Session interface {
 	Set(key string, val interface{})
 	SetVals(vals utils.StringMap)
 	Save(RequestContext) error
+	// IsSerializable returns false for sessions holding live non-serialisable
+	// objects (e.g. SSE streams). The session manager stores these only in its
+	// in-process sync.Map and never writes them to the CacheComponent.
+	IsSerializable() bool
 }
