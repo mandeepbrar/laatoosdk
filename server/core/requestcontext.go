@@ -121,7 +121,11 @@ type RequestContext interface {
 
 
 	// Streaming response support
-	// IsStreaming returns true if this request has an active streaming ResponseHandler.
+	// BeginStream marks this request as streaming without writing any data.
+	// Call this before forwarding to an agent so the framework routes the
+	// response through HandleStream (SSE) rather than HandleResponse (JSON).
+	BeginStream()
+	// IsStreaming returns true once BeginStream, StreamResponse, or CompleteStream has been called.
 	IsStreaming() bool
 	// StreamResponse is the convenience method: sends a chunk with status + data.
 	StreamResponse(status int, data interface{}) error
