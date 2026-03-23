@@ -89,6 +89,18 @@ type AgentManager interface {
 
 	// FindHandoffAgent discovers agents by capability for handoff targeting
 	FindHandoffAgent(ctx core.ServerContext, capabilities []string) (ai.HandoffCapableAgent, error)
+
+	// ============================================================
+	// HITL MANAGEMENT
+	// ============================================================
+
+	// GetHITLManager returns the server-level HITL coordinator.
+	// Returns nil if no HITLManager has been registered.
+	GetHITLManager() ai.HITLManager
+
+	// RegisterHITLManager sets the server-level HITL coordinator.
+	// Called once at startup by the server or a plugin that owns the implementation.
+	RegisterHITLManager(ctx core.ServerContext, mgr ai.HITLManager) error
 }
 
 /*
