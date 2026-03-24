@@ -190,7 +190,7 @@ type rpcResponse struct {
 
 func (c *TestServerClient) call(method string, args interface{}, result interface{}) error {
 	c.reqID++
-	reqBody, err := json.Marshal(rpcRequest{Method: method, Params: args, ID: c.reqID})
+	reqBody, err := json.Marshal(rpcRequest{Method: method, Params: []interface{}{args}, ID: c.reqID})
 	if err != nil {
 		return fmt.Errorf("marshal RPC request: %w", err)
 	}
