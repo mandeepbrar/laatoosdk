@@ -8,25 +8,20 @@ import (
 )
 
 // HITLManager is the server-level coordinator for Human-in-the-Loop workflow steps.
-// It is exposed via AgentManager.GetHITLManager() so any agent or plugin can create
-// and complete human tasks without importing the workflowagents plugin.
+// It is exposed via AgentManager.GetHITLManager() so any agent or plugin can complete
+// human tasks without importing workflow-specific packages.
+//
+// The manager is stateless: all workflow context is carried in the HITLTask struct,
+// which is round-tripped by the frontend via the AG-UI STATE_SNAPSHOT hitlTask field.
+// No server-side task state is stored here.
 type HITLManager interface {
-	// CreateTask registers a new human task for a paused workflow activity.
-	// Returns a taskID that uniquely identifies this pause point.
-	CreateTask(ctx core.RequestContext, workflowID, instanceID, activityID, sessionID string,
-		config *core.HumanTaskConfig) (taskID string, err error)
+	// CompleteTask routes task completion through TaskManager.
+	// The task struct carries the workflow context (workflowID, instanceID, activityID)
+	// that was round-tripped from the frontend — no server-side task state is stored.
+	CompleteTask(ctx core.RequestContext, task *HITLTask, result utils.StringMap) error
 
-	// CompleteTask marks the task done and resumes the workflow via CompleteActivity.
-	CompleteTask(ctx core.RequestContext, taskID string, result utils.StringMap) error
-
-	// FailTask marks the task failed and resumes the workflow with an error signal.
-	FailTask(ctx core.RequestContext, taskID string, reason string) error
-
-	// GetTask returns a pending task by ID.
-	GetTask(taskID string) (*HITLTask, bool)
-
-	// GetPendingTasksForSession returns all pending tasks for a session.
-	GetPendingTasksForSession(sessionID string) []*HITLTask
+	// FailTask signals a task failure through TaskManager.
+	FailTask(ctx core.RequestContext, task *HITLTask, reason string) error
 }
 
 // HITLTaskStatus mirrors workflow status for HITL tasks.
@@ -38,7 +33,9 @@ const (
 	HITLTaskStatusFailed    HITLTaskStatus = "failed"
 )
 
-// HITLTask holds the state for a paused human-interaction workflow step.
+// HITLTask holds context for a paused human-interaction workflow step.
+// The frontend round-trips this as the hitlTask STATE_SNAPSHOT field.
+// Agents construct it from the incoming request and pass it to HITLManager.
 type HITLTask struct {
 	TaskID     string
 	WorkflowID string
