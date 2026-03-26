@@ -60,6 +60,24 @@ func (c *TestServerClient) WaitUntilReady(timeout time.Duration) error {
 	return fmt.Errorf("server not ready after %v: %w", timeout, lastErr)
 }
 
+// GetAuthToken mints a JWT for a synthetic admin user via the TestOps RPC.
+// This is the preferred way to obtain a token in integration tests — it does
+// not require a real user record in the database.
+func (c *TestServerClient) GetAuthToken() (string, string, error) {
+	var reply struct {
+		Token      string
+		AuthHeader string
+		Error      string
+	}
+	if err := c.call("TestOps.GetAuthToken", struct{}{}, &reply); err != nil {
+		return "", "", err
+	}
+	if reply.Error != "" {
+		return "", "", fmt.Errorf("GetAuthToken: %s", reply.Error)
+	}
+	return reply.Token, reply.AuthHeader, nil
+}
+
 // ── Activity invocation ───────────────────────────────────────────────────────
 
 type InvokeActivityResult struct {
