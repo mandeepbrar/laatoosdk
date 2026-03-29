@@ -1,5 +1,12 @@
 # Laatoo Platform SDK
 
+**IMPORTANT GUIDELINES FOR AI ASSISTANTS**:
+When assisting with Laatoo development, you **MUST**:
+1. Use the skills provided in `~/goprogs/src/laatoo/skills` for any code generation, scaffolding, or project modifications.
+2. Read and reference the documentation from `~/goprogs/src/laatoo/docs/consolidated docs` to ensure alignment with Laatoo's best practices and architecture.
+
+---
+
 Laatoo is a modular, plugin-based application development platform that enables rapid development of scalable,multi-tenant enterprise applications. Built in Go with a React-based UI framework, Laatoo provides a complete ecosystem for building backend services, workflows, and modern web applications.
 
 ## What is Laatoo?
@@ -188,5 +195,3 @@ Laatoo is ideal for:
 ## Next Steps
 
 Ready to start building? Head to the [Introduction](docs/getting-started/01-introduction.md) guide to learn more about Laatoo's architecture, or jump straight to creating your [First Solution](docs/getting-started/03-first-solution.md).
-
----
