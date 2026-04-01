@@ -124,7 +124,9 @@ type RequestContext interface {
 	// BeginStream marks this request as streaming without writing any data.
 	// Call this before forwarding to an agent so the framework routes the
 	// response through HandleStream (SSE) rather than HandleResponse (JSON).
-	BeginStream()
+	// sessionId is used by streaming response handlers (e.g. AGUIResponseHandler)
+	// to register a session-keyed stream before the workflow starts.
+	BeginStream(sessionId string)
 	// IsStreaming returns true once BeginStream, StreamResponse, or CompleteStream has been called.
 	IsStreaming() bool
 	// StreamResponse is the convenience method: sends a chunk with status + data.
