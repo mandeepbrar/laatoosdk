@@ -54,6 +54,7 @@ type ModelCapabilities struct {
 	SupportsServiceCall  bool
 	SupportsJSON          bool
 	SupportsSystemPrompt  bool
+	SupportsTemperature   bool
 	MaxContextTokens      int
 	ReleaseDate           time.Time
 }
