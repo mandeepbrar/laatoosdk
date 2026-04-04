@@ -101,6 +101,62 @@ type AgentManager interface {
 	// RegisterHITLManager sets the server-level HITL coordinator.
 	// Called once at startup by the server or a plugin that owns the implementation.
 	RegisterHITLManager(ctx core.ServerContext, mgr ai.HITLManager) error
+
+	// ============================================================
+	// COMPLETION REQUEST FACTORIES
+	// Returns pre-configured CompletionRequest instances for common use-cases.
+	// ============================================================
+
+	// DefaultCompletionRequest returns a CompletionRequest with sensible production defaults.
+	DefaultCompletionRequest() *ai.CompletionRequest
+
+	// DefaultCompletionRequestCostSensitive returns defaults optimized for minimum cost.
+	DefaultCompletionRequestCostSensitive() *ai.CompletionRequest
+
+	// DefaultCompletionRequestHighQuality returns defaults optimized for quality & reasoning.
+	DefaultCompletionRequestHighQuality() *ai.CompletionRequest
+
+	// DefaultCompletionRequestFast returns defaults optimized for lowest time-to-first-token.
+	DefaultCompletionRequestFast() *ai.CompletionRequest
+
+	// DefaultCompletionRequestBatching returns defaults optimized for batch processing.
+	DefaultCompletionRequestBatching() *ai.CompletionRequest
+
+	// DefaultCompletionRequestResearch returns defaults for research & analysis workloads.
+	DefaultCompletionRequestResearch() *ai.CompletionRequest
+
+	// DefaultCompletionRequestModerationSafe returns defaults for safe/moderated content.
+	DefaultCompletionRequestModerationSafe() *ai.CompletionRequest
+
+	// ============================================================
+	// COMPLETION REQUEST BUILDERS
+	// Immutable-style helpers that clone a base request with targeted overrides.
+	// ============================================================
+
+	// CloneWithOverrides creates a deep copy of a CompletionRequest and applies the
+	// provided override function to it. Pointer-typed sub-structs are individually
+	// cloned so the original is never mutated.
+	CloneWithOverrides(base *ai.CompletionRequest, overrides func(*ai.CompletionRequest)) *ai.CompletionRequest
+
+	// SetRequestMetadata sets common tracking fields (RequestID, UserID, AgentName)
+	// on the request in-place and returns it for chaining.
+	SetRequestMetadata(req *ai.CompletionRequest, requestID, userID, agentName string) *ai.CompletionRequest
+
+	// WithModel returns a clone of req with the given model selected.
+	WithModel(req *ai.CompletionRequest, model string) *ai.CompletionRequest
+
+	// WithTemperature returns a clone of req with the given temperature.
+	WithTemperature(req *ai.CompletionRequest, temp float32) *ai.CompletionRequest
+
+	// WithMaxTokens returns a clone of req with the given max-token limit.
+	WithMaxTokens(req *ai.CompletionRequest, tokens int) *ai.CompletionRequest
+
+	// WithBudget returns a clone of req with the given USD cost cap.
+	// The alert threshold is automatically set to 70 % of maxCostUSD.
+	WithBudget(req *ai.CompletionRequest, maxCostUSD float64) *ai.CompletionRequest
+
+	// WithStreaming returns a clone of req with streaming enabled.
+	WithStreaming(req *ai.CompletionRequest) *ai.CompletionRequest
 }
 
 /*
