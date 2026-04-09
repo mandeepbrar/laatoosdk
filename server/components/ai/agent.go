@@ -10,6 +10,14 @@ type Agent interface {
 	Invoke(ctx core.RequestContext) error
 	GetAgentType() AgentType
 	GetAgentPreferences() *AgentPreferences
+
+	// WriteMessageToMemory records a conversation turn in the session memory bank.
+	// Session ID is read from ctx. Silently no-ops if session is unavailable.
+	WriteMessageToMemory(ctx core.RequestContext, role AgentStakeholder, content string)
+
+	// GetMessagesFromMemory returns all conversation messages for the session in
+	// chronological order. Session ID is read from ctx. Returns nil if no messages exist.
+	GetMessagesFromMemory(ctx core.RequestContext) []ConversationMessage
 }
 
 // AspiredUserExperienceProvider is optionally implemented by agents that prefer

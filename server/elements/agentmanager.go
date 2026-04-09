@@ -3,6 +3,7 @@ package elements
 import (
 	"laatoo.io/sdk/server/components/ai"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 // ============================================================
@@ -79,6 +80,15 @@ type AgentManager interface {
 	GetMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string) (ai.MemoryBank, error)
 
 	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType, mgr ai.AgentMemoryManager) error
+
+	// WriteMessageToMemory records a conversation turn in the session memory bank.
+	// Session ID is read from ctx.GetSession() — no explicit ID param needed.
+	// Silently no-ops if session or memory is unavailable.
+	WriteMessageToMemory(ctx core.RequestContext, role ai.AgentStakeholder, content string)
+
+	// GetMessagesFromMemory returns all conversation messages for the session in
+	// chronological order. Session ID is read from ctx. Returns nil if none exist.
+	GetMessagesFromMemory(ctx core.RequestContext, opts utils.StringMap) []ai.ConversationMessage
 
 	// ============================================================
 	// HANDOFF MANAGEMENT
