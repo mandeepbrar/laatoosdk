@@ -9,24 +9,36 @@ import (
 
 // HITLManager is the server-level coordinator for Human-in-the-Loop steps.
 // It is exposed via AgentManager.GetHITLManager() so any agent or skill can
-// complete human tasks without importing workflow-specific packages.
+// pause for user input without importing workflow-specific packages.
 //
-// The manager is stateless: all context is carried in the HITLTask struct,
-// which is round-tripped by the frontend via the AG-UI STATE_SNAPSHOT hitlTask field.
-// No server-side task state is stored here.
+// There are two routing paths, selected by which fields are set in HITLTask:
 //
-// The pause/issue side is handled by calling the system.manual_task activity,
-// which works for both workflow agents (via DSL) and non-workflow agents (via
-// direct activity invocation). CompleteTask and FailTask are the resume side,
-// routing based on what fields are set in the round-tripped HITLTask:
-//   - WorkflowID + InstanceID + ActivityID set → route to workflow TaskManager
-//   - Only SessionID + TaskID set → route via session channel (non-workflow agents)
+//  Workflow path (WorkflowID + InstanceID + ActivityID set):
+//    PauseForUser is NOT used — the DSL system.manual_task activity owns the pause.
+//    CompleteTask routes to wfMgr.CompleteActivity to resume the paused workflow.
+//
+//  Skill / goal-agent path (AgentID + SessionID set, WorkflowID empty):
+//    PauseForUser registers a task via TaskManager (distributed, pod-agnostic),
+//    streams the question to the user, then blocks the calling goroutine until
+//    the user replies or the task times out.
+//    CompleteTask routes via TaskManager.CompleteTask, which pub-subs the result
+//    back to whichever pod has the blocked goroutine — no sticky sessions needed.
 type HITLManager interface {
+	// PauseForUser streams question to the user, registers a HITL task via
+	// TaskManager, and blocks the calling goroutine until CompleteTask is called
+	// with the matching TaskID (from any pod) or the task times out.
+	//
+	// Use this inside a skill or goal-agent task (non-workflow path only).
+	// task must have AgentID + SessionID set; WorkflowID must be empty.
+	// The TaskID field in task is populated by PauseForUser from the queue's
+	// invocation ID and must be sent to the frontend so it can be round-tripped
+	// back when the user replies.
+	PauseForUser(ctx core.RequestContext, task *HITLTask, question string) (userReply string, err error)
+
 	// CompleteTask routes task completion.
-	// For workflow tasks (WorkflowID set): routes through the workflow TaskManager
-	// to resume the paused workflow instance.
-	// For non-workflow tasks (SessionID + TaskID only): routes via session channel
-	// to unblock the waiting goal agent or pro-code skill.
+	// Workflow path (WorkflowID set): calls wfMgr.CompleteActivity.
+	// Skill/goal-agent path (WorkflowID empty): calls TaskManager.CompleteTask,
+	// which unblocks the goroutine waiting in PauseForUser on the correct pod.
 	CompleteTask(ctx core.RequestContext, task *HITLTask, result utils.StringMap) error
 
 	// FailTask signals a task failure through the appropriate routing path.
