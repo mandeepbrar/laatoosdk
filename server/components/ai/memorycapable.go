@@ -39,7 +39,7 @@ func (m *MemoryCapable) WriteMessageToMemory(ctx core.RequestContext, role Agent
 	}
 	bank, err := factory.GetMemory(ctx, MemoryTypeSession, sessionID)
 	if err != nil || bank == nil {
-		bank, err = factory.CreateMemory(ctx, MemoryTypeSession, sessionID, map[string]interface{}{})
+		bank, err = factory.CreateMemory(ctx, MemoryTypeSession, sessionID, utils.StringMap{})
 		if err != nil || bank == nil {
 			log.Warn(ctx, "MemoryCapable.WriteMessageToMemory: could not get or create session memory")
 			return
