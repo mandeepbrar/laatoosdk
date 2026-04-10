@@ -57,6 +57,9 @@ type RequestContext interface {
 	GetStringMapParam(string) (utils.StringMap, bool)
 	// GetStringsMapParam retrieves a strings map parameter.
 	GetStringsMapParam(string) (utils.StringsMap, bool)
+	// GetStringArrayParam retrieves a string slice parameter, handling []string,
+	// []interface{}, and JSON-encoded string values.
+	GetStringArrayParam(string) ([]string, bool)
 	// Invoke invokes a service by alias with parameters.
 	Invoke(alias string, params utils.StringMap) error
 	// Forward forwards the request to another service.
