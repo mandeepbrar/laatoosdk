@@ -76,6 +76,13 @@ type AgentManager interface {
 	GetSkillDescriptor(ctx core.ServerContext, name string) (*ai.SkillDescriptor, error)
 	GetSkillsByTag(ctx core.ServerContext, tag *core.Tag) []ai.Skill
 
+	// InvokeSkill is the canonical way to invoke a named skill from any context.
+	// It creates a fresh RequestContext backed by SkillResponseHandler so that
+	// skills can call CompleteStream for HITL pauses or final responses without
+	// interference from the caller's response stream (e.g. lazySessionStream).
+	// params must contain "session_id" (or "sessionId") for streaming to work.
+	InvokeSkill(ctx core.RequestContext, skillName string, params utils.StringMap) (utils.StringMap, error)
+
 	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
 	GetMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string) (ai.MemoryBank, error)
 
