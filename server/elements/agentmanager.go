@@ -94,8 +94,9 @@ type AgentManager interface {
 	WriteMessageToMemory(ctx core.RequestContext, role ai.AgentStakeholder, content string)
 
 	// GetMessagesFromMemory returns all conversation messages for the session in
-	// chronological order. Session ID is read from ctx. Returns nil if none exist.
-	GetMessagesFromMemory(ctx core.RequestContext, opts utils.StringMap) []ai.ConversationMessage
+	// chronological order. Session ID is read from ctx via ctx.GetString("sessionId").
+	// Returns nil if no sessionId is on ctx or no messages exist.
+	GetMessagesFromMemory(ctx core.RequestContext) []ai.ConversationMessage
 
 	// ============================================================
 	// HANDOFF MANAGEMENT
