@@ -14,6 +14,7 @@ const (
 	MATCHMULTIPLEVALUES
 	MATCHANCESTOR //expects collection name and id
 	FIELDVALUE    //expects map of field values
+	ALLRECORDS    //explicit opt-in to return all records; nil condition returns zero records
 )
 
 type SortType string
