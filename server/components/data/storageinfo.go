@@ -133,7 +133,7 @@ type StorableRef struct {
 	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
 	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
 	Version string   `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
-	Entity  core.Storable `json:"-" datastore:"-" bson:"-" sql:"-" protobuf:"group,64,opt,name=Entity,proto3"`
+	Entity  core.Storable `json:"-" datastore:"-" bson:"-" sql:"-" firestore:"-" protobuf:"group,64,opt,name=Entity,proto3"`
 }
 
 func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
