@@ -23,6 +23,10 @@ func (ti *TenantInfo) SetTenant(tenantid, tenantname string) {
 	ti.TenantName = tenantname
 }
 
+func (ti *TenantInfo) GetTenantInfo() auth.TenantInfo {
+	return ti
+}
+
 func (ti *TenantInfo) SetTenantInfo(inf auth.TenantInfo) {
 	if inf != nil {
 		ti.SetTenant(inf.GetTenantId(), inf.GetTenantName())
