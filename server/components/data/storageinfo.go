@@ -1,12 +1,14 @@
 package data
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"reflect"
-	"laatoo.io/sdk/server/core"
+
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/datatypes"
+	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/log"
 	serverutils "laatoo.io/sdk/server/utils"
 	"laatoo.io/sdk/utils"
@@ -168,6 +170,27 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 		return err
 	}
 	return nil
+}
+
+// UnmarshalJSON accepts both a plain string ID ("id123") and the full object form ({"Id":"id123",...}).
+// UI forms typically send FK fields as plain string values, so this eliminates the need for
+// transform: config entries that map e.g. Owner → Owner.Id.
+func (si *StorableRef) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	// Plain string: "id123" — treat as Id
+	if data[0] == '"' {
+		var id string
+		if err := json.Unmarshal(data, &id); err != nil {
+			return err
+		}
+		si.Id = id
+		return nil
+	}
+	// Object form: {"Id":"...","Type":"...",...} — unmarshal via alias to avoid infinite recursion.
+	type storableRefAlias StorableRef
+	return json.Unmarshal(data, (*storableRefAlias)(si))
 }
 
 func StorableArrayToMap(items []core.Storable) map[string]core.Storable {
