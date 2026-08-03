@@ -22,6 +22,11 @@ type TaskManager interface {
 	PushTask(ctx core.RequestContext, task *Task) (string, error)
 	SubsribeQueue(ctx core.ServerContext, queue string) error
 	UnsubsribeQueue(ctx core.ServerContext, queue string) error
+	// GetTask returns the task previously pushed to queue under the id PushTask handed back.
+	// Every backend answers this — either from its own addressable store (Cloud Tasks indexes
+	// by task name) or from a store Laatoo provides. A backend that can do neither returns
+	// errors.NotImplemented until one is wired in.
+	GetTask(ctx core.RequestContext, queue string, id string) (*Task, error)
 }
 
 func (ent *Task) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
