@@ -22,16 +22,20 @@ import (
 // registered for that kind. This is what keeps engine and workflow vocabulary out of
 // this interface — adding a second kind of pause is a registration, not a new branch here.
 type HITLManager interface {
-	// Pause records a human wait and returns its opaque handle. It does not block.
+	// Pause records a human wait and returns its opaque handle. It does not block, and it
+	// does not touch anyone's stream.
 	//
-	// The caller is expected to yield after this returns: a skill returns a "waiting"
-	// result carrying whatever state it needs on re-entry, and a caller that suspends its
-	// own execution parks in whatever way its runtime provides. The question is streamed
-	// to the user as the turn closes, with the handle, so the client can hand the handle
-	// back when the person answers.
+	// Telling the user is the caller's job, because only the caller knows which stream is
+	// theirs: a skill is inside the request it needs to close, while something observing a
+	// parked execution from an event has to close the session's stream instead. A manager
+	// that closed "the" stream would be right for one of them and wrong for the other.
+	//
+	// The caller is expected to yield after this returns — a skill by returning a waiting
+	// result with the state it needs on re-entry, and a caller that suspends its own
+	// execution by parking in whatever way its runtime provides.
 	//
 	// task.TaskID is populated with the handle and must not be set by the caller.
-	Pause(ctx core.RequestContext, task *HITLTask, question string) (handle string, err error)
+	Pause(ctx core.RequestContext, task *HITLTask) (handle string, err error)
 
 	// Complete supplies the human's answer for the pause named by handle, within sessionID.
 	//
@@ -119,7 +123,20 @@ type HITLTask struct {
 	// Resume carries whatever the registered handler needs to wake this caller. The
 	// manager stores and returns it without interpretation; keys prefixed with "_" are
 	// the convention for values private to one runtime.
+	//
+	// It is not for anything a client should see. Keeping it separate from Data is what
+	// stops resume internals travelling back out to the browser, which is the failure this
+	// interface was reshaped to remove.
 	Resume utils.StringMap
+
+	// Data carries what the pause is about rather than how it resumes — the question put
+	// to the person, the fields still outstanding, whatever a caller wants back when it is
+	// re-entered or a client needs to re-render after a reconnect.
+	//
+	// Opaque to the manager, like Resume, and deliberately a map: what a pause needs to say
+	// about itself differs per caller and will keep differing, and widening this interface
+	// each time is not a change one repository can make.
+	Data utils.StringMap
 
 	// Config is the optional human-task description a caller attached to the pause.
 	Config *core.HumanTaskConfig
