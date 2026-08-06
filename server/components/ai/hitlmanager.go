@@ -33,21 +33,26 @@ type HITLManager interface {
 	// task.TaskID is populated with the handle and must not be set by the caller.
 	Pause(ctx core.RequestContext, task *HITLTask, question string) (handle string, err error)
 
-	// Complete supplies the human's answer for the pause named by handle.
+	// Complete supplies the human's answer for the pause named by handle, within sessionID.
 	//
-	// The manager resolves the handle to the recorded pause, dispatches to the resume
-	// handler registered for that pause's kind, and clears the record. Resolution happens
-	// server-side precisely so no caller has to hand back the resume data — a client that
-	// could supply it could also forge it.
+	// The session is a parameter because a pause is recorded in its own conversation's
+	// memory and there is nowhere else to look it up; a completer always has it, since it
+	// is answering inside that conversation. Passing it is safe in a way the identifiers
+	// this interface used to carry were not — a client naming its own session grants itself
+	// nothing, whereas a client naming a workflow instance named something it did not own.
+	//
+	// Everything else about the pause is resolved server-side from the record, so no caller
+	// hands back the data its own resume will act on.
 	//
 	// The resume runs inline on this request. Nothing is broadcast: a broadcast is what a
 	// pod-pinned waiter needs, and there are none.
-	Complete(ctx core.RequestContext, handle string, result utils.StringMap) error
+	Complete(ctx core.RequestContext, sessionID string, handle string, result utils.StringMap) error
 
-	// Fail abandons the pause named by handle, reporting reason to the waiting caller
-	// through the same resume handler. Used when a pause cannot be answered rather than
-	// when the answer is negative — a rejection is an answer and goes through Complete.
-	Fail(ctx core.RequestContext, handle string, reason string) error
+	// Fail abandons the pause named by handle within sessionID, reporting reason to the
+	// waiting caller through the same resume handler. Used when a pause cannot be answered
+	// rather than when the answer is negative — a rejection is an answer and goes through
+	// Complete.
+	Fail(ctx core.RequestContext, sessionID string, handle string, reason string) error
 
 	// RegisterResumeHandler binds a resume strategy to a pause kind, at startup.
 	//
