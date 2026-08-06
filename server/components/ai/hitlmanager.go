@@ -25,6 +25,18 @@ type HITLManager interface {
 	// Pause records a human wait and returns its opaque handle. It does not block, and it
 	// does not touch anyone's stream.
 	//
+	// The manager builds the record. Callers describe the pause and never construct a
+	// HITLTask themselves — an object handed in half-filled, with some fields expected and
+	// others expected to be left alone, is a contract every caller has to remember and any
+	// caller can get wrong.
+	//
+	// kind selects the resume handler and is a typed constant rather than a map key so a
+	// wrong one fails at compile time instead of in a guard on some other pod. resume is
+	// whatever that handler needs to wake this caller, opaque here and never sent onward.
+	// data is what the pause is about — the question, the fields outstanding — and is the
+	// half a client may see. They are separate parameters because collapsing them into one
+	// map would make leaking resume internals the default rather than the mistake.
+	//
 	// Telling the user is the caller's job, because only the caller knows which stream is
 	// theirs: a skill is inside the request it needs to close, while something observing a
 	// parked execution from an event has to close the session's stream instead. A manager
@@ -33,9 +45,7 @@ type HITLManager interface {
 	// The caller is expected to yield after this returns — a skill by returning a waiting
 	// result with the state it needs on re-entry, and a caller that suspends its own
 	// execution by parking in whatever way its runtime provides.
-	//
-	// task.TaskID is populated with the handle and must not be set by the caller.
-	Pause(ctx core.RequestContext, task *HITLTask) (handle string, err error)
+	Pause(ctx core.RequestContext, sessionID string, kind HITLPauseKind, resume utils.StringMap, data utils.StringMap) (handle string, err error)
 
 	// Complete supplies the human's answer for the pause named by handle, within sessionID.
 	//
@@ -100,14 +110,18 @@ const (
 	HITLTaskStatusFailed    HITLTaskStatus = "failed"
 )
 
-// HITLTask is one recorded agentic pause.
+// HITLTask is one recorded agentic pause, as the manager stored it.
 //
-// The client round-trips only TaskID. Everything else is resolved server-side from the
-// recorded pause, which is why this struct carries no workflow, instance, or activity
-// identifier: those were fields a client supplied and a resume trusted. Anything a
-// particular kind of resume needs now travels in Resume, opaque to everything above it.
+// Callers do not build these — Pause describes a pause with plain arguments and the
+// manager constructs the record. What a resume handler receives is this, read back at
+// completion time.
+//
+// The client round-trips only TaskID. Everything else is resolved server-side, which is
+// why this struct carries no workflow, instance, or activity identifier: those were fields
+// a client supplied and a resume trusted. Anything a particular kind of resume needs now
+// travels in Resume, opaque to everything above it.
 type HITLTask struct {
-	// TaskID is the opaque handle. Set by Pause; the only field that reaches the client.
+	// TaskID is the opaque handle — the only field that reaches the client.
 	TaskID string
 
 	// Kind selects the registered resume handler.
