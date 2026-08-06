@@ -7,45 +7,82 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
-// HITLManager is the server-level coordinator for Human-in-the-Loop steps.
-// It is exposed via AgentManager.GetHITLManager() so any agent or skill can
-// pause for user input without importing workflow-specific packages.
+// HITLManager is the server-level owner of every agentic Human-in-the-Loop pause —
+// a skill, a goal agent, or a workflow agent waiting on a person. It is exposed via
+// AgentManager.GetHITLManager() so any caller can pause without importing
+// workflow-specific packages, and without knowing how any other kind of pause resumes.
 //
-// There are two routing paths, selected by which fields are set in HITLTask:
+// The manager records a pause and returns. It never blocks the calling goroutine:
+// a goroutine parked on a channel holds the caller's continuation — its locals and its
+// position in the loop — which pins the pause to one pod and to one process lifetime.
+// A caller that has somewhere to keep its own continuation does not need one.
 //
-//  Workflow path (WorkflowID + InstanceID + ActivityID set):
-//    PauseForUser is NOT used — the DSL system.manual_task activity owns the pause.
-//    CompleteTask routes to wfMgr.CompleteActivity to resume the paused workflow.
-//
-//  Skill / goal-agent path (AgentID + SessionID set, WorkflowID empty):
-//    PauseForUser registers a task via TaskManager (distributed, pod-agnostic),
-//    streams the question to the user, then blocks the calling goroutine until
-//    the user replies or the task times out.
-//    CompleteTask routes via TaskManager.CompleteTask, which pub-subs the result
-//    back to whichever pod has the blocked goroutine — no sticky sessions needed.
+// What the manager knows is deliberately small: a pause has a kind, a session, and an
+// opaque Resume map it never interprets. Waking the caller belongs to a resume handler
+// registered for that kind. This is what keeps engine and workflow vocabulary out of
+// this interface — adding a second kind of pause is a registration, not a new branch here.
 type HITLManager interface {
-	// PauseForUser streams question to the user, registers a HITL task via
-	// TaskManager, and blocks the calling goroutine until CompleteTask is called
-	// with the matching TaskID (from any pod) or the task times out.
+	// Pause records a human wait and returns its opaque handle. It does not block.
 	//
-	// Use this inside a skill or goal-agent task (non-workflow path only).
-	// task must have AgentID + SessionID set; WorkflowID must be empty.
-	// The TaskID field in task is populated by PauseForUser from the queue's
-	// invocation ID and must be sent to the frontend so it can be round-tripped
-	// back when the user replies.
-	PauseForUser(ctx core.RequestContext, task *HITLTask, question string) (userReply string, err error)
+	// The caller is expected to yield after this returns: a skill returns a "waiting"
+	// result carrying whatever state it needs on re-entry, and a caller that suspends its
+	// own execution parks in whatever way its runtime provides. The question is streamed
+	// to the user as the turn closes, with the handle, so the client can hand the handle
+	// back when the person answers.
+	//
+	// task.TaskID is populated with the handle and must not be set by the caller.
+	Pause(ctx core.RequestContext, task *HITLTask, question string) (handle string, err error)
 
-	// CompleteTask routes task completion.
-	// Workflow path (WorkflowID set): calls wfMgr.CompleteActivity.
-	// Skill/goal-agent path (WorkflowID empty): calls TaskManager.CompleteTask,
-	// which unblocks the goroutine waiting in PauseForUser on the correct pod.
-	CompleteTask(ctx core.RequestContext, task *HITLTask, result utils.StringMap) error
+	// Complete supplies the human's answer for the pause named by handle.
+	//
+	// The manager resolves the handle to the recorded pause, dispatches to the resume
+	// handler registered for that pause's kind, and clears the record. Resolution happens
+	// server-side precisely so no caller has to hand back the resume data — a client that
+	// could supply it could also forge it.
+	//
+	// The resume runs inline on this request. Nothing is broadcast: a broadcast is what a
+	// pod-pinned waiter needs, and there are none.
+	Complete(ctx core.RequestContext, handle string, result utils.StringMap) error
 
-	// FailTask signals a task failure through the appropriate routing path.
-	FailTask(ctx core.RequestContext, task *HITLTask, reason string) error
+	// Fail abandons the pause named by handle, reporting reason to the waiting caller
+	// through the same resume handler. Used when a pause cannot be answered rather than
+	// when the answer is negative — a rejection is an answer and goes through Complete.
+	Fail(ctx core.RequestContext, handle string, reason string) error
+
+	// RegisterResumeHandler binds a resume strategy to a pause kind, at startup.
+	//
+	// This is the seam that keeps the manager free of any caller's vocabulary: the
+	// component that knows how to wake a given kind of caller registers that knowledge
+	// here, rather than the manager acquiring a branch for each one. Registering a kind
+	// twice replaces the previous handler.
+	RegisterResumeHandler(ctx core.ServerContext, kind HITLPauseKind, handler HITLResumeHandler) error
 }
 
-// HITLTaskStatus mirrors workflow status for HITL tasks.
+// HITLResumeHandler wakes the caller of one kind of pause and delivers the human's answer.
+//
+// It receives the recorded pause — including its opaque Resume map, which is meaningful to
+// the handler and to nothing else — and the result the completer supplied. An error means
+// the caller was not resumed; the manager reports it and leaves the record in place, since a
+// pause whose resume failed is still pending rather than finished.
+type HITLResumeHandler func(ctx core.RequestContext, task *HITLTask, result utils.StringMap) error
+
+// HITLPauseKind names how a paused caller is woken, and therefore which registered
+// resume handler owns it. It is not a description of who paused — two different agents
+// that both park their own execution share one kind.
+type HITLPauseKind string
+
+const (
+	// HITLPauseSkill is a caller that returned rather than blocking, and is resumed by
+	// being invoked again with its stored state plus the human's answer.
+	HITLPauseSkill HITLPauseKind = "skill"
+
+	// HITLPauseParked is a caller that suspended its own execution — a workflow agent
+	// whose engine holds the parked step — and is resumed by signalling that execution.
+	// The details of the signal live in the pause's Resume map and in the handler.
+	HITLPauseParked HITLPauseKind = "parked"
+)
+
+// HITLTaskStatus is the lifecycle of a recorded pause.
 type HITLTaskStatus string
 
 const (
@@ -54,20 +91,34 @@ const (
 	HITLTaskStatusFailed    HITLTaskStatus = "failed"
 )
 
-// HITLTask holds context for a paused human-interaction step.
-// The frontend round-trips this as the hitlTask STATE_SNAPSHOT field.
+// HITLTask is one recorded agentic pause.
 //
-// Workflow fields (WorkflowID, InstanceID, ActivityID) are optional.
-// Set them for workflow-based agents; leave empty for goal agents and pro-code skills.
-// AgentID is used for non-workflow routing and should be set when workflow fields are absent.
+// The client round-trips only TaskID. Everything else is resolved server-side from the
+// recorded pause, which is why this struct carries no workflow, instance, or activity
+// identifier: those were fields a client supplied and a resume trusted. Anything a
+// particular kind of resume needs now travels in Resume, opaque to everything above it.
 type HITLTask struct {
-	TaskID     string
-	SessionID  string
-	AgentID    string // set for non-workflow agents (goal agents, skills); empty for workflow tasks
-	WorkflowID string // optional — workflow agents only
-	InstanceID string // optional — workflow agents only
-	ActivityID string // optional — workflow agents only
-	Config     *core.HumanTaskConfig
-	CreatedAt  time.Time
-	Status     HITLTaskStatus
+	// TaskID is the opaque handle. Set by Pause; the only field that reaches the client.
+	TaskID string
+
+	// Kind selects the registered resume handler.
+	Kind HITLPauseKind
+
+	// SessionID is the conversation the pause belongs to, and scopes where it is recorded.
+	// A pause outliving its session has nothing left to resume into.
+	SessionID string
+
+	// AgentID identifies the paused caller for a skill-kind resume.
+	AgentID string
+
+	// Resume carries whatever the registered handler needs to wake this caller. The
+	// manager stores and returns it without interpretation; keys prefixed with "_" are
+	// the convention for values private to one runtime.
+	Resume utils.StringMap
+
+	// Config is the optional human-task description a caller attached to the pause.
+	Config *core.HumanTaskConfig
+
+	CreatedAt time.Time
+	Status    HITLTaskStatus
 }
