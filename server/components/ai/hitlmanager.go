@@ -93,6 +93,25 @@ type HITLResumeHandler func(ctx core.RequestContext, task *HITLTask, result util
 // the shape all kinds share.
 const HITLResumeSkillKey = "_skill"
 
+// HITLPauseEnvelope is what a client is handed so it can answer a pause later.
+//
+// One function because there is one wire shape, and it was being built in five places: by
+// each skill that returns a question, and by the server when a parked step is reported.
+// They had already drifted -- one carried a "waiting" flag the others did not -- and the
+// next field added would have gone into whichever site the author happened to be editing.
+//
+// It carries the handle and the session that handle belongs to, and nothing else. What the
+// pause is for, and how it resumes, stay on the server.
+func HITLPauseEnvelope(sessionID, handle string) utils.StringMap {
+	return utils.StringMap{
+		"taskId":    handle,
+		"sessionId": sessionID,
+		// Redundant with the envelope's presence, and kept because clients already
+		// branch on it: removing it is a client change, not a server one.
+		"waiting": true,
+	}
+}
+
 // HITLPauseKind names how a paused caller is woken, and therefore which registered
 // resume handler owns it. It is not a description of who paused — two different agents
 // that both park their own execution share one kind.
