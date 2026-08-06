@@ -85,6 +85,14 @@ type HITLManager interface {
 // pause whose resume failed is still pending rather than finished.
 type HITLResumeHandler func(ctx core.RequestContext, task *HITLTask, result utils.StringMap) error
 
+// HITLResumeSkillKey is the resume-map key naming the skill to re-enter on a skill pause.
+//
+// A constant rather than a field on HITLTask, because it is not a property of every pause
+// — a parked execution has no skill — and because the resume map is already defined as
+// what a handler needs to wake its caller. A field would put one kind's vocabulary into
+// the shape all kinds share.
+const HITLResumeSkillKey = "_skill"
+
 // HITLPauseKind names how a paused caller is woken, and therefore which registered
 // resume handler owns it. It is not a description of who paused — two different agents
 // that both park their own execution share one kind.
