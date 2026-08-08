@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log/slog"
 	"testing"
 
 	"laatoo.io/sdk/ctx"
@@ -121,12 +122,16 @@ func (c *TestContext) CreateObject(t string) (interface{}, error) {
 	return &TestObject{}, nil
 }
 
-func (c *TestContext) LogFatal(msg string, args ...interface{}) {}
-func (c *TestContext) LogError(msg string, args ...interface{}) {}
-func (c *TestContext) LogWarn(msg string, args ...interface{})  {}
-func (c *TestContext) LogInfo(msg string, args ...interface{})  {}
-func (c *TestContext) LogDebug(msg string, args ...interface{}) {}
-func (c *TestContext) LogTrace(msg string, args ...interface{}) {}
+func (c *TestContext) LogFatal(msg string, args ...slog.Attr) {}
+
+// ctx.Context's logging methods take slog.Attr, not interface{}. These stubs drifted from that
+// signature, so the whole server/utils test package stopped compiling and every test in it —
+// including the ProcessTemplate coverage — silently stopped running.
+func (c *TestContext) LogError(msg string, args ...slog.Attr) {}
+func (c *TestContext) LogWarn(msg string, args ...slog.Attr)  {}
+func (c *TestContext) LogInfo(msg string, args ...slog.Attr)  {}
+func (c *TestContext) LogDebug(msg string, args ...slog.Attr) {}
+func (c *TestContext) LogTrace(msg string, args ...slog.Attr) {}
 
 func TestTransformations(t *testing.T) {
 	ctx := &TestContext{}

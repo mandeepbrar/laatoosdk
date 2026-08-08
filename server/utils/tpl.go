@@ -18,6 +18,77 @@ import (
 	"laatoo.io/sdk/server/log"
 )
 
+// scanBracketExpressions finds each [[ ... ]] expression and replaces it with transform(inner).
+//
+// It replaces a regexp of the form `\[\[(.*?)\]\]`, which was wrong in two ways that between
+// them account for three documented authoring pitfalls:
+//
+//   - the non-greedy match stops at the FIRST `]]`, and JavaScript produces `]]` of its own.
+//     `[[ctx?.data?.list?.[0]]]` captured `ctx?.data?.list?.[0` and `[[a ? ['x','y'] : []]]`
+//     captured `a ? ['x','y'] : [` — both emit truncated, broken JavaScript.
+//   - Go's `.` excludes newlines, so a multi-line expression never matched at all and was left
+//     in the output as literal text, silently.
+//
+// This scans instead: bracket depth decides the terminator, and string literals are skipped so a
+// `]]` inside quotes cannot end the expression. Newlines are ordinary characters.
+//
+// An unterminated `[[` is emitted literally and scanning continues after it, which keeps the old
+// behaviour of leaving malformed input alone rather than consuming the rest of the file.
+func scanBracketExpressions(c string, transform func(inner string) string) string {
+	var out strings.Builder
+	i := 0
+	for {
+		start := strings.Index(c[i:], "[[")
+		if start < 0 {
+			out.WriteString(c[i:])
+			return out.String()
+		}
+		start += i
+		out.WriteString(c[i:start])
+
+		depth := 0
+		var quote byte
+		end := -1
+		for j := start + 2; j < len(c); j++ {
+			ch := c[j]
+			if quote != 0 {
+				if ch == '\\' {
+					j++ // skip the escaped character
+					continue
+				}
+				if ch == quote {
+					quote = 0
+				}
+				continue
+			}
+			switch ch {
+			case '\'', '"', '`':
+				quote = ch
+			case '[':
+				depth++
+			case ']':
+				if depth > 0 {
+					depth--
+				} else if j+1 < len(c) && c[j+1] == ']' {
+					end = j
+				}
+			}
+			if end >= 0 {
+				break
+			}
+		}
+
+		if end < 0 {
+			// Unterminated: emit the opener literally and carry on.
+			out.WriteString("[[")
+			i = start + 2
+			continue
+		}
+		out.WriteString(transform(c[start+2 : end]))
+		i = end + 2
+	}
+}
+
 func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{}) ([]byte, error) {
 	contextVar := func(args ...string) string {
 		val, ok := ctx.Get(args[0])
@@ -118,11 +189,9 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	wr := io.Writer(&b)
 
 	c := result.String()
-	re1 := regexp.MustCompile(`\[\[(.*?)\]\]`)
-	c = re1.ReplaceAllStringFunc(c, func(inp string) string {
+	c = scanBracketExpressions(c, func(inner string) string {
 		b.Reset()
-		mval := inp[2 : len(inp)-2]
-		xml.EscapeText(wr, []byte(mval))
+		xml.EscapeText(wr, []byte(inner))
 		return fmt.Sprintf("\"javascript###replace@@@%s###\"", b.String())
 	})
 
