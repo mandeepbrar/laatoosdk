@@ -21,6 +21,25 @@ type Workflow interface {
 	Type() string
 	GetName() string
 	GetModule() core.Module
+
+	// IsRetriable reports whether this process may be started again from its original input after
+	// a failure.
+	//
+	// It is on this interface rather than left to callers reading GetDefinition() because the
+	// question is engine-agnostic and the answer is not: a definition is whatever format its engine
+	// loaded, so asking through GetDefinition() forces every caller to type-assert into one
+	// engine's types and to stop working the moment a second format exists.
+	//
+	// FALSE IS THE MEANINGFUL DEFAULT. A restart re-runs every step, so it is safe only where each
+	// one is idempotent — a property only the definition's author knows, and the processes that
+	// lack it are exactly the ones where a second run charges, provisions or publishes twice. An
+	// implementation that cannot determine the answer must return false, never true: an omitted
+	// declaration means the author did not say, and that is not permission.
+	//
+	// This does NOT describe per-activity retry. Statement.Retry and Statement.Timeout are declared
+	// on the DSL and executed by no engine; this reports whether the WHOLE process may be started
+	// again, which is a different capability and the one that is actually available.
+	IsRetriable() bool
 }
 
 type WorkflowInstance interface {
