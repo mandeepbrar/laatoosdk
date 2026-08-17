@@ -13,8 +13,12 @@ type DataManager interface {
 	RegisterDataComponent(ctx core.ServerContext, obj string, comp data.DataComponent) error
 	//get component registered for an entity
 	GetRegisteredComponent(ctx core.ServerContext, obj string) (data.DataComponent, error)
-	//create condition for passing to data service
-	CreateCondition(ctx core.RequestContext, obj string, operation data.ConditionType, args ...interface{}) (interface{}, error)
+	//create condition from field/value pairs combined with equality — the shorthand, unchanged
+	//in shape from what callers have always written
+	CreateCondition(ctx core.RequestContext, obj string, args utils.StringMap) (interface{}, error)
+	//create condition from a query, for shapes the shorthand cannot express. Callers needing
+	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
+	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
 
 	Save(ctx core.RequestContext, obj string, item core.Storable) error
 	//Store an object against an id

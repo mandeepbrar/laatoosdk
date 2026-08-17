@@ -176,9 +176,29 @@ func (svc *DataPlugin) GetOne(ctx core.RequestContext, props []string, queryCond
 	return svc.PluginDataComponent.GetOne(ctx, props, queryCond, dao)
 }
 
-// create condition for passing to data service
-func (svc *DataPlugin) CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error) {
-	return svc.PluginDataComponent.CreateCondition(ctx, operation, args...)
+// CreateCondition creates a condition from field/value pairs combined with equality.
+func (svc *DataPlugin) CreateCondition(ctx core.RequestContext, args utils.StringMap) (interface{}, error) {
+	return svc.PluginDataComponent.CreateCondition(ctx, args)
+}
+
+// CreateQueryCondition compiles and binds a query in one step, for per-request query shapes.
+func (svc *DataPlugin) CreateQueryCondition(ctx core.RequestContext, query *Query, params utils.StringsMap) (interface{}, error) {
+	return svc.PluginDataComponent.CreateQueryCondition(ctx, query, params)
+}
+
+// CompileQuery compiles a query into the wrapped component's provider-native form.
+func (svc *DataPlugin) CompileQuery(ctx core.ServerContext, query *Query) (interface{}, error) {
+	return svc.PluginDataComponent.CompileQuery(ctx, query)
+}
+
+// BindQuery binds parameters to a compiled query, producing a condition for the query methods.
+func (svc *DataPlugin) BindQuery(ctx core.RequestContext, compiled interface{}, params utils.StringsMap) (interface{}, error) {
+	return svc.PluginDataComponent.BindQuery(ctx, compiled, params)
+}
+
+// SupportsQuery reports whether the wrapped component can compile a given query capability.
+func (svc *DataPlugin) SupportsQuery(capability QueryCapability) bool {
+	return svc.PluginDataComponent.SupportsQuery(capability)
 }
 
 func (svc *DataPlugin) AddToArray(ctx core.RequestContext, id string, fieldName string, item interface{}) error {

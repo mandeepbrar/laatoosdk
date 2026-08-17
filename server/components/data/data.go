@@ -7,16 +7,6 @@ import (
 
 type Feature int
 
-type ConditionType int
-
-const (
-	ODATA ConditionType = iota // expects first value as field name and second value as array of values
-	MATCHMULTIPLEVALUES
-	MATCHANCESTOR //expects collection name and id
-	FIELDVALUE    //expects map of field values
-	ALLRECORDS    //explicit opt-in to return all records; nil condition returns zero records
-)
-
 type SortType string
 
 const (
@@ -96,8 +86,25 @@ type DataComponent interface {
 	DropDBCollection(ctx core.ServerContext) error
 	//collection exists
 	DBCollectionExists(ctx core.ServerContext) (bool, error)
-	//create condition for passing to data service
-	CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error)
+	//create condition from field/value pairs, combined with equality and and. This is the
+	//shorthand the large majority of callers use, and it stays the shortest way to express the
+	//common case: build the map, omit the entries you do not want. It is sugar over
+	//CreateQueryCondition, not a separate mechanism.
+	CreateCondition(ctx core.RequestContext, args utils.StringMap) (interface{}, error)
+	//compiles and binds a query in one step, for shapes built per request that the shorthand
+	//cannot express — ranges, disjunction, substring matching, nesting.
+	CreateQueryCondition(ctx core.RequestContext, query *Query, params utils.StringsMap) (interface{}, error)
+	//compiles a query into a reusable provider-native form. Called once, when the query's shape
+	//is known; implementations compile each predicate to an independently composable fragment so
+	//that binding can assemble only the predicates that survive parameter resolution.
+	CompileQuery(ctx core.ServerContext, query *Query) (interface{}, error)
+	//binds parameters to a previously compiled query, producing a condition for the query
+	//methods below. Optional predicates whose parameters are absent are dropped here.
+	BindQuery(ctx core.RequestContext, compiled interface{}, params utils.StringsMap) (interface{}, error)
+	//reports whether this provider can compile a given query capability natively. A provider
+	//must not silently reduce a capability it lacks to a weaker one — it declares it here and
+	//rejects it at compile time.
+	SupportsQuery(capability QueryCapability) bool
 	//save an object
 	Save(ctx core.RequestContext, item core.Storable) error
 	//adds an item to an array field
