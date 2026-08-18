@@ -30,6 +30,21 @@ type TrackingInfo struct {
 	UpdatedAt time.Time `json:"UpdatedAt" bson:"UpdatedAt" protobuf:"bytes,57,opt,name=updatedat,proto3" gorm:"column:UpdatedAt"`
 }
 
+// IsNew reports whether this record has never been persisted, which is what decides whether Track
+// stamps the created fields as well as the updated ones.
+//
+// It derives that from CreatedAt rather than from the New field. Nothing in the platform ever sets
+// New -- not the SDK, not the server, not any module -- and TrackingInfo.WriteAll does not persist
+// it, so `return ti.New` would satisfy the interface and still leave CreatedBy and CreatedAt
+// permanently unwritten. CreatedAt is stamped by Track itself and does round-trip through storage,
+// so it is zero exactly until the first tracked save and non-zero forever after.
+//
+// The New field is left in place because it is part of the stored column layout gorm derives from
+// this struct; removing it would be a storage change rather than a code one.
+func (ti *TrackingInfo) IsNew() bool {
+	return ti.CreatedAt.IsZero()
+}
+
 func (ti *TrackingInfo) SetCreatedAt(val time.Time) {
 	ti.CreatedAt = val
 }
