@@ -20,6 +20,11 @@ type StorableConfig struct {
 	RefOps            bool
 	Workflow          bool
 	Multitenant       bool
+	// SoftDelete makes Delete mark the record rather than remove it: the data service updates
+	// the entity's Deleted field to true, and every read excludes it. Every generated entity
+	// already embeds data.DeletionInfo unconditionally, so the field exists in storage whether
+	// or not this is set — turning it on is a configuration change and never a migration.
+	SoftDelete bool
 }
 
 // Object stored by data service

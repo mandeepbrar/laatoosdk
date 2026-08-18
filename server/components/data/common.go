@@ -17,6 +17,7 @@ const (
 	CONF_DATA_REFOPS              = "refops"
 	CONF_DATA_COLLECTION          = "collection"
 	CONF_DATA_EMBEDDED_DOC_SEARCH = "embedded_doc_search"
+	CONF_DATA_SOFTDELETE          = "softdelete"
 	CONF_PRESAVE_MSG              = "storable_presave"
 	CONF_POSTSAVE_MSG             = "storable_postsave"
 	CONF_PREUPDATE_MSG            = "storable_preupdate"
