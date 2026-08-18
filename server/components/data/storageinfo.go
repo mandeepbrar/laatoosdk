@@ -204,6 +204,14 @@ func StorableArrayToMap(items []core.Storable) map[string]core.Storable {
 //Factory function for creating storable
 //type StorableCreator func() interface{}
 
+// CastToStorableCollection converts a slice of records into storables and their ids, dropping any
+// entry that is soft-deleted or nil.
+//
+// Both returned slices are sized to the INPUT length and filled from index 0 up to the number of
+// entries that survived, so both must be truncated to that count. Returning ids at its full length
+// left one empty string per dropped entry, which callers see as a record identity that does not
+// exist — and providers derive recsreturned from len(ids), so a page containing a deleted record
+// also reported more records than it returned and could inflate totalrecs above the true count.
 func CastToStorableCollection(cx ctx.Context, items interface{}) ([]core.Storable, []string, error) {
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
@@ -240,7 +248,8 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]core.Storabl
 			log.Warn(cx, "Nil object received", slog.Int("index", i))
 		}
 	}
-	return retVal[0:j], ids, nil
+	// both slices carry j survivors; truncating only one of them is what produced the phantom ids
+	return retVal[0:j], ids[0:j], nil
 }
 
 func CastToStorableHash(items interface{}) (map[string]core.Storable, error) {
