@@ -20,6 +20,13 @@ type Module interface {
 	Permissions(ctx ServerContext) utils.StringsMap
 	Channels(ctx ServerContext) map[string]config.Config
 	Tasks(ctx ServerContext) map[string]config.Config
+	// Topics returns the messaging topics this module declares.
+	//
+	// A topic belongs to the code that publishes and subscribes to it, not to whichever solution
+	// happens to host that code. Before modules could declare their own, a topic existed only if a
+	// solution author had named it in configuration — and publishing to a topic nobody named
+	// silently dropped the message, so a plugin's events depended on someone else remembering them.
+	Topics(ctx ServerContext) map[string]config.Config
 	Workflows(ctx ServerContext) map[string]config.Config
 	Activities(ctx ServerContext) map[string]config.Config
 	GetContext() ServerContext
