@@ -65,6 +65,28 @@ const (
 	WorkQueueRetention
 )
 
+// TopicDelivery selects how a durable topic's messages are spread across the subscribers that share
+// a subscriber id -- which, in a multi-replica deployment, means across pods.
+//
+// Append-only, for the same reason as TopicStorage.
+type TopicDelivery int
+
+const (
+	// BroadcastDelivery gives every subscriber its own position, so each one receives every
+	// message. This matches what a transient topic does, and it is the default so that declaring a
+	// topic durable changes its guarantees without quietly changing its fan-out.
+	//
+	// It requires each subscriber to be distinguishable across replicas; the platform derives that
+	// from the server's identity, so a deployment whose replicas do not have stable identities
+	// gets a fresh position -- and therefore a full replay -- whenever a replica is replaced.
+	BroadcastDelivery TopicDelivery = iota
+	// DistributedDelivery shares one position between every subscriber using the same subscriber
+	// id, so each message is handled by exactly one of them. For work that must happen once no
+	// matter how many replicas are running, and wrong for anything each replica needs to see --
+	// a replica applying a change log needs every message, not a share of them.
+	DistributedDelivery
+)
+
 // TopicDurability is a durable topic's declared configuration, parsed from the topic's config
 // block. The zero value is a valid durable topic: file storage, limits retention, one replica, and
 // the provider's own defaults for everything else.
@@ -76,6 +98,9 @@ type TopicDurability struct {
 	Storage TopicStorage
 	// Retention selects eviction. Defaults to LimitsRetention, the zero value.
 	Retention TopicRetention
+	// Delivery selects fan-out across replicas. Defaults to BroadcastDelivery, the zero value,
+	// which matches transient behaviour.
+	Delivery TopicDelivery
 	// Replicas requested for the topic. 0 and 1 both mean a single replica. A value the cluster
 	// cannot satisfy fails at startup rather than being quietly reduced to 1 — a topic that claims
 	// replication it does not have is worse than one that admits it has none.
