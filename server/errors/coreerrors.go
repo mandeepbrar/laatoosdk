@@ -29,6 +29,12 @@ const (
 	CORE_ERROR_INVALID_PAYLOAD     = "Core_Invalid_Payload"
 	CORE_ERROR_INTERNAL_ERROR      = "Core_Internal_Error"
 	CORE_ERROR_SERIALIZATION_ERROR = "Core_Serialization_Error"
+	// CORE_ERROR_DURABLE_NOT_SUPPORTED is returned when a provider is asked for an OPTIONAL
+	// capability it does not implement -- currently durable stream operations on a messaging
+	// provider. Distinct from CORE_ERROR_NOT_IMPLEMENTED, which says a method was never written:
+	// this says the method exists and this particular provider cannot serve it, which is a
+	// condition the caller is expected to detect and degrade on rather than treat as a defect.
+	CORE_ERROR_DURABLE_NOT_SUPPORTED = "Core_Durable_Not_Supported"
 )
 
 func init() {
@@ -51,6 +57,11 @@ func init() {
 	RegisterCode(CORE_ERROR_TENANT_MISMATCH, "Tenant Mismatch.")
 	RegisterCode(CORE_ERROR_INTERNAL_ERROR, "Internal Error")
 	RegisterCode(CORE_ERROR_SERIALIZATION_ERROR, "Serialization error")
+	// Was declared and thrown by InvalidPayload without ever being registered, which made every
+	// InvalidPayload call a panic ("Invalid error code") rather than an error -- throwStandardError
+	// panics on an unregistered code. Latent because nothing calls InvalidPayload yet.
+	RegisterCode(CORE_ERROR_INVALID_PAYLOAD, "Payload could not be read.")
+	RegisterCode(CORE_ERROR_DURABLE_NOT_SUPPORTED, "Durable operations are not supported by the configured provider.")
 }
 
 func WrapError(ctx ctx.Context, err error, info ...slog.Attr) error {
