@@ -142,3 +142,44 @@ func InvalidPayload(ctx ctx.Context, key string, errorReason string, info ...slo
 func SerializationError(ctx ctx.Context, message string, info ...slog.Attr) error {
 	return ThrowError(ctx, message, CORE_ERROR_SERIALIZATION_ERROR, info...)
 }
+
+
+// HasErrorCode reports whether err carries the given internal error code.
+//
+// It tests the error it is HANDED, and that is a real limitation rather than an oversight, so it
+// is worth knowing where the boundary is:
+//
+//   - WrapError returns an existing *Error unchanged, so a code survives any number of wraps and
+//     this answers correctly through them.
+//   - RethrowError does NOT preserve the original error. throwError flattens the inner message and
+//     code into the new error's info as plain string attributes and sets its own error to
+//     fmt.Errorf(message), so nothing structured remains to walk. A code rethrown under a
+//     different code is therefore invisible here, and no helper can recover it without parsing
+//     log attributes.
+//
+// The consequence for callers: test the error where it is produced, not after a layer has
+// rethrown it under a code of its own. Making this fully general means having throwError retain
+// the error it was given — which would also make errors.Is and errors.As work across the
+// platform — and that is a larger change than this helper.
+func HasErrorCode(err error, code string) bool {
+	if err == nil {
+		return false
+	}
+	laatooErr, ok := err.(*Error)
+	return ok && laatooErr.InternalErrorCode == code
+}
+
+// IsNotFound reports whether err means "no such record" as opposed to a genuine failure.
+//
+// This exists because absence became an error rather than a nil result: a by-id read that finds
+// nothing answers CORE_ERROR_RES_NOT_FOUND, so every caller that treats absence as a normal branch
+// — "create it if it is not there", "report a friendly message" — has to distinguish it from a
+// database being unreachable. Without this each of them asserts to *Error and compares the code by
+// hand, which is verbose enough that it gets copied rather than understood.
+//
+// The data stores return NotFound directly and dataManager passes it through unchanged, so the
+// code is on the outermost error on every by-id path. See HasErrorCode for where that stops being
+// true.
+func IsNotFound(err error) bool {
+	return HasErrorCode(err, CORE_ERROR_RES_NOT_FOUND)
+}
