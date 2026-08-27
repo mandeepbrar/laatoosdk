@@ -9,16 +9,64 @@ import (
 	"laatoo.io/sdk/server/log"
 )
 
-// /auditable entities must have UpdatedBy and UpdatedOn fields to support auditing through update queries
+// Trackable is the audit-stamp contract, satisfied by the embedded TrackingInfo struct below.
+// Auditable entities must have UpdatedBy and UpdatedAt fields to support auditing through update
+// queries.
+//
+// The SETTERS ARE NOT FOR CALLERS. Track (below) is the only production caller of any of them,
+// across every datastore provider — see mongodatabase mongodataservice.go:174, sqldatabase
+// sqldataservice.go:250, boltdatabase kvdataservice.go:257, couchbasedatabase
+// couchbasedataservice.go:160, gaedatastore gaedataservice.go:152 and their sibling write paths.
+// Stamping a field yourself before Save is at best redundant and at worst overwritten.
+//
+// Two conditions gate the whole mechanism, and neither reports anything when it fails:
+//
+//   - The component must be trackable. The flag comes from StorableConfig.Trackable, overridable
+//     by the module's auditable setting (basecomponent.go:72-77). If it is off, Track is never
+//     reached and all four fields stay at their zero values.
+//   - The request must have a user. Track reads ctx.GetUser().GetId(); a nil user skips every
+//     stamp and logs at INFO ("Could not audit entity. User nil"), which is not an error and does
+//     not fail the save.
+//
+// The codegen embeds TrackingInfo in every generated entity regardless of the Trackable flag, so
+// satisfying this interface does not mean auditing is enabled for the entity.
 type Trackable interface {
+	// IsNew reports whether this record has never been persisted, which decides whether Track
+	// stamps the created fields as well as the updated ones. The embedded implementation derives
+	// it from CreatedAt rather than from a stored flag; see the comment on TrackingInfo.IsNew for
+	// why.
 	IsNew() bool
+
+	// SetCreatedAt records the creation instant. Track calls it only on the first tracked save
+	// (when IsNew reports true), using the same time.Now() value it gives SetUpdatedAt.
 	SetCreatedAt(time.Time)
+
+	// GetCreatedAt returns the creation instant, zero until the first tracked save. It is also
+	// what IsNew tests, so it doubles as the persisted/not-persisted signal.
 	GetCreatedAt() time.Time
+
+	// SetUpdatedAt records the modification instant. Track calls it on every tracked write.
 	SetUpdatedAt(time.Time)
+
+	// GetUpdatedAt returns the modification instant, zero until the first tracked save.
 	GetUpdatedAt() time.Time
+
+	// SetUpdatedBy records the modifying user's id. Track calls it on every tracked write.
 	SetUpdatedBy(string)
+
+	// GetUpdatedBy returns the id of the user who last wrote the record — an id, never a name or
+	// an email.
 	GetUpdatedBy() string
+
+	// SetCreatedBy records the creating user's id. Track calls it only on the first tracked save.
 	SetCreatedBy(string)
+
+	// GetCreatedBy returns the id of the user who created the record.
+	//
+	// It stays empty on any entity whose first save happened while the component was not trackable
+	// or while the request had no user, and nothing later fills it in: the update-by-map path
+	// takes the non-Trackable branch of Track, which stamps only UpdatedBy and UpdatedAt into the
+	// value map and never the created pair (trackable.go:96-106).
 	GetCreatedBy() string
 }
 

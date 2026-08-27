@@ -144,7 +144,34 @@ func GetObjectFields(object interface{}, fields []string) map[string]interface{}
 	return vals
 }
 
+// ObjectCreator is the narrow slice of the context that this package needs in order to build
+// nested objects while setting fields. Both core.ServerContext and core.RequestContext satisfy it,
+// which is why SetObjectFields type-asserts its ctx to this interface — an assertion that PANICS,
+// unchecked, and only on the code path that hits a struct field (see SetObjectFields above).
+//
+// Objects are created from the platform's object register, so a name must have been registered —
+// by a plugin's manifest, by entity codegen, or as an internal object — before either method can
+// build it. An unregistered name is CORE_ERROR_PROVIDER_NOT_FOUND, never a zero value
+// (laatooserver/src/core/objectloader.go:126-139).
+//
+// Registered names use DOTS for the Go package path (laatoo.server.engine.http.xyz), because
+// registration converts the path's slashes to dots and lookup is an exact string match.
 type ObjectCreator interface {
+	// CreateObjectPointersCollection returns an empty slice of POINTERS to the named type
+	// ([]*T), sized length — the shape the data tier fills when reading many rows.
+	//
+	// Contrast core.ServerContext.CreateCollection, which returns []T. Neither runs the per-object
+	// constructor or field initialisers that CreateObject applies; the elements are the slice's
+	// zero values.
 	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)
+
+	// CreateObject returns a new instance of the named registered type as a POINTER
+	// (interface{} holding *T), ready to be type-asserted.
+	//
+	// This is the only correct way to make a platform object — never a struct literal. Beyond
+	// allocating, it initialises the declared pointer fields the platform injects (StorageInfo,
+	// TenantInfo and similar) and calls the type's Constructor and SetSelfReference when it has
+	// them (laatooserver/src/core/objectadapter.go:74-104). A struct literal skips all of that and
+	// the omission does not surface until something dereferences one of those fields.
 	CreateObject(objectName string) (interface{}, error)
 }

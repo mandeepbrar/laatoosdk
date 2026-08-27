@@ -20,6 +20,20 @@ type DataManager interface {
 	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
 	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
 
+	//Save writes an item through the data component registered for obj, after running the
+	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the
+	//component is multitenant, audit stamping when it is trackable, then the write, then
+	//Storable.PostSave and the new-object message. See mongodatabase mongodataservice.go:151-201
+	//for the canonical order; every provider follows it.
+	//
+	//SAVE IS NOT A UNIVERSAL UPSERT, whatever the older prose says. The underlying write differs
+	//by provider: mongodatabase issues InsertOne (mongodataservice.go:174), sqldatabase issues
+	//gorm Create (sqldataservice.go:252) and boltdatabase issues Insert — all three FAIL on an id
+	//that already exists — while couchbasedatabase issues Upsert (couchbasedataservice.go:164) and
+	//silently replaces. Use Put when you mean create-or-replace: it is upsert on every provider.
+	//
+	//It resolves the component by name, so an obj with no registered data component returns a
+	//Core_Not_Found error rather than doing nothing (laatooserver/src/core/datamanager.go:111-117).
 	Save(ctx core.RequestContext, obj string, item core.Storable) error
 	//Store an object against an id
 	Put(ctx core.RequestContext, obj string, id string, item core.Storable) error
@@ -56,12 +70,61 @@ type DataManager interface {
 	//Deletes the key
 	DeleteValue(ctx core.RequestContext, obj string, key string) error
 
+	//FetchDataset runs a dataset declared in a plugin's registry/datasets and returns its page.
+	//
+	//It is the only entry point here that enforces a permission of its own: a dataset declaring
+	//Permission is checked with ctx.HasPermission before anything runs, and an unauthorised caller
+	//gets Core_Error_Unauthorized (laatooserver/src/common/fieldvalueds.go:104-106). Nothing else
+	//on this interface consults permissions.
+	//
+	//The dataset's query is compiled ONCE, on first fetch rather than at load — datasets are read
+	//before data components are registered, so nothing exists to compile against at load time
+	//(fieldvalueds.go:122-128). A compile error is therefore first seen by the first caller, and
+	//is then returned to EVERY later caller because sync.Once does not retry.
+	//
+	//params binds the dataset's declared Params. A filter not marked Optional whose parameter is
+	//absent fails with Core_Missing_Arg (fieldvalueds.go:114-120) instead of matching nothing;
+	//an Optional filter with an absent parameter is dropped from the query, which WIDENS the
+	//result set.
+	//
+	//pageNum is 1-BASED. Providers compute skip as (pageNum-1)*pageSize
+	//(mongodatabase mongodataservice_get.go:220), so 0 yields a negative skip that the store
+	//rejects. Pass -1, -1 for everything.
+	//
+	//An unknown dsname returns Core_Not_Found (laatooserver/src/core/datamanager.go:99).
 	FetchDataset(ctx core.RequestContext, dsname string, params utils.StringsMap, pageSize int, pageNum int) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error)
 
 	//Count all object with given condition
 	Count(ctx core.RequestContext, obj string, queryCond interface{}) (count int, err error)
+	//CountGroups returns per-group counts for the records matching queryCond: a map keyed by the
+	//distinct values of the group field, each holding that group's count. groupids, when non-nil,
+	//restricts the result to those group values.
+	//
+	//IT IS NOT SUPPORTED ON EVERY STORE. sqldatabase (sqldataservice_get.go:165), jsonbdatabase
+	//and boltdatabase implement it; mongodatabase and couchbasedatabase implement nothing and so
+	//inherit BaseComponent's errors.NotImplemented (basecomponent.go:520-522), and gaedatastore
+	//(gaedataservice.go:682-684) and gaefirestore override it with the same refusal. On those five
+	//it returns (nil, Core_Not_Implemented) — a nil map, so a caller that ignores the error reads
+	//zero for every group rather than failing.
 	CountGroups(ctx core.RequestContext, obj string, queryCond interface{}, groupids []string, group string) (res utils.StringMap, err error)
 
+	//Transaction runs callback inside a transaction opened on the data component registered for
+	//obj, committing when callback returns nil and rolling back when it returns an error.
+	//
+	//THE CALLBACK IS HANDED A DIFFERENT CONTEXT AND MUST USE IT. Providers bind the transaction to
+	//that context and nowhere else — sqldatabase stores the gorm tx as a context value
+	//(sqldataservice.go:680-682), mongodatabase wraps it in a driver SessionContext
+	//(mongodataservice.go:678-706). Work issued through the OUTER ctx inside the callback runs
+	//outside the transaction and is committed independently; nothing detects or reports that, so a
+	//rollback silently leaves it behind.
+	//
+	//Scope is one connection, not the whole data layer: entities served by a different component
+	//or a different connection do not join. And it is not reentrant on boltdatabase, where bbolt
+	//permits a single writer — a nested write opens a second transaction and self-deadlocks with
+	//no error and no timeout (see the note on kvDataService.insertInTx).
+	//
+	//sqldatabase discards the result of Rollback (sqldataservice.go:685): the callback's error is
+	//what surfaces, and a rollback that itself failed is invisible.
 	Transaction(ctx core.RequestContext, obj string, callback func(ctx core.RequestContext) error) error
 
 	//Get all object with given conditions

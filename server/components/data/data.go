@@ -50,9 +50,8 @@ type Dataset struct {
 	Cache      bool
 	Dao        string
 	Permission string
-	Module core.Module
+	Module     core.Module
 }
-
 
 type VectorResult struct {
 	Item  core.Storable
@@ -65,6 +64,16 @@ type VectorResult struct {
 type DataComponent interface {
 	core.Service
 
+	//GetDataServiceType reports which storage family backs this component, as one of the
+	//DATASERVICE_TYPE_* constants above. Providers return a fixed value — mongodatabase returns
+	//DATASERVICE_TYPE_NOSQL (mongodataservice.go:131-133) — and it is a static property of the
+	//plugin, not of the entity or the connection.
+	//
+	//BaseComponent's default returns the EMPTY STRING, not one of the constants
+	//(datastore/dev/plugins/common/basecomponent.go:127-129), so a provider that forgets to
+	//override it registers successfully and reports a type matching no constant. The only place
+	//the value is consumed is the registration log line
+	//(laatooserver/src/core/datamanager.go:107), which is why nothing catches that.
 	GetDataServiceType() string
 	//object on which service operates
 	GetObject() string
@@ -107,9 +116,22 @@ type DataComponent interface {
 	SupportsQuery(capability QueryCapability) bool
 	//save an object
 	Save(ctx core.RequestContext, item core.Storable) error
-	//adds an item to an array field
+	//AddToArray appends an item to a list-valued field of one record, without loading it.
+	//
+	//NO PROVIDER IMPLEMENTS IT. Every shipped datastore either inherits BaseComponent's
+	//errors.NotImplemented (basecomponent.go:412-414) — mongodatabase, sqldatabase, jsonbdatabase,
+	//boltdatabase and couchbasedatabase all do — or overrides it with the same refusal
+	//(gaedatastore gaedataservice.go:674-676, gaefirestore gaefireservice.go:737-739). Calling it
+	//returns a Core_Not_Implemented error at runtime, never nil. To append to a list today, read
+	//the record, append in Go, and Put it back.
 	AddToArray(ctx core.RequestContext, id string, fieldName string, item interface{}) error
-	//execute function
+	//Execute runs a provider-native named operation — a stored procedure, a server-side script —
+	//that the portable API cannot express.
+	//
+	//NO PROVIDER IMPLEMENTS IT either; the situation is exactly AddToArray's
+	//(basecomponent.go:417-419, gaedataservice.go:678-680, gaefireservice.go:742-744). It returns
+	//(nil, Core_Not_Implemented) on every shipped store. Because the first return is interface{},
+	//a caller that ignores the error gets a nil it will dereference.
 	Execute(ctx core.RequestContext, name string, data interface{}, params utils.StringMap) (interface{}, error)
 	//Store an object against an id
 	Put(ctx core.RequestContext, id string, item core.Storable) error
@@ -163,4 +185,3 @@ type DataComponent interface {
 	//Subscribe to data events
 	Subscribe(ctx core.RequestContext, obj string, eventType DataEventType, handler core.MessageListener) error
 }
-
