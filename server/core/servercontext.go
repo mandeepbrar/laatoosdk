@@ -55,12 +55,32 @@ const (
 
 type ContextMap map[ServerElementType]ServerElement
 
-// ServerElement is the base interface for all server components.
+// ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
+// the service manager, the security handler and so on — obtained by asking a context for an
+// element by ServerElementType and asserting the result to the manager interface you want.
+//
+// What is handed out is a proxy over the live manager rather than the manager itself, which is
+// why the element type and the interface you assert to are separate things.
 type ServerElement interface {
+	// Reference returns another handle onto the SAME underlying manager. It is a new proxy, not
+	// a copy of any state: both handles see the one manager.
 	Reference() ServerElement
+
+	// GetProperty reads a named property of the element, or nil when there is none.
+	//
+	// A nil result does not distinguish "no such property" from "this element does not support
+	// property lookup at all" — several managers answer nil unconditionally. Do not infer
+	// absence of a configured value from it.
 	GetProperty(string) interface{}
+
+	// GetName returns the element's registered name.
 	GetName() string
+
+	// GetContext returns the ServerContext this element belongs to, which is the level
+	// (server, solution, application, isolation) it was created at.
 	GetContext() ServerContext
+
+	// GetType returns the discriminator identifying which manager this is.
 	GetType() ServerElementType
 }
 
@@ -116,13 +136,43 @@ type ServerContext interface {
 	GetLogLevel() int
 	// GetLogFormat returns the current log format.
 	GetLogFormat() string
-
 }
 
+// EngineContext exposes the transport underneath a request, for the cases the platform's own
+// parameter and response handling cannot serve — streaming a large body, upgrading a connection,
+// or reading something engine-specific.
+//
+// Everything here returns interface{} and the concrete type is decided by the ENGINE serving the
+// request, not by this interface. Code that type-asserts to one engine's types compiles fine and
+// panics under another, so an assertion should be the comma-ok form and the engine it assumes
+// should be stated where it is made.
+//
+// Reach for this only when the ordinary path will not do: parameters through the Get*Param family
+// and replies through SetResponse work across every engine, and this does not.
 type EngineContext interface {
+	// GetRequest returns the engine's request object — an *http.Request on the HTTP engines.
 	GetRequest() interface{}
+
+	// GetRequestStream returns the request body as a live stream, an io.ReadCloser on the HTTP
+	// engines, so a large payload can be consumed incrementally instead of being buffered.
+	//
+	// It is the reason a plugin never needs to read the whole body into memory to process it.
+	// The body is consumed by reading: taking it here and also declaring a body-bearing channel
+	// parameter means one of the two gets nothing.
 	GetRequestStream() (interface{}, error)
+
+	// GetResponseStream returns the response writer as a live stream, an http.ResponseWriter on
+	// the HTTP engines, for writing a reply incrementally rather than as one value.
+	//
+	// Writing here bypasses the platform's response handling, so status and content type are
+	// the caller's own responsibility.
 	GetResponseStream() (interface{}, error)
+
+	// GetConnection returns the underlying connection, which is what a protocol needing to hold
+	// one open — a websocket upgrade, a long-lived stream — starts from.
 	GetConnection() interface{}
+
+	// GetUnderlyingContext returns the engine framework's own context object. On some engines
+	// this is the same object GetConnection returns.
 	GetUnderlyingContext() interface{}
 }
