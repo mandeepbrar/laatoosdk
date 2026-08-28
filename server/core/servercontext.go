@@ -51,6 +51,7 @@ const (
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
+	ServerElementKnowledgeManager
 )
 
 type ContextMap map[ServerElementType]ServerElement
