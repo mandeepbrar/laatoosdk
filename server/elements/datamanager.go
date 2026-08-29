@@ -19,6 +19,17 @@ type DataManager interface {
 	//create condition from a query, for shapes the shorthand cannot express. Callers needing
 	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
 	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
+	//start a chained query against the component registered for obj — the DataManager-scoped
+	//twin of DataComponent.CreateQuery, taking the entity name a caller here does not otherwise
+	//have a component for. Build with Where/Through/Expanding, end with All, One, Count or
+	//Condition.
+	//
+	//An obj with no registered component yields a builder that fails at its terminal, not a nil,
+	//so a chain reports the missing component where the caller is already checking an error.
+	CreateQuery(ctx core.RequestContext, obj string) *data.QueryBuilder
+	//start a chained query from OData filter text against the component registered for obj. The
+	//parameter is a string and this contract carries no parser; parsing belongs to the component.
+	CreateODataQuery(ctx core.RequestContext, obj string, odataQuery string) *data.QueryBuilder
 
 	//Save writes an item through the data component registered for obj, after running the
 	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the

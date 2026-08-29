@@ -114,6 +114,23 @@ type DataComponent interface {
 	//must not silently reduce a capability it lacks to a weaker one — it declares it here and
 	//rejects it at compile time.
 	SupportsQuery(capability QueryCapability) bool
+	//starts a chained query against this component: build with Where/Through/Expanding, then end
+	//with All, One, Count or Condition. It is the convenience path for a query built per request;
+	//a fixed-shape query run many times still belongs in CompileQuery once and BindQuery per
+	//request, because a builder compiles on every terminal.
+	//
+	//Every provider inherits BaseComponent's implementation, which binds the builder to the
+	//concrete component — no provider implements this itself.
+	CreateQuery(ctx core.RequestContext) *QueryBuilder
+	//starts a chained query from OData filter text, so a caller holding a query string reaches the
+	//same chain as one building predicates. Further chaining refines what the text produced:
+	//CreateODataQuery(ctx, "$filter=Status eq 'active'").Expanding(...).All()
+	//
+	//The parameter is a STRING and this contract carries no parser — parsing belongs to the
+	//implementor, which is why declaring it here costs this module no dependency. BaseComponent's
+	//default fails the chain with Core_Not_Implemented until the OData lowering is available to
+	//it; a caller sees that at the terminal, never a wrong result from an unparsed filter.
+	CreateODataQuery(ctx core.RequestContext, odataQuery string) *QueryBuilder
 	//save an object
 	Save(ctx core.RequestContext, item core.Storable) error
 	//AddToArray appends an item to a list-valued field of one record, without loading it.
