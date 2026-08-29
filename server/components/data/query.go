@@ -398,6 +398,27 @@ type Traversal struct {
 	// of DepthUnbounded has no upper bound.
 	MinDepth int
 	MaxDepth int
+	// Relationship narrows the traversal to edges of one declared TYPE, and is what
+	// `relationshipname` in an entity's field declaration exists to be matched on.
+	//
+	// Empty means every edge the Path reaches, which is what every traversal built before this
+	// field existed meant -- so an unset Relationship changes nothing.
+	//
+	// It is matched against data.StorableRef.Relationship, which codegen stamps onto the
+	// reference at save. That value is STORED rather than derived, so a provider may answer this
+	// from an index; a struct tag could not, which is the whole reason the SDK carries it as a
+	// field. Until this existed, `relationshipname` could be declared and stamped and then matched
+	// on by nothing: Relationship appeared only in storageinfo.go across the entire SDK, so the
+	// AST had no way to say "every KNOWS edge".
+	//
+	// Gated by CapabilityRelationshipMatch: a provider that stores the ref but cannot filter on
+	// its Relationship must refuse rather than return every edge, which is a wider answer than
+	// the query asked for.
+	Relationship string
+	// TargetScope carries how the entity this path REACHES must be restricted -- see
+	// ScopeRequirement. Nil means the caller has not said, and a provider must then refuse to
+	// compile the hop natively rather than emit an unrestricted join.
+	TargetScope *ScopeRequirement
 	// MatchOptional makes a path that reaches nothing non-fatal to the match: the record is
 	// kept and the sub-predicate contributes nothing. This is SPARQL's OPTIONAL and a left
 	// outer join, and it is the construct a nested OPTIONAL currently has no home for.
@@ -409,6 +430,46 @@ type Traversal struct {
 	// and the two are never substitutes.
 	MatchOptional bool
 }
+
+// ScopeRequirement states how the entity a traversal or expansion REACHES must be restricted, so
+// a provider compiling the hop into its own store query applies what the target's own component
+// would have applied.
+//
+// WHY THIS TRAVELS ON THE QUERY RATHER THAN BEING ASKED OF THE TARGET. The provider compiling a
+// join holds the PARENT's component and never the child's -- resolving another entity's component
+// is the DataManager's job, and a provider reaching for it on the query path is the coupling the
+// hop executor exists to keep out. So the requirement is stamped onto the query by the caller,
+// which can resolve components, and the provider reads it as data.
+//
+// WHY NOT READ THE TARGET'S StorableConfig INSTEAD. Because it is not the source of truth. A data
+// service takes these settings from MODULE CONFIGURATION, falling back to the entity's own
+// declaration only when the module supplies none -- which is exactly what the admin-portal
+// pattern overrides. A provider reading the entity's flags would apply the default a deployment
+// had deliberately changed, and would do it silently.
+//
+// AN UNSET REQUIREMENT MEANS UNKNOWN, NOT UNRESTRICTED. A provider handed a traversal whose
+// TargetScope is nil has not been told the target needs no restriction -- it has not been told
+// anything, and must refuse the native path rather than emit a join with none. Reading nil as "no
+// restriction required" is a cross-tenant read that RETURNS ROWS, which is the failure this type
+// exists to prevent.
+type ScopeRequirement struct {
+	// Multitenant says the target's rows are partitioned per tenant, so the hop must restrict to the
+	// caller's tenant. The VALUE is not carried here: it belongs to the request, and a query is
+	// compiled once and bound many times.
+	Multitenant bool
+	// TenantField names the column or property carrying the tenant, so a provider need not
+	// hardcode the platform's own spelling of it.
+	TenantField string
+	// SoftDelete says the target marks deletion rather than removing the row, so the hop must
+	// exclude the deleted ones.
+	SoftDelete bool
+	// DeletedField names the flag soft deletion sets.
+	DeletedField string
+}
+
+// ScopedTraversal reports whether this traversal has been told how to restrict what it reaches.
+// A provider compiling a hop natively must check this and refuse when it is false.
+func (t *Traversal) ScopedTraversal() bool { return t.TargetScope != nil }
 
 // Kind reports that this is a traversal node.
 func (t *Traversal) Kind() PredicateKind { return KindTraversal }
@@ -621,6 +682,17 @@ const (
 	// other capability here for the reason given above: an executor that wrongly accepts a
 	// cycle does not fail, it answers.
 	CapabilityCyclicPattern QueryCapability = "cyclicpattern"
+
+	// CapabilityRelationshipMatch covers a Traversal that narrows to one edge TYPE via
+	// Relationship. It is separate from CapabilityNavigationPath because following a reference
+	// and filtering on the edge's declared type are different asks: every store that holds a
+	// reference can follow it, while only one that stored and indexed StorableRef.Relationship
+	// can filter on it.
+	//
+	// A provider must refuse rather than ignore the field. Ignoring it returns every edge the
+	// path reaches instead of the ones of that type -- a WIDER answer than the query asked for,
+	// which no caller can detect from the rows.
+	CapabilityRelationshipMatch QueryCapability = "relationshipmatch"
 )
 
 // ExpandingComponent is implemented by a DataComponent that compiles the $expand projection
