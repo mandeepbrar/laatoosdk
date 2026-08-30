@@ -23,6 +23,18 @@ const (
 	CONF_PREUPDATE_MSG            = "storable_preupdate"
 	CONF_POSTUPDATE_MSG           = "storable_postupdate"
 	CONF_NEWOBJ_MSG               = "storable_new"
+	// Delete notifications. They complete the lifecycle: presave/postsave and
+	// preupdate/postupdate already exist, and delete was the one mutation a rule could not
+	// observe -- so anything deriving state from a record (an edge row, a projection, a cache
+	// entry) had no way to learn the record was gone, and silently kept the derived state.
+	//
+	// These travel the SYNCHRONOUS rules path, ctx.SendSynchronousMessage, exactly as the save
+	// and update pairs do. That is deliberate and is the whole point: the call returns an error,
+	// so a listener that cannot remove its derived state FAILS the delete rather than leaving
+	// the record gone and the derivation behind. The asynchronous data-event path
+	// (EmitDataEvent) cannot express that -- it is fire-and-forget and returns nothing.
+	CONF_PREDELETE_MSG            = "storable_predelete"
+	CONF_POSTDELETE_MSG           = "storable_postdelete"
 )
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
