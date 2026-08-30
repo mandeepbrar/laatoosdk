@@ -44,6 +44,17 @@ type Dataset struct {
 	Name       string
 	Properties utils.StringsMap
 	Entity     string
+	// Namespace names the DATA namespace holding Entity, the other half of the key the component
+	// registry is now built on. Declared in the dataset YAML as `Namespace`, and empty means
+	// NAMESPACE_DEFAULT -- so every dataset written before namespaces existed resolves exactly as
+	// it did.
+	//
+	// A dataset needs its own because Entity alone stops identifying a component once one entity
+	// name exists in two namespaces, which is what a per-connection plugin creates. Without it a
+	// dataset over a namespaced entity resolves in the default namespace and fails with a
+	// not-found that names nothing wrong with the dataset -- a runtime failure the compiler cannot
+	// see, since the default-namespace lookup it calls kept its signature.
+	Namespace  string
 	QueryType  string
 	QueryData  interface{}
 	Params     utils.StringsMap
