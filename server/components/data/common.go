@@ -52,23 +52,17 @@ const (
 // be inverted at lookup time does not.
 const NAMESPACE_DEFAULT = "default"
 
-// NamespacedComponent is implemented by a data component that lives somewhere other than the
-// default namespace.
+// A data component's namespace is read from core.Service.GetNamespace, which DataComponent
+// already embeds -- there is no separate interface for it, and an earlier draft of this work added
+// one before noticing.
 //
-// It is an OPTIONAL interface, asserted at registration, and that is deliberate: widening
-// DataComponent itself would break every implementor SILENTLY, because Go checks interface
-// satisfaction at the assertion site rather than at compile time. A component that does not
-// implement this occupies NAMESPACE_DEFAULT, which is what every component does today, so nothing
-// existing has to change to keep working.
-//
-// This is the same shape ExpandingComponent uses for native expansion: capability declared by
-// implementing, absence meaning the ordinary path.
-type NamespacedComponent interface {
-	// GetNamespace returns the namespace this component registers under. An empty string is
-	// read as NAMESPACE_DEFAULT, so a partially-configured component cannot silently occupy a
-	// namespace named "".
-	GetNamespace() string
-}
+// That draft could not have compiled: core.Service already declares
+// GetNamespace(ctx core.ServerContext) string, so a second GetNamespace() string on the same type
+// is a method-set conflict, and Go says so ("no type can implement both"). The existing one was
+// vestigial -- serviceInfo hardcoded "default" and carried an unused namespace field, with exactly
+// one caller in the tree, a pass-through in serviceelement.go. It defaults to the same value
+// NAMESPACE_DEFAULT names, so populating it is what turns a dormant declaration into the axis
+// rather than adding a parallel one beside it.
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
