@@ -149,4 +149,45 @@ type DataManager interface {
 	VectorSearch(ctx core.RequestContext, obj string, vector []float32, limit int, filter interface{}) ([]data.VectorResult, error)
 	//Subscribe to data events
 	Subscribe(ctx core.RequestContext, obj string, eventType data.DataEventType, handler core.MessageListener) error
+
+	// ---- Namespace-carrying variants -------------------------------------------------------
+	//
+	// The registry is keyed on (namespace, object), and every method above means the DEFAULT
+	// namespace. These say which one instead.
+	//
+	// They are PARALLEL METHODS rather than widened signatures, and Go has no overloading, so
+	// they carry their own names. The reason is measured: 178 production call sites across ~65
+	// files use the methods above, none of them generated, and widening would have edited every
+	// one to insert a constant. The methods above are not a degraded form -- for the
+	// single-namespace deployment, which is most of them, they are exactly right.
+	//
+	// Only the methods measured as actually called have a variant. The unused tail of the
+	// interface stays as it is until something needs it; adding a variant nobody calls is
+	// surface with no reader.
+	//
+	// A namespace of "" is read as NAMESPACE_DEFAULT, so these are safe to call unconditionally
+	// from code that may or may not have a namespace in hand.
+	CreateConditionInNamespace(ctx core.RequestContext, namespace string, obj string, args utils.StringMap) (interface{}, error)
+	CreateQueryConditionInNamespace(ctx core.RequestContext, namespace string, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
+	SaveInNamespace(ctx core.RequestContext, namespace string, obj string, item core.Storable) error
+	PutInNamespace(ctx core.RequestContext, namespace string, obj string, id string, item core.Storable) error
+	UpsertIdInNamespace(ctx core.RequestContext, namespace string, obj string, id string, newVals utils.StringMap) error
+	UpdateInNamespace(ctx core.RequestContext, namespace string, obj string, id string, newVals utils.StringMap) error
+	DeleteInNamespace(ctx core.RequestContext, namespace string, obj string, id string) error
+	GetByIdInNamespace(ctx core.RequestContext, namespace string, obj string, id string, dao string) (core.Storable, error)
+	GetInNamespace(ctx core.RequestContext, namespace string, props []string, obj string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy []string, dao string) (dataToReturn []core.Storable, ids []string, totalrecs int, recsreturned int, err error)
+	GetOneInNamespace(ctx core.RequestContext, namespace string, props []string, obj string, queryCond interface{}, dao string) (dataToReturn core.Storable, err error)
+
+	// RegisterDataComponentInNamespace registers a component under an explicit namespace.
+	//
+	// RegisterDataComponent above places the component in the namespace it declares through
+	// data.NamespacedComponent, or NAMESPACE_DEFAULT when it declares none. This is for a caller
+	// that knows better than the component does.
+	//
+	// EITHER WAY, A DUPLICATE (namespace, object) IS REFUSED rather than replacing what is
+	// there. Until this change the registry did an unconditional Store, so two components
+	// claiming one name both logged success and every write went to whichever registered last.
+	RegisterDataComponentInNamespace(ctx core.ServerContext, namespace string, obj string, comp data.DataComponent) error
+	// GetRegisteredComponentInNamespace resolves a component in an explicit namespace.
+	GetRegisteredComponentInNamespace(ctx core.ServerContext, namespace string, obj string) (data.DataComponent, error)
 }

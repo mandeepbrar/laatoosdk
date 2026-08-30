@@ -33,9 +33,42 @@ const (
 	// so a listener that cannot remove its derived state FAILS the delete rather than leaving
 	// the record gone and the derivation behind. The asynchronous data-event path
 	// (EmitDataEvent) cannot express that -- it is fire-and-forget and returns nothing.
-	CONF_PREDELETE_MSG            = "storable_predelete"
-	CONF_POSTDELETE_MSG           = "storable_postdelete"
+	CONF_PREDELETE_MSG  = "storable_predelete"
+	CONF_POSTDELETE_MSG = "storable_postdelete"
+
+	// CONF_DATA_NAMESPACE is the module/entity setting naming a component's namespace.
+	CONF_DATA_NAMESPACE = "namespace"
 )
+
+// NAMESPACE_DEFAULT is the namespace a component occupies when nothing declares one, and the one
+// a lookup means when it does not say.
+//
+// It is a real namespace rather than a derived value, and that is the whole reason existing
+// behaviour survives. A draft of this design derived the default from the component's
+// dataconnection instead: in a single-connection deployment named "boltdb" every component would
+// have landed in namespace "boltdb", and every lookup asking for the default would have found
+// nothing -- 178 call sites failing in exactly the deployment shape that was supposed to see no
+// change at all. Preserving behaviour by ABSENCE works; preserving it by a derivation that has to
+// be inverted at lookup time does not.
+const NAMESPACE_DEFAULT = "default"
+
+// NamespacedComponent is implemented by a data component that lives somewhere other than the
+// default namespace.
+//
+// It is an OPTIONAL interface, asserted at registration, and that is deliberate: widening
+// DataComponent itself would break every implementor SILENTLY, because Go checks interface
+// satisfaction at the assertion site rather than at compile time. A component that does not
+// implement this occupies NAMESPACE_DEFAULT, which is what every component does today, so nothing
+// existing has to change to keep working.
+//
+// This is the same shape ExpandingComponent uses for native expansion: capability declared by
+// implementing, absence meaning the ordinary path.
+type NamespacedComponent interface {
+	// GetNamespace returns the namespace this component registers under. An empty string is
+	// read as NAMESPACE_DEFAULT, so a partially-configured component cannot silently occupy a
+	// namespace named "".
+	GetNamespace() string
+}
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
