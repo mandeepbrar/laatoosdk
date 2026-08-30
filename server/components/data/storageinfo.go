@@ -137,9 +137,9 @@ func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 // resolvable without consulting the schema — which is what lets expansion resolve a target at
 // runtime with no schema lookup, and what Relationship is carried the same way to preserve.
 type StorableRef struct {
-	Id      string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);`
-	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);`
-	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);`
+	Id      string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);"`
+	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);"`
+	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);"`
 	Version string   `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
 	// Relationship is the edge TYPE — what a traversal matches on — declared per reference
 	// field in the entity YAML under the key `relationshipname` and stamped into the entity's
