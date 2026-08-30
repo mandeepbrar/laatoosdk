@@ -20,6 +20,16 @@ type StorableConfig struct {
 	RefOps            bool
 	Workflow          bool
 	Multitenant       bool
+	// Namespace places this entity's data component in a DATA namespace, forming the other half
+	// of the (namespace, object) key the DataManager registry uses. Declared in the entity YAML as
+	// `namespace`, and empty means NAMESPACE_DEFAULT.
+	//
+	// A MODULE SETTING OVERRIDES IT, exactly as it does for Multitenant and SoftDelete above --
+	// see BaseComponent.Initialize, where all three read the module configuration first and fall
+	// back to this. That is what lets one entity be instantiated per connection by several module
+	// instances, each in its own namespace, without the entity file having to know about any of
+	// them.
+	Namespace string
 	// SoftDelete makes Delete mark the record rather than remove it: the data service updates
 	// the entity's Deleted field to true, and every read excludes it. Every generated entity
 	// already embeds data.DeletionInfo unconditionally, so the field exists in storage whether

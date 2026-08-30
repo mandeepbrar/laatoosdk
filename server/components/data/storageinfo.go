@@ -137,10 +137,10 @@ func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 // resolvable without consulting the schema — which is what lets expansion resolve a target at
 // runtime with no schema lookup, and what Relationship is carried the same way to preserve.
 type StorableRef struct {
-	Id      string   `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);"`
-	Type    string   `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);"`
-	Name    string   `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);"`
-	Version string   `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
+	Id      string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100);"`
+	Type    string `json:"Type" bson:"Type" protobuf:"bytes,59,opt,name=type,proto3" sql:"type:varchar(100);"`
+	Name    string `json:"Name" bson:"Name" protobuf:"bytes,60,opt,name=name,proto3" sql:"type:varchar(300);"`
+	Version string `json:"Version" bson:"Version" protobuf:"bytes,74,opt,name=version,proto3" sql:"type:varchar(50);" `
 	// Relationship is the edge TYPE — what a traversal matches on — declared per reference
 	// field in the entity YAML under the key `relationshipname` and stamped into the entity's
 	// generated WriteAll by codegen, exactly as Type already is. The generated guard is
@@ -155,6 +155,27 @@ type StorableRef struct {
 	// It is scalar and non-list so that the entity `index` flag emits its tags for it, which
 	// is the whole reason it is not simply a key in Annotations.
 	Relationship string `json:"Relationship" bson:"Relationship" protobuf:"bytes,75,opt,name=relationship,proto3" sql:"type:varchar(100);"`
+	// Namespace names the DATA namespace holding the referenced record, forming the other half of
+	// the (namespace, Type) pair the registry is keyed on. Empty means NAMESPACE_DEFAULT, so every
+	// reference stored before this field existed resolves exactly as it did -- there is no
+	// migration and no backfill.
+	//
+	// It is needed because Type alone stops identifying a component once the same entity name
+	// exists in two namespaces, which is precisely what a per-connection plugin creates. The
+	// alternative -- resolving to whichever namespace happens to hold the name -- would route a
+	// read to a store the reference never named, and that fallback is rejected platform-wide.
+	//
+	// A REFERENCE ACROSS NAMESPACES IS HOP-EXECUTOR-ONLY, PERMANENTLY. Namespaces separate stores,
+	// no provider can compile a join across two of them, so such a reference can never be resolved
+	// natively however capable the provider. That is the same constraint traversal already carries
+	// for cross-store paths, now reachable through an ordinary storableref rather than only
+	// through a graph query -- worth knowing before modelling one, because it is a permanent
+	// property of the reference and not a temporary provider gap.
+	//
+	// Cross-store references themselves are not new: the hop executor has always resolved each
+	// entity through its own component, so a mongo record referencing a postgres one already
+	// worked. This names WHICH component when the name alone is ambiguous.
+	Namespace string `json:"Namespace,omitempty" bson:"Namespace,omitempty" protobuf:"bytes,77,opt,name=namespace,proto3" sql:"type:varchar(100);"`
 	// Annotations is free-form metadata that TRAVELS with the reference — provenance, the
 	// actor who created the link, a display label, a correlation id. It is persisted, and it
 	// is deliberately NOT queryable.
@@ -170,7 +191,7 @@ type StorableRef struct {
 	// A nil map costs nothing: WriteAll skips it entirely, so an unused Annotations adds no
 	// bytes to any stored reference.
 	Annotations utils.StringsMap `json:"Annotations,omitempty" bson:"Annotations,omitempty" protobuf:"bytes,76,rep,name=annotations,proto3" sql:"-"`
-	Entity  core.Storable `json:"-" datastore:"-" bson:"-" sql:"-" firestore:"-" protobuf:"group,64,opt,name=Entity,proto3"`
+	Entity      core.Storable    `json:"-" datastore:"-" bson:"-" sql:"-" firestore:"-" protobuf:"group,64,opt,name=Entity,proto3"`
 }
 
 func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
@@ -194,6 +215,11 @@ func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes
 	if err = rdr.ReadString(c, cdc, "Relationship", &si.Relationship); err != nil {
 		return err
 	}
+	// same tolerance as Relationship above: a reference written before this field existed reads
+	// back with an empty Namespace, which resolves as NAMESPACE_DEFAULT
+	if err = rdr.ReadString(c, cdc, "Namespace", &si.Namespace); err != nil {
+		return err
+	}
 	if err = rdr.ReadMap(c, cdc, "Annotations", &si.Annotations); err != nil {
 		return err
 	}
@@ -215,6 +241,9 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 		return err
 	}
 	if err = wtr.WriteString(c, cdc, "Relationship", &si.Relationship); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "Namespace", &si.Namespace); err != nil {
 		return err
 	}
 	// guarded, unlike every other field here, because a StorableRef is embedded in a large

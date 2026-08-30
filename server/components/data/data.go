@@ -64,6 +64,53 @@ type VectorResult struct {
 type DataComponent interface {
 	core.Service
 
+	//GetDataNamespace reports which DATA namespace this component registers under, forming the
+	//other half of the (namespace, object) key the DataManager registry uses. NAMESPACE_DEFAULT
+	//is the answer for a component that has not been placed anywhere else, which is every
+	//component until a deployment declares otherwise.
+	//
+	//IT IS NOT core.Service.GetNamespace, which this interface also carries through the embedded
+	//Service above. That one is the SECURITY namespace: the server reads it on every request and
+	//hands it to SecurityHandler.AuthorizeService (laatooserver core/serviceelement.go:204).
+	//Answering the storage question with it would let a component naming its database silently
+	//relocate its own Casbin authorization, which is a security change wearing the clothes of a
+	//storage setting. A draft of this work did exactly that, on the strength of a grep that found
+	//the getNamespace wrapper and stopped one hop short of the AuthorizeService call.
+	//
+	//This is a REQUIRED method rather than an optional interface asserted at registration. The
+	//usual argument against widening an SDK interface -- that Go checks satisfaction at the
+	//assertion site, so implementors break silently and far from the cause -- does not hold here,
+	//because it assumes implementors outside your reach. Every implementor in the platform embeds
+	//datacommon.BaseComponent, so one implementation there answers for all seven providers and the
+	//masterdata wrapper; the remainder embed this interface and inherit it. Measured before the
+	//change: two test doubles needed a method, both compile errors in laatooserver/src.
+	//
+	//Required also makes the namespace deliberate. An optional interface leaves a provider that
+	//forgets it silently in the default namespace, which is the "both forms work and nobody
+	//notices" shape the platform avoids elsewhere.
+	GetDataNamespace() string
+
+	//IsMyNamespace reports whether this component can reach the named namespace, treating "" as
+	//NAMESPACE_DEFAULT.
+	//
+	//It is NOT derivable from GetDataNamespace, and that is the whole reason it exists.
+	//GetDataNamespace answers "where am I" with a single string; this answers "can I reach there",
+	//and the two differ whenever one provider spans several namespaces in one physical store --
+	//two schemas in one Postgres, two buckets in one Couchbase. Such a provider is a single store
+	//for join purposes and should say so.
+	//
+	//THE CALLER THIS EXISTS FOR IS JOIN FEASIBILITY. Deciding whether a reference or a traversal
+	//can compile natively is a question about whether one provider can reach both sides, and only
+	//the provider knows. The registry cannot answer it: it knows which component holds each
+	//entity, not which of them share a store.
+	//
+	//BaseComponent's default is strict equality after normalisation, which is correct for every
+	//provider that maps one namespace to one connection -- all of them today. A provider widens it
+	//only when it genuinely spans more, and a provider that widens it dishonestly produces a join
+	//that compiles and reads from the wrong store, so the same honesty rule applies here as to
+	//query capabilities.
+	IsMyNamespace(ctx core.ServerContext, namespace string) bool
+
 	//GetDataServiceType reports which storage family backs this component, as one of the
 	//DATASERVICE_TYPE_* constants above. Providers return a fixed value — mongodatabase returns
 	//DATASERVICE_TYPE_NOSQL (mongodataservice.go:131-133) — and it is a static property of the

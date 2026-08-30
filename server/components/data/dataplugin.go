@@ -208,11 +208,13 @@ func (svc *DataPlugin) AddToArray(ctx core.RequestContext, id string, fieldName 
 func (svc *DataPlugin) Execute(ctx core.RequestContext, name string, data interface{}, params utils.StringMap) (interface{}, error) {
 	return svc.PluginDataComponent.Execute(ctx, name, data, params)
 }
-	//Vector Search
+
+//Vector Search
 func (svc *DataPlugin) VectorSearch(ctx core.RequestContext, vector []float32, limit int, filter interface{}) ([]VectorResult, error) {
 	return svc.PluginDataComponent.VectorSearch(ctx, vector, limit, filter)
 }
-	//Subscribe to data events
+
+//Subscribe to data events
 func (svc *DataPlugin) Subscribe(ctx core.RequestContext, obj string, eventType DataEventType, handler core.MessageListener) error {
 	return svc.PluginDataComponent.Subscribe(ctx, obj, eventType, handler)
 }

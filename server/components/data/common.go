@@ -43,26 +43,13 @@ const (
 // NAMESPACE_DEFAULT is the namespace a component occupies when nothing declares one, and the one
 // a lookup means when it does not say.
 //
-// It is a real namespace rather than a derived value, and that is the whole reason existing
-// behaviour survives. A draft of this design derived the default from the component's
-// dataconnection instead: in a single-connection deployment named "boltdb" every component would
-// have landed in namespace "boltdb", and every lookup asking for the default would have found
-// nothing -- 178 call sites failing in exactly the deployment shape that was supposed to see no
-// change at all. Preserving behaviour by ABSENCE works; preserving it by a derivation that has to
-// be inverted at lookup time does not.
+// It is a real namespace rather than a derived value, and that is what makes existing behaviour
+// survive. A draft derived the default from the component's dataconnection: in a single-connection
+// deployment named "boltdb" every component would have landed in namespace "boltdb" and every
+// lookup asking for the default would have found nothing -- 178 call sites failing in exactly the
+// deployment shape that was supposed to see no change. Preserving behaviour by ABSENCE works;
+// preserving it by a derivation that must be inverted at lookup does not.
 const NAMESPACE_DEFAULT = "default"
-
-// A data component's namespace is read from core.Service.GetNamespace, which DataComponent
-// already embeds -- there is no separate interface for it, and an earlier draft of this work added
-// one before noticing.
-//
-// That draft could not have compiled: core.Service already declares
-// GetNamespace(ctx core.ServerContext) string, so a second GetNamespace() string on the same type
-// is a method-set conflict, and Go says so ("no type can implement both"). The existing one was
-// vestigial -- serviceInfo hardcoded "default" and carried an unused namespace field, with exactly
-// one caller in the tree, a pass-through in serviceelement.go. It defaults to the same value
-// NAMESPACE_DEFAULT names, so populating it is what turns a dormant declaration into the axis
-// rather than adding a parallel one beside it.
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
