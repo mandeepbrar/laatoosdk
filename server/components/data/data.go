@@ -184,15 +184,13 @@ type DataComponent interface {
 	//Every provider inherits BaseComponent's implementation, which binds the builder to the
 	//concrete component — no provider implements this itself.
 	CreateQuery(ctx core.RequestContext) *QueryBuilder
-	//starts a chained query from OData filter text, so a caller holding a query string reaches the
-	//same chain as one building predicates. Further chaining refines what the text produced:
-	//CreateODataQuery(ctx, "$filter=Status eq 'active'").Expanding(...).All()
 	//
-	//The parameter is a STRING and this contract carries no parser — parsing belongs to the
-	//implementor, which is why declaring it here costs this module no dependency. BaseComponent's
-	//default fails the chain with Core_Not_Implemented until the OData lowering is available to
-	//it; a caller sees that at the terminal, never a wrong result from an unparsed filter.
-	CreateODataQuery(ctx core.RequestContext, odataQuery string) *QueryBuilder
+	//A caller holding query TEXT rather than predicates uses elements.DataManager.CreateTextQuery
+	//instead. Text does NOT belong on this interface: reading it means resolving a QueryComponent
+	//by name, the registry of those lives on the DataManager, and a component reaching back up to
+	//its own manager to answer a call made on itself is a cycle with no purpose. This is why the
+	//CreateODataQuery that stood here was declared and never implemented — every implementor
+	//failed the chain with Core_Not_Implemented, because a component genuinely cannot parse.
 	//save an object
 	Save(ctx core.RequestContext, item core.Storable) error
 	//AddToArray appends an item to a list-valued field of one record, without loading it.

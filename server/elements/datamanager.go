@@ -13,6 +13,16 @@ type DataManager interface {
 	RegisterDataComponent(ctx core.ServerContext, obj string, comp data.DataComponent) error
 	//get component registered for an entity
 	GetRegisteredComponent(ctx core.ServerContext, obj string) (data.DataComponent, error)
+	//register a query component — one surface syntax a dataset may be written in, such as OData
+	//or openCypher. See data.QueryComponent: a form is a plugin's to supply, so a server carries
+	//only the forms a deployment actually installs.
+	//
+	//REGISTRATION MUST PRECEDE DATASET LOAD. Lowering happens as each dataset is processed, so a
+	//component registered afterwards cannot serve the datasets that named it — those have already
+	//failed to load. Registering one name twice is an error rather than a replacement: two
+	//components claiming one form is a configuration mistake, and silently keeping either would
+	//let load order decide which surface syntax a dataset is read as.
+	RegisterQueryComponent(ctx core.ServerContext, component data.QueryComponent) error
 	//create condition from field/value pairs combined with equality — the shorthand, unchanged
 	//in shape from what callers have always written
 	CreateCondition(ctx core.RequestContext, obj string, args utils.StringMap) (interface{}, error)
@@ -27,9 +37,21 @@ type DataManager interface {
 	//An obj with no registered component yields a builder that fails at its terminal, not a nil,
 	//so a chain reports the missing component where the caller is already checking an error.
 	CreateQuery(ctx core.RequestContext, obj string) *data.QueryBuilder
-	//start a chained query from OData filter text against the component registered for obj. The
-	//parameter is a string and this contract carries no parser; parsing belongs to the component.
-	CreateODataQuery(ctx core.RequestContext, obj string, odataQuery string) *data.QueryBuilder
+	//start a chained query from query TEXT, written in the named form — "odata", "cypher", or
+	//any form a registered data.QueryComponent supplies. The component named by `form` parses the
+	//text into the AST; this contract carries no parser of its own.
+	//
+	//THE FORM IS NAMED, NEVER DETECTED. Several forms share a surface — an OData expression and a
+	//Cypher query are both just strings — so detecting would mean guessing which language the
+	//caller wrote, and guessing wrong reads the text as a different query rather than refusing it.
+	//
+	//This REPLACES CreateODataQuery, which was one method per form and had to grow by one method
+	//per form forever. Naming the form makes every future form free.
+	//
+	//A form with no registered component, or one whose ParseQuery refuses, yields a builder that
+	//fails at its terminal rather than a nil — the same shape CreateQuery uses for an obj with no
+	//component, so a chain reports it where the caller is already checking an error.
+	CreateTextQuery(ctx core.RequestContext, obj string, form string, queryText string) *data.QueryBuilder
 
 	//Save writes an item through the data component registered for obj, after running the
 	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the
