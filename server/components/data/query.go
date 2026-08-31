@@ -465,15 +465,22 @@ type ScopeRequirement struct {
 	SoftDelete bool
 	// DeletedField names the flag soft deletion sets.
 	DeletedField string
-	// Namespace names the DATA namespace the reached entity lives in. Empty means the caller has
+	// Connection names the dataconnection the reached entity lives on. Empty means the caller has
 	// not said, and it inherits this struct's existing rule exactly: a provider must then REFUSE to
 	// compile the hop natively rather than guess. Guessing here would emit a join against whichever
 	// store the provider happens to hold, which is a wrong answer rather than a missing one.
 	//
+	// A hop whose Connection differs from the querying component's is HOP-EXECUTOR-ONLY and always
+	// will be: a dataconnection is a store boundary, and no provider can compile a join across two
+	// stores however capable it is.
+	//
+	// NOT to be confused with Extension.Namespace above, which is a VOCABULARY namespace naming
+	// which provider owns an extension's grammar and has nothing to do with storage.
+	//
 	// It lives here rather than on Traversal because this struct already IS the description of what
 	// a path reaches, and because the refuse-when-unset semantics it needs are already the rule
 	// stated on TargetScope.
-	Namespace string
+	Connection string
 }
 
 // ScopedTraversal reports whether this traversal has been told how to restrict what it reaches.

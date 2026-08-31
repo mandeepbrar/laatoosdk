@@ -155,27 +155,32 @@ type StorableRef struct {
 	// It is scalar and non-list so that the entity `index` flag emits its tags for it, which
 	// is the whole reason it is not simply a key in Annotations.
 	Relationship string `json:"Relationship" bson:"Relationship" protobuf:"bytes,75,opt,name=relationship,proto3" sql:"type:varchar(100);"`
-	// Namespace names the DATA namespace holding the referenced record, forming the other half of
-	// the (namespace, Type) pair the registry is keyed on. Empty means NAMESPACE_DEFAULT, so every
-	// reference stored before this field existed resolves exactly as it did -- there is no
-	// migration and no backfill.
+	// DataConnection names the dataconnection holding the referenced record, forming the other
+	// half of the (dataconnection, Type) pair the registry is keyed on. Empty means "the target is
+	// registered on exactly one connection, resolve it there", so every reference stored before
+	// this field existed resolves exactly as it did -- there is no migration and no backfill.
 	//
-	// It is needed because Type alone stops identifying a component once the same entity name
-	// exists in two namespaces, which is precisely what a per-connection plugin creates. The
-	// alternative -- resolving to whichever namespace happens to hold the name -- would route a
+	// It is needed because Type alone stops identifying a component once the same entity name is
+	// registered on two connections, which is precisely what a per-connection plugin creates. The
+	// alternative -- resolving to whichever connection happens to hold the name -- would route a
 	// read to a store the reference never named, and that fallback is rejected platform-wide.
 	//
-	// A REFERENCE ACROSS NAMESPACES IS HOP-EXECUTOR-ONLY, PERMANENTLY. Namespaces separate stores,
-	// no provider can compile a join across two of them, so such a reference can never be resolved
-	// natively however capable the provider. That is the same constraint traversal already carries
-	// for cross-store paths, now reachable through an ordinary storableref rather than only
-	// through a graph query -- worth knowing before modelling one, because it is a permanent
-	// property of the reference and not a temporary provider gap.
+	// SET IT ONLY WHEN THE TARGET IS AMBIGUOUS, and expect it to be VALIDATED against the registry
+	// on save: a value naming a connection the target is not registered on is refused, the way a
+	// contradicting Type already is. A per-row copy of a fact the registry owns is a fact that can
+	// be wrong, so the registry stays authoritative and this stays a disambiguator.
+	//
+	// A REFERENCE ACROSS CONNECTIONS IS HOP-EXECUTOR-ONLY, PERMANENTLY. A dataconnection is a
+	// store boundary, no provider can compile a join across two of them, so such a reference can
+	// never be resolved natively however capable the provider. That is the same constraint
+	// traversal already carries for cross-store paths, now reachable through an ordinary
+	// storableref rather than only through a graph query -- worth knowing before modelling one,
+	// because it is a permanent property of the reference and not a temporary provider gap.
 	//
 	// Cross-store references themselves are not new: the hop executor has always resolved each
 	// entity through its own component, so a mongo record referencing a postgres one already
 	// worked. This names WHICH component when the name alone is ambiguous.
-	Namespace string `json:"Namespace,omitempty" bson:"Namespace,omitempty" protobuf:"bytes,77,opt,name=namespace,proto3" sql:"type:varchar(100);"`
+	DataConnection string `json:"DataConnection,omitempty" bson:"DataConnection,omitempty" protobuf:"bytes,77,opt,name=dataconnection,proto3" sql:"type:varchar(100);"`
 	// Annotations is free-form metadata that TRAVELS with the reference — provenance, the
 	// actor who created the link, a display label, a correlation id. It is persisted, and it
 	// is deliberately NOT queryable.
@@ -216,8 +221,8 @@ func (si *StorableRef) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes
 		return err
 	}
 	// same tolerance as Relationship above: a reference written before this field existed reads
-	// back with an empty Namespace, which resolves as NAMESPACE_DEFAULT
-	if err = rdr.ReadString(c, cdc, "Namespace", &si.Namespace); err != nil {
+	// back empty, which resolves through the registry when the target is on one connection
+	if err = rdr.ReadString(c, cdc, "DataConnection", &si.DataConnection); err != nil {
 		return err
 	}
 	if err = rdr.ReadMap(c, cdc, "Annotations", &si.Annotations); err != nil {
@@ -243,7 +248,7 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 	if err = wtr.WriteString(c, cdc, "Relationship", &si.Relationship); err != nil {
 		return err
 	}
-	if err = wtr.WriteString(c, cdc, "Namespace", &si.Namespace); err != nil {
+	if err = wtr.WriteString(c, cdc, "DataConnection", &si.DataConnection); err != nil {
 		return err
 	}
 	// guarded, unlike every other field here, because a StorableRef is embedded in a large

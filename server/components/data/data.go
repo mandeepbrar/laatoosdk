@@ -44,17 +44,10 @@ type Dataset struct {
 	Name       string
 	Properties utils.StringsMap
 	Entity     string
-	// Namespace names the DATA namespace holding Entity, the other half of the key the component
-	// registry is now built on. Declared in the dataset YAML as `Namespace`, and empty means
-	// NAMESPACE_DEFAULT -- so every dataset written before namespaces existed resolves exactly as
-	// it did.
-	//
-	// A dataset needs its own because Entity alone stops identifying a component once one entity
-	// name exists in two namespaces, which is what a per-connection plugin creates. Without it a
-	// dataset over a namespaced entity resolves in the default namespace and fails with a
-	// not-found that names nothing wrong with the dataset -- a runtime failure the compiler cannot
-	// see, since the default-namespace lookup it calls kept its signature.
-	Namespace  string
+	// Connection names the dataconnection holding Entity, the other half of the key the component
+	// registry is built on. Declared in the dataset YAML as `Connection`, and empty means the
+	// entity is registered on exactly one connection and resolves there.
+	Connection string
 	QueryType  string
 	QueryData  interface{}
 	Params     utils.StringsMap
@@ -75,52 +68,45 @@ type VectorResult struct {
 type DataComponent interface {
 	core.Service
 
-	//GetDataNamespace reports which DATA namespace this component registers under, forming the
-	//other half of the (namespace, object) key the DataManager registry uses. NAMESPACE_DEFAULT
-	//is the answer for a component that has not been placed anywhere else, which is every
-	//component until a deployment declares otherwise.
+	//GetConnectionName reports the dataconnection this component is bound to, forming the other
+	//half of the (dataconnection, object) key the DataManager registry uses.
+	//
+	//The value is the FACTORY INSTANCE name, which is what a dataconnection is: a provider's
+	//factory config sets `name:` to `{{if exists "dataconnection"}} {{var "dataconnection"}}
+	//{{else}} <plugin> {{end}}`, so the factory registers under the deployment's dataconnection
+	//value and falls back to the plugin name when the deployment declares none. A component is
+	//always created by a factory, so this is never empty and there is no default to substitute.
 	//
 	//IT IS NOT core.Service.GetNamespace, which this interface also carries through the embedded
 	//Service above. That one is the SECURITY namespace: the server reads it on every request and
-	//hands it to SecurityHandler.AuthorizeService (laatooserver core/serviceelement.go:204).
-	//Answering the storage question with it would let a component naming its database silently
-	//relocate its own Casbin authorization, which is a security change wearing the clothes of a
-	//storage setting. A draft of this work did exactly that, on the strength of a grep that found
-	//the getNamespace wrapper and stopped one hop short of the AuthorizeService call.
+	//hands it to SecurityHandler.AuthorizeService (laatooserver core/serviceelement.go:203).
+	//Answering the storage question with it would silently relocate authorization.
 	//
-	//This is a REQUIRED method rather than an optional interface asserted at registration. The
-	//usual argument against widening an SDK interface -- that Go checks satisfaction at the
-	//assertion site, so implementors break silently and far from the cause -- does not hold here,
-	//because it assumes implementors outside your reach. Every implementor in the platform embeds
-	//datacommon.BaseComponent, so one implementation there answers for all seven providers and the
-	//masterdata wrapper; the remainder embed this interface and inherit it. Measured before the
-	//change: two test doubles needed a method, both compile errors in laatooserver/src.
-	//
-	//Required also makes the namespace deliberate. An optional interface leaves a provider that
-	//forgets it silently in the default namespace, which is the "both forms work and nobody
-	//notices" shape the platform avoids elsewhere.
-	GetDataNamespace() string
+	//Required rather than optional: an optional interface leaves a provider that forgets it
+	//unregistered or misrouted, which is the "both forms work and nobody notices" shape the
+	//platform avoids elsewhere. Every implementor in the platform embeds
+	//datacommon.BaseComponent, so one implementation there answers for all seven providers and
+	//the masterdata wrapper.
+	GetConnectionName() string
 
-	//IsMyNamespace reports whether this component can reach the named namespace, treating "" as
-	//NAMESPACE_DEFAULT.
+	//IsMyDataConnection reports whether this component can reach the named dataconnection.
 	//
-	//It is NOT derivable from GetDataNamespace, and that is the whole reason it exists.
-	//GetDataNamespace answers "where am I" with a single string; this answers "can I reach there",
-	//and the two differ whenever one provider spans several namespaces in one physical store --
-	//two schemas in one Postgres, two buckets in one Couchbase. Such a provider is a single store
-	//for join purposes and should say so.
+	//It is NOT derivable from GetConnectionName, and that is the whole reason it exists.
+	//GetConnectionName answers "where am I" with a single string; this answers "can I reach
+	//there", and the two differ whenever one provider spans several logical connections in one
+	//physical store -- two schemas in one Postgres, two buckets in one Couchbase. Such a provider
+	//is a single store for join purposes and should say so.
 	//
 	//THE CALLER THIS EXISTS FOR IS JOIN FEASIBILITY. Deciding whether a reference or a traversal
 	//can compile natively is a question about whether one provider can reach both sides, and only
 	//the provider knows. The registry cannot answer it: it knows which component holds each
 	//entity, not which of them share a store.
 	//
-	//BaseComponent's default is strict equality after normalisation, which is correct for every
-	//provider that maps one namespace to one connection -- all of them today. A provider widens it
-	//only when it genuinely spans more, and a provider that widens it dishonestly produces a join
-	//that compiles and reads from the wrong store, so the same honesty rule applies here as to
-	//query capabilities.
-	IsMyNamespace(ctx core.ServerContext, namespace string) bool
+	//BaseComponent's default is strict equality, which is correct for every provider that maps one
+	//connection to one store -- all of them today. A provider widens it only when it genuinely
+	//spans more, and a provider that widens it dishonestly produces a join that compiles and reads
+	//from the wrong store, so the same honesty rule applies here as to query capabilities.
+	IsMyDataConnection(ctx core.ServerContext, connection string) bool
 
 	//GetDataServiceType reports which storage family backs this component, as one of the
 	//DATASERVICE_TYPE_* constants above. Providers return a fixed value — mongodatabase returns

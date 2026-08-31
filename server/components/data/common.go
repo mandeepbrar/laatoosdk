@@ -36,20 +36,21 @@ const (
 	CONF_PREDELETE_MSG  = "storable_predelete"
 	CONF_POSTDELETE_MSG = "storable_postdelete"
 
-	// CONF_DATA_NAMESPACE is the module/entity setting naming a component's namespace.
-	CONF_DATA_NAMESPACE = "namespace"
+	// CONF_DEFAULT_DATACONNECTION is the SOLUTION-level key naming which dataconnection a lookup
+	// resolves to when it names none. The DataManager reads it in Initialize and REFUSES TO BOOT
+	// without it: a connection is a factory instance name, so there is no value the platform could
+	// pick for you, and guessing would route writes to a store nobody chose.
+	CONF_DEFAULT_DATACONNECTION = "defaultdataconnection"
 )
 
-// NAMESPACE_DEFAULT is the namespace a component occupies when nothing declares one, and the one
-// a lookup means when it does not say.
+// NO_DATACONNECTION is the explicit declaration that a solution has no data layer at all. It is a
+// value for CONF_DEFAULT_DATACONNECTION, and it lets such a solution boot without naming a
+// connection it does not have -- while making the absence a STATEMENT rather than an omission.
 //
-// It is a real namespace rather than a derived value, and that is what makes existing behaviour
-// survive. A draft derived the default from the component's dataconnection: in a single-connection
-// deployment named "boltdb" every component would have landed in namespace "boltdb" and every
-// lookup asking for the default would have found nothing -- 178 call sites failing in exactly the
-// deployment shape that was supposed to see no change. Preserving behaviour by ABSENCE works;
-// preserving it by a derivation that must be inverted at lookup does not.
-const NAMESPACE_DEFAULT = "default"
+// A solution declaring it may register NO data component: a component registering against a
+// deployment that says it has no data layer is a contradiction, and failing at registration names
+// the disagreement where it can be fixed, rather than at the first query.
+const NO_DATACONNECTION = "<nodataconnection>"
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
