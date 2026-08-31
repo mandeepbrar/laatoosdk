@@ -48,6 +48,24 @@ type Dataset struct {
 	// registry is built on. Declared in the dataset YAML as `Connection`, and empty means the
 	// entity is registered on exactly one connection and resolves there.
 	Connection string
+	// ConnectionNative reports whether this dataset is PROVABLY confined to one dataconnection.
+	//
+	// Computed at startup by the DataManager, not declared: it is a fact about where components
+	// registered, which a dataset author cannot know and must not have to restate.
+	//
+	// It is CONSERVATIVE, and the asymmetry is deliberate. True means proven: the dataset reaches
+	// exactly one connection and nothing it does can cross a store. False means NOT PROVEN, which
+	// includes datasets that will in fact run on one connection.
+	//
+	// The reason it cannot be exact is structural: Expansion.Field names a FIELD, and the entity
+	// that field reaches is carried on the StorableRef of a fetched record, not in any
+	// declaration. core.StorableConfig holds no reference metadata, so at startup there is
+	// nothing to resolve a hop target against. A dataset with hops is therefore unprovable here
+	// even when every hop stays home.
+	//
+	// Read it as a guarantee when true and as "ask at runtime" when false. Treating false as
+	// "spans stores" would be wrong.
+	ConnectionNative bool
 	QueryType  string
 	QueryData  interface{}
 	Params     utils.StringsMap

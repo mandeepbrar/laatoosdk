@@ -10,6 +10,12 @@ const (
 	USER                 = "__user"
 	ROLE                 = "__role"
 	SYSTEMROLE           = "__system"
+	// DEFAULTDATACONNECTION is the name under which the DataManager element publishes the
+	// solution's default dataconnection, read via core.ServerElement.GetProperty. It is a
+	// PROPERTY rather than a method on elements.DataManager on purpose: GetProperty is already
+	// on core.ServerElement, so publishing this breaks no implementor, where widening the
+	// DataManager interface breaks every one of them silently at the assertion site.
+	DEFAULTDATACONNECTION = "__defaultdataconnection"
 	TENANT               = "__tenant"
 	AUTHCLAIMS           = "__authclaims"
 	CONF_PVTKEYPATH      = "pvtkey"
