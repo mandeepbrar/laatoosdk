@@ -40,6 +40,34 @@ const (
 	EventDataDeleted DataEventType = "data.object.deleted"
 )
 
+// DataEvent is the uniform envelope every entity-data event publishes, regardless of which
+// operation fired it. Introduced 2026-09-03 to replace two ad-hoc shapes a producer previously
+// chose between (the full entity struct for "created", a hand-built utils.StringMap for
+// "updated"/"deleted") that could not be told apart reliably once a subscriber received them
+// asynchronously over a pub/sub wire: JSON marshal/unmarshal erases which of the two shapes a
+// payload started as, so a receiver had no reliable way to know whether to reflect over a struct
+// or read known map keys. See
+// docs/solutions/runtime-errors/async-rule-trigger-carries-the-message-wrapper-not-its-data-2026-09-02.md
+// in the platform repository for the defect this closes.
+type DataEvent struct {
+	// Id is the affected entity's own id.
+	Id string
+	// Entity is the fully-qualified registered type name ("<plugin>.<Type>"), always present --
+	// including on "created", where the previous shape had no equivalent field and a consumer had
+	// to resolve it from the concrete Go type instead, which does not survive a wire round-trip.
+	Entity string
+	// Operation is one of the DataEventType string values above (EventDataCreated/Updated/
+	// Deleted), carried explicitly rather than left for a consumer to infer from the message
+	// topic or from which of two payload shapes arrived.
+	Operation string
+	// Changes carries what the operation touched: the full field set on "created", the changed
+	// fields only on "updated", nil on "deleted". A publisher may set this to a concrete struct or
+	// a map -- either survives a JSON round-trip as a generic decoded value, so a consumer reading
+	// this after a wire hop should expect utils.StringMap (recursively, at any nesting depth) and
+	// read named fields out of it rather than type-asserting a concrete struct.
+	Changes interface{}
+}
+
 type Dataset struct {
 	Name       string
 	Properties utils.StringsMap
