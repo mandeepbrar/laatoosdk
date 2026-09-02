@@ -249,6 +249,24 @@ type DataComponent interface {
 	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
 	CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res utils.StringMap, err error)
 
+	//Transaction runs callback inside a transaction opened on this component's own store,
+	//committing when callback returns nil and rolling back when it returns an error.
+	//
+	//THE CALLBACK IS HANDED A DIFFERENT CONTEXT AND MUST USE IT. Providers bind the transaction to
+	//that context and nowhere else — sqldatabase stores the gorm tx as a context value
+	//(sqldataservice.go:680-682), mongodatabase wraps it in a driver SessionContext
+	//(mongodataservice.go:678-706). A call made on the OUTER ctx from inside the callback — on
+	//this component or any other — runs outside the transaction and is committed independently;
+	//nothing detects or reports that, so a rollback silently leaves it behind.
+	//
+	//Scope is this one component's store only: a different entity's DataComponent, even on the
+	//same provider, opens its own separate store and can never join. And it is not reentrant on
+	//boltdatabase, where bbolt permits a single writer — a nested write inside the callback opens
+	//a second transaction and self-deadlocks with no error and no timeout (see the note on
+	//kvDataService.insertInTx).
+	//
+	//sqldatabase discards the result of Rollback (sqldataservice.go:685): the callback's error is
+	//what surfaces, and a rollback that itself failed is invisible.
 	Transaction(ctx core.RequestContext, callback func(ctx core.RequestContext) error) error
 
 	//Get all object with given conditions
