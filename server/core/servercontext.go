@@ -59,6 +59,12 @@ const (
 	ServerElementOpen2               ServerElementType = 28
 	ServerElementOpen3               ServerElementType = 29
 	ServerElementKnowledgeManager    ServerElementType = 30
+
+	// ServerElementNamespaceManager owns the namespace tree: discovery from configuration, holding,
+	// resolution and lifecycle. Added at 31, the next free value -- NOT by repurposing one of the
+	// Open slots above, because a spare renamed is a slot whose meaning changed under any plugin
+	// still compiled against the old name, which is the hazard explicit numbering exists to prevent.
+	ServerElementNamespaceManager ServerElementType = 31
 )
 
 type ContextMap map[ServerElementType]ServerElement
