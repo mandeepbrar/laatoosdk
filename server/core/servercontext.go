@@ -65,6 +65,29 @@ const (
 	// Open slots above, because a spare renamed is a slot whose meaning changed under any plugin
 	// still compiled against the old name, which is the hazard explicit numbering exists to prevent.
 	ServerElementNamespaceManager ServerElementType = 31
+
+	// The nine kinds below are things a MANAGER HOLDS rather than managers themselves. Each is
+	// resolved BY NAME, so each needs an address to say which of two same-named declarations a
+	// reference bound to -- the question the design these replace could not express at all.
+	//
+	// They follow the shape Channel, Service, Factory and Module already use: the SDK declares an
+	// elements.X interface embedding ServerElement, and the server registers a proxy implementing
+	// it. The wrapped type -- data.DataComponent, ai.Agent, components.Script and the rest -- is
+	// NOT changed, exactly as core.Service is not changed to be an element. An element wraps the
+	// implementation; it is not the implementation.
+	//
+	// Numbered 32-40, continuing the explicit sequence. Never iota, and never by reusing an Open
+	// slot: a spare renamed is a slot whose meaning changed under any plugin still compiled
+	// against the old name.
+	ServerElementDataComponent ServerElementType = 32
+	ServerElementDataset       ServerElementType = 33
+	ServerElementActivity      ServerElementType = 34
+	ServerElementScript        ServerElementType = 35
+	ServerElementAgent         ServerElementType = 36
+	ServerElementSkill         ServerElementType = 37
+	ServerElementCache         ServerElementType = 38
+	ServerElementLLMProvider   ServerElementType = 39
+	ServerElementWorkflow      ServerElementType = 40
 )
 
 type ContextMap map[ServerElementType]ServerElement
