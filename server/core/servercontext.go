@@ -107,19 +107,30 @@ const (
 	ServerElementTopic ServerElementType = 41
 )
 
-type ContextMap map[ServerElementType]ServerElement
-
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
 // the service manager, the security handler and so on — obtained by asking a context for an
 // element by ServerElementType and asserting the result to the manager interface you want.
 //
 // What is handed out is a proxy over the live manager rather than the manager itself, which is
 // why the element type and the interface you assert to are separate things.
+//
+// TWO MEMBERS WERE REMOVED IN THIS RELEASE, and what replaced them is worth knowing because the
+// removals look like losses and are not:
+//
+//   - Reference() ServerElement -- returned another handle onto the same manager. The server
+//     called it in exactly one place, to copy a context's element map when deriving a child
+//     context. Element identity is now an ADDRESS resolved through the element index, and a
+//     string copies correctly where a handle does not, so there is nothing left for it to do.
+//     No caller outside the server ever existed.
+//
+//   - ContextMap map[ServerElementType]ServerElement -- the shape a context's elements were
+//     handed around in. Nothing outside laatooserver ever used it; it was server-internal
+//     plumbing that happened to live in the SDK.
+//
+// Removing a method from an interface does NOT break implementors: Go satisfaction is structural,
+// so a type that still has Reference() satisfies this narrower interface unchanged. Only a CALLER
+// of the removed method would break, and there were none outside the server.
 type ServerElement interface {
-	// Reference returns another handle onto the SAME underlying manager. It is a new proxy, not
-	// a copy of any state: both handles see the one manager.
-	Reference() ServerElement
-
 	// GetProperty reads a named property of the element, or nil when there is none.
 	//
 	// A nil result does not distinguish "no such property" from "this element does not support
