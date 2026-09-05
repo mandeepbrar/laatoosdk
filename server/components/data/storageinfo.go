@@ -124,6 +124,11 @@ func (si *StorageInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes
 	return nil
 }
 
+// WriteAll emits Id and ONLY Id. Version is deliberately not written: nothing on the platform
+// reads it off the wire, and emitting it would add a field to every record ever encoded for no
+// consumer. encoding/json over the same struct does emit it from the tag, so the two wire forms
+// differ here by decision, recorded 2026-09-05 (use case codec-encoding, "wire-format
+// divergences"). Reinstating it is a wire-format change, not a bug fix.
 func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteString(c, cdc, "Id", &si.Id); err != nil {
@@ -248,8 +253,17 @@ func (si *StorableRef) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatype
 	if err = wtr.WriteString(c, cdc, "Relationship", &si.Relationship); err != nil {
 		return err
 	}
-	if err = wtr.WriteString(c, cdc, "DataConnection", &si.DataConnection); err != nil {
-		return err
+	// Guarded, like Annotations below and for the same reason a field tagged omitempty is
+	// omitted: empty means "the target is registered on exactly one connection, resolve it
+	// there" (see the field's comment), so writing "" per reference carried no information and
+	// put the platform's wire form at odds with encoding/json's for the same struct. ReadAll is
+	// additive — an absent key leaves the zero value, which is what "" already meant — so every
+	// reference stored with "DataConnection":"" reads exactly as before. Found 2026-09-05 by the
+	// codec benchmark's shape test (laatooserver/src/testutils/unit/jsoncodec_bench_shapes_test.go).
+	if si.DataConnection != "" {
+		if err = wtr.WriteString(c, cdc, "DataConnection", &si.DataConnection); err != nil {
+			return err
+		}
 	}
 	// guarded, unlike every other field here, because a StorableRef is embedded in a large
 	// share of the platform's stored records: WriteMap is handed a non-nil POINTER to a nil
