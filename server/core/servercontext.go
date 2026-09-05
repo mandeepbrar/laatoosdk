@@ -88,6 +88,23 @@ const (
 	ServerElementCache         ServerElementType = 38
 	ServerElementLLMProvider   ServerElementType = 39
 	ServerElementWorkflow      ServerElementType = 40
+
+	// ServerElementTopic is a declared pub/sub topic, and it joins the nine above for the same
+	// reason they are there: it is resolved BY NAME, so it needs an address to say which of two
+	// same-named declarations a reference bound to.
+	//
+	// A topic is declared in a plugin's registry/topics/<topic>.yml or in a namespace's own
+	// configuration, and every publish and subscribe resolves it by that name. Before this, topic
+	// identity was carried by copying an ancestor's topic names into each child namespace at
+	// construction -- so a topic declared after a child was built was invisible to it forever, and
+	// a namespace could not say which namespace a topic it could see was declared in.
+	//
+	// UNLIKE THE NINE ABOVE, IT WRAPS NO IMPLEMENTATION. A data component wraps a provider's
+	// component and a skill wraps a plugin's skill; a topic has no object behind it. The
+	// declaration IS the thing, which is why elements.Topic exposes a durability accessor and no
+	// X() accessor -- see heldmessaging.go. A reader following "an element wraps an implementation"
+	// should not go looking for the missing one.
+	ServerElementTopic ServerElementType = 41
 )
 
 type ContextMap map[ServerElementType]ServerElement
