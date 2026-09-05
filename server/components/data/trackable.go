@@ -173,6 +173,11 @@ func (ti *TrackingInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatype
 	return nil
 }
 
+// WriteAll emits the four tracking fields and deliberately NOT New (json tag "IsNew"). Nothing
+// in the platform sets New — IsNew() derives newness from CreatedAt, as documented above — so
+// the field would be false on every record ever encoded. encoding/json over the same struct does
+// emit it from the tag; the two wire forms differ here by decision, recorded 2026-09-05 (use case
+// codec-encoding, "wire-format divergences"). Emitting it is a wire-format change, not a fix.
 func (ti *TrackingInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteString(c, cdc, "CreatedBy", &ti.CreatedBy); err != nil {
