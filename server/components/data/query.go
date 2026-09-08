@@ -752,6 +752,18 @@ type ExpandingComponent interface {
 // lowers into — OData filter text, declarative dataset filters, and the map shorthand — and
 // the only one a data provider compiles.
 type Query struct {
+	// Plan is the canonical logical plan for this query, when one has been built.
+	//
+	// ADDITIVE AND OPTIONAL. The fields below remain the live ones: every front-end still writes
+	// them and every provider still compiles them, so a caller that never mentions a plan is
+	// unaffected and the ~130 modules pinning this SDK need no edit. Plan is populated alongside,
+	// by PlanFromQuery or by a front-end that lowers straight into it, and is what the optimizer
+	// and capability decisions read.
+	//
+	// A nil Plan means "not built", never "empty query" — build one with PlanForEntity rather
+	// than inferring anything from its absence.
+	Plan PlanNode
+
 	Version QueryVersion
 	// Filter is the predicate tree. A nil filter means the query is unconstrained; note that
 	// this is distinct from a nil condition passed to a data service, which returns nothing.
@@ -1004,6 +1016,9 @@ func (q *Query) Resolve(params utils.StringsMap) *Query {
 	// pruned. clone carries them, so a resolved query cannot silently lose its expansion and
 	// return the right records with the wrong shape.
 	resolved := q.clone()
+	// the filter and the expansion filters are both pruned below, so a plan built before this
+	// call describes predicates that are about to change
+	resolved.invalidatePlan()
 	resolved.Filter = nil
 	if q.Filter != nil {
 		resolved.Filter = resolvePredicate(q.Filter, params)
@@ -1023,7 +1038,20 @@ func (q *Query) Resolve(params utils.StringsMap) *Query {
 // with no compile error: the query still executes, and returns the wrong shape rather than an
 // error. That defect has already been written once in this file's history.
 func (q *Query) clone() *Query {
-	return &Query{Version: q.Version, Filter: q.Filter, Expand: q.Expand, Navigate: q.Navigate}
+	return &Query{Version: q.Version, Filter: q.Filter, Expand: q.Expand, Navigate: q.Navigate, Plan: q.Plan}
+}
+
+// invalidatePlan drops a built plan from a query whose fields have just been changed.
+//
+// Every caller of clone MUTATES the copy — Resolve prunes the filter, WithoutExpand drops the
+// projection — and a plan built from the fields before that edit no longer describes the fields
+// after it. Carrying it forward is strictly worse than dropping it: nil means "not built" and the
+// caller rebuilds, while a stale plan is a second, silently disagreeing description of the query
+// that a provider may compile INSTEAD of the fields. That is the same shape as the expansion
+// hazard WithoutExpand exists to prevent — wrong in the direction nothing downstream detects.
+func (q *Query) invalidatePlan() *Query {
+	q.Plan = nil
+	return q
 }
 
 // WithoutExpand returns a copy of the query with the projection removed, leaving everything else
@@ -1044,7 +1072,8 @@ func (q *Query) WithoutExpand() *Query {
 	}
 	stripped := q.clone()
 	stripped.Expand = nil
-	return stripped
+	// the plan was built with the expansions this call just removed
+	return stripped.invalidatePlan()
 }
 
 // resolvePredicate prunes a predicate tree against the supplied parameters, returning nil
