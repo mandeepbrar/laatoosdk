@@ -307,8 +307,13 @@ func StorableArrayToMap(items []core.Storable) map[string]core.Storable {
 	return res
 }
 
-//Factory function for creating storable
-//type StorableCreator func() interface{}
+// StorableCollection is an optional interface implemented by typed entity collection
+// types to allow direct extraction to []core.Storable and id slices with zero reflection.
+type StorableCollection interface {
+	AsStorables() []core.Storable
+	GetIds() []string
+	Len() int
+}
 
 // CastToStorableCollection converts a slice of records into storables and their ids, dropping any
 // entry that is soft-deleted or nil.
@@ -319,6 +324,61 @@ func StorableArrayToMap(items []core.Storable) map[string]core.Storable {
 // exist — and providers derive recsreturned from len(ids), so a page containing a deleted record
 // also reported more records than it returned and could inflate totalrecs above the true count.
 func CastToStorableCollection(cx ctx.Context, items interface{}) ([]core.Storable, []string, error) {
+	if items == nil {
+		return []core.Storable{}, []string{}, nil
+	}
+
+	// 1. Zero-reflection fast-path for typed StorableCollection
+	if coll, ok := items.(StorableCollection); ok {
+		storables := coll.AsStorables()
+		ids := coll.GetIds()
+		// sized from the CONTENTS, not from Len(). The two are independent methods on an
+		// interface every generated collection implements and nothing makes them agree, so
+		// sizing from Len and ranging over AsStorables turns a wrong Len into an
+		// index-out-of-range inside a provider read — a crash, not a wrong answer. Len stays
+		// part of the interface as a cheap count for callers that only want the number.
+		length := len(storables)
+		retVal := make([]core.Storable, length)
+		survivingIds := make([]string, length)
+		j := 0
+		for i, stor := range storables {
+			if stor == nil {
+				continue
+			}
+			if del, ok := stor.(SoftDeletable); ok && del.IsDeleted() {
+				continue
+			}
+			retVal[j] = stor
+			if i < len(ids) {
+				survivingIds[j] = ids[i]
+			} else {
+				survivingIds[j] = stor.GetId()
+			}
+			j++
+		}
+		return retVal[:j], survivingIds[:j], nil
+	}
+
+	// 2. Direct fast-path if already []core.Storable
+	if storSlice, ok := items.([]core.Storable); ok {
+		retVal := make([]core.Storable, len(storSlice))
+		ids := make([]string, len(storSlice))
+		j := 0
+		for _, stor := range storSlice {
+			if stor == nil {
+				continue
+			}
+			if del, ok := stor.(SoftDeletable); ok && del.IsDeleted() {
+				continue
+			}
+			retVal[j] = stor
+			ids[j] = stor.GetId()
+			j++
+		}
+		return retVal[:j], ids[:j], nil
+	}
+
+	// 3. Fallback: reflection loop for untyped slices (*[]T)
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
 		arr = arr.Elem()
@@ -359,6 +419,42 @@ func CastToStorableCollection(cx ctx.Context, items interface{}) ([]core.Storabl
 }
 
 func CastToStorableHash(items interface{}) (map[string]core.Storable, error) {
+	if items == nil {
+		return map[string]core.Storable{}, nil
+	}
+
+	// 1. Zero-reflection fast-path for typed StorableCollection
+	if coll, ok := items.(StorableCollection); ok {
+		storables := coll.AsStorables()
+		retVal := make(map[string]core.Storable, len(storables))
+		for _, stor := range storables {
+			if stor == nil {
+				continue
+			}
+			if del, ok := stor.(SoftDeletable); ok && del.IsDeleted() {
+				continue
+			}
+			retVal[stor.GetId()] = stor
+		}
+		return retVal, nil
+	}
+
+	// 2. Direct fast-path if already []core.Storable
+	if storSlice, ok := items.([]core.Storable); ok {
+		retVal := make(map[string]core.Storable, len(storSlice))
+		for _, stor := range storSlice {
+			if stor == nil {
+				continue
+			}
+			if del, ok := stor.(SoftDeletable); ok && del.IsDeleted() {
+				continue
+			}
+			retVal[stor.GetId()] = stor
+		}
+		return retVal, nil
+	}
+
+	// 3. Fallback: reflection loop for untyped slices
 	arr := reflect.ValueOf(items)
 	if arr.Kind() == reflect.Ptr {
 		arr = arr.Elem()
