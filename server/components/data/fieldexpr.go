@@ -13,7 +13,7 @@ package data
 // which is the expressive cliff imperative callers actually hit. This closes that, and composes
 // with the existing builder rather than replacing it:
 //
-//	data.NewQueryBuilder(ctx, comp).
+//	dm.CreateQuery(ctx, "myplugin.Course").
 //	    Where(data.Field("Score").Gt(80)).
 //	    Where(data.Field("Status").In("active", "pending")).
 //	    All()

@@ -204,14 +204,18 @@ type DataComponent interface {
 	//must not silently reduce a capability it lacks to a weaker one — it declares it here and
 	//rejects it at compile time.
 	SupportsQuery(capability QueryCapability) bool
-	//starts a chained query against this component: build with Where/Through/Expanding, then end
-	//with All, One, Count or Condition. It is the convenience path for a query built per request;
-	//a fixed-shape query run many times still belongs in CompileQuery once and BindQuery per
-	//request, because a builder compiles on every terminal.
 	//
-	//Every provider inherits BaseComponent's implementation, which binds the builder to the
-	//concrete component — no provider implements this itself.
-	CreateQuery(ctx core.RequestContext) *QueryBuilder
+	//THERE IS NO CreateQuery HERE. A chained query starts at elements.DataManager.CreateQuery,
+	//which takes the entity name. This interface carried one until 2026-09-09 and no provider ever
+	//implemented it — BaseComponent supplied the only body, binding a builder to the concrete
+	//component — so removing it costs no provider anything.
+	//
+	//It is gone rather than retyped because a builder bound to a bare component cannot finish the
+	//job. Expanding falls back to reading each referenced record when the provider declines the
+	//projection, and NavigatingTo never reaches a provider at all; both read a DIFFERENT entity's
+	//component, and this interface is bound to exactly one. A component-scoped builder would
+	//therefore have to refuse constructs the DataManager's accepts, leaving two builders with one
+	//name that differ in what they silently cannot do.
 	//
 	//A caller holding query TEXT rather than predicates uses elements.DataManager.CreateTextQuery
 	//instead. Text does NOT belong on this interface: reading it means resolving a QueryComponent

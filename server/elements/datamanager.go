@@ -29,14 +29,18 @@ type DataManager interface {
 	//create condition from a query, for shapes the shorthand cannot express. Callers needing
 	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
 	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
-	//start a chained query against the component registered for obj — the DataManager-scoped
-	//twin of DataComponent.CreateQuery, taking the entity name a caller here does not otherwise
-	//have a component for. Build with Where/Through/Expanding, end with All, One, Count or
-	//Condition.
+	//start a chained query against the entity named by obj. Build with Where/Through/Expanding,
+	//end with All, One, Count or Condition.
+	//
+	//THIS IS THE ONLY ENTRY POINT. DataComponent.CreateQuery was removed on 2026-09-09, and the
+	//removal is what makes the two relationship constructs work here: an Expand the provider
+	//declines to compile, and a Navigate, which never travels to a provider at all, are both
+	//resolved by reading a DIFFERENT entity's component — and a component is bound to exactly one
+	//entity, so only something holding the registry can do it. That is this interface.
 	//
 	//An obj with no registered component yields a builder that fails at its terminal, not a nil,
 	//so a chain reports the missing component where the caller is already checking an error.
-	CreateQuery(ctx core.RequestContext, obj string) *data.QueryBuilder
+	CreateQuery(ctx core.RequestContext, obj string) data.QueryBuilder
 	//start a chained query from query TEXT, written in the named form — "odata", "cypher", or
 	//any form a registered data.QueryComponent supplies. The component named by `form` parses the
 	//text into the AST; this contract carries no parser of its own.
@@ -51,7 +55,7 @@ type DataManager interface {
 	//A form with no registered component, or one whose ParseQuery refuses, yields a builder that
 	//fails at its terminal rather than a nil — the same shape CreateQuery uses for an obj with no
 	//component, so a chain reports it where the caller is already checking an error.
-	CreateTextQuery(ctx core.RequestContext, obj string, form string, queryText string) *data.QueryBuilder
+	CreateTextQuery(ctx core.RequestContext, obj string, form string, queryText string) data.QueryBuilder
 
 	//Save writes an item through the data component registered for obj, after running the
 	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the
