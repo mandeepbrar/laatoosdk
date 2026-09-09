@@ -9,6 +9,15 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
+// mockJobTemplate validates JobTemplate interface satisfaction.
+type mockJobTemplate struct {
+	core.ServerElement
+}
+
+func (m *mockJobTemplate) Template() job.JobTemplate {
+	return job.JobTemplate{}
+}
+
 // mockJobManager validates interface satisfaction at compile time.
 type mockJobManager struct {
 	core.ServerElement
@@ -17,10 +26,10 @@ type mockJobManager struct {
 func (m *mockJobManager) RegisterJobTemplate(ctx core.ServerContext, template job.JobTemplate) error {
 	return nil
 }
-func (m *mockJobManager) GetJobTemplate(ctx core.ServerContext, name string) (job.JobTemplate, bool) {
-	return job.JobTemplate{}, false
+func (m *mockJobManager) GetJobTemplate(ctx core.ServerContext, name string) (elements.JobTemplate, bool) {
+	return nil, false
 }
-func (m *mockJobManager) ListJobTemplates(ctx core.ServerContext) []job.JobTemplate {
+func (m *mockJobManager) ListJobTemplates(ctx core.ServerContext) []elements.JobTemplate {
 	return nil
 }
 func (m *mockJobManager) RegisterJob(ctx core.ServerContext, j job.Job) error {
@@ -50,4 +59,5 @@ func (m *mockJobManager) ListJobRuns(ctx core.ServerContext, jobName string, lim
 
 func TestJobManager_InterfaceSatisfaction(t *testing.T) {
 	var _ elements.JobManager = (*mockJobManager)(nil)
+	var _ elements.JobTemplate = (*mockJobTemplate)(nil)
 }

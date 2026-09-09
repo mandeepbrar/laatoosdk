@@ -67,3 +67,9 @@ func TestServerElementJobManager_ConstantValue(t *testing.T) {
 		t.Fatalf("expected ServerElementJobManager = 42, got %d", core.ServerElementJobManager)
 	}
 }
+
+func TestServerElementJobTemplate_ConstantValue(t *testing.T) {
+	if core.ServerElementJobTemplate != 43 {
+		t.Fatalf("expected ServerElementJobTemplate = 43, got %d", core.ServerElementJobTemplate)
+	}
+}

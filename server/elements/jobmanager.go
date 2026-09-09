@@ -19,11 +19,11 @@ type JobManager interface {
 	// RegisterJobTemplate registers a reusable job template under its name.
 	RegisterJobTemplate(ctx core.ServerContext, template job.JobTemplate) error
 
-	// GetJobTemplate returns the registered job template by name and whether it was found.
-	GetJobTemplate(ctx core.ServerContext, name string) (job.JobTemplate, bool)
+	// GetJobTemplate returns the registered job template element by name and whether it was found.
+	GetJobTemplate(ctx core.ServerContext, name string) (JobTemplate, bool)
 
-	// ListJobTemplates returns all registered job templates visible in this namespace.
-	ListJobTemplates(ctx core.ServerContext) []job.JobTemplate
+	// ListJobTemplates returns all registered job template elements visible in this namespace.
+	ListJobTemplates(ctx core.ServerContext) []JobTemplate
 
 	// RegisterJob registers a scheduled job instance in this namespace.
 	RegisterJob(ctx core.ServerContext, j job.Job) error

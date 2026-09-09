@@ -111,6 +111,11 @@ const (
 	// policies are authored in namespace configurations. Clustered single-execution is guaranteed
 	// via NATS JetStream deduplication on TaskManager queues.
 	ServerElementJobManager ServerElementType = 42
+
+	// ServerElementJobTemplate is a declared background job template held by JobManager.
+	// Like ServerElementTopic, it is resolved by name and its address in the element index
+	// provides hierarchical resolution and nearest-first inheritance across namespaces.
+	ServerElementJobTemplate ServerElementType = 43
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
