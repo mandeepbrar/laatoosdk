@@ -105,6 +105,12 @@ const (
 	// X() accessor -- see heldmessaging.go. A reader following "an element wraps an implementation"
 	// should not go looking for the missing one.
 	ServerElementTopic ServerElementType = 41
+
+	// ServerElementJobManager manages background job templates, schedules, and clustered execution.
+	// Low-code job templates are authored in plugin registries, while schedules and concurrency
+	// policies are authored in namespace configurations. Clustered single-execution is guaranteed
+	// via NATS JetStream deduplication on TaskManager queues.
+	ServerElementJobManager ServerElementType = 42
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
