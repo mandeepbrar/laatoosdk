@@ -227,4 +227,31 @@ type DataManager interface {
 	RegisterDataComponentToConn(ctx core.ServerContext, connection string, obj string, comp data.DataComponent) error
 	// GetRegisteredComponentToConn resolves a component on an explicitly named dataconnection.
 	GetRegisteredComponentToConn(ctx core.ServerContext, connection string, obj string) (data.DataComponent, error)
+
+	// RegisterRelationComponent registers the component answering relation queries for a
+	// dataconnection -- see data.RelationComponent. graphedges registers one per Edge store it
+	// maintains, so the DataManager routes relation queries without knowing that store's schema.
+	//
+	// A connection of "" names the configured default, as the ToConn methods above do. A duplicate
+	// registration on one connection is REFUSED rather than replacing the first, for the reason
+	// RegisterDataComponentToConn refuses one: two components claiming one connection would let load
+	// order decide which store answers.
+	RegisterRelationComponent(ctx core.ServerContext, connection string, component data.RelationComponent) error
+	// QueryRelations answers a relation query on the default dataconnection: which records are
+	// related to the query's nodes, in the direction and by the relationship it names. It returns
+	// RELATIONS, not records -- read the far records through their own components, which is where
+	// their tenancy and soft-delete apply. See data.RelationQuery and data.Relation.
+	//
+	// An edge lives on its SOURCE record's connection, so an incoming query here finds only sources
+	// on the default connection. That is the whole answer for a single-connection deployment; with
+	// sources on another connection, ask it through QueryRelationsToConn.
+	//
+	// A connection with no relation component registered is REFUSED (Core_Not_Implemented), never
+	// answered with an empty list. An empty list means nothing is related, and conflating the two is
+	// the failure a caller cannot detect -- a deployment without supportedges would read as one where
+	// no record references another.
+	QueryRelations(ctx core.RequestContext, query data.RelationQuery, pageSize int, pageNum int) (relations []data.Relation, totalrecs int, err error)
+	// QueryRelationsToConn answers a relation query on an explicitly named dataconnection. A
+	// connection of "" names the configured default. See QueryRelations.
+	QueryRelationsToConn(ctx core.RequestContext, connection string, query data.RelationQuery, pageSize int, pageNum int) (relations []data.Relation, totalrecs int, err error)
 }
