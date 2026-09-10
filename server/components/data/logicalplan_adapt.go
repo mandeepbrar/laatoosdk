@@ -47,9 +47,12 @@ func PlanFromQuery(q *Query) PlanNode {
 		}
 	}
 
-	if len(q.Navigate) > 0 {
-		node = &PlanProject{Input: node, Navigate: q.Navigate}
-	}
+	// NO PlanProject IS EMITTED FOR NAVIGATION, because Query no longer carries it. Navigation
+	// travels beside the query from the front-end that declared it to the component that owns the
+	// read -- see Query's own note where the field used to be. A caller holding navigation and
+	// wanting it in the plan sets PlanProject.Navigate itself; this adapter has nothing to read it
+	// from, and inventing an empty one would assert the query navigates nowhere rather than that
+	// this function was not told.
 
 	return node
 }
@@ -180,12 +183,13 @@ func QueryFromPlan(root PlanNode) (*Query, bool) {
 			q.Filter = n.Predicate
 			node = n.Input
 		case *PlanProject:
-			if len(n.Navigate) > 0 {
-				q.Navigate = n.Navigate
-			}
-			// Fields has no home on Query — projection travels as the separate props argument on
-			// Get — so a plan carrying one cannot be fully encoded
-			if len(n.Fields) > 0 {
+			// Neither half of a projection has a home on Query, so a plan carrying either cannot
+			// be fully encoded. Fields travels as the separate props argument on Get; navigation
+			// travels beside the query from its front-end to the read-owner. Navigation joined
+			// this branch on 2026-09-10 when the field came off Query -- it is the SAME situation
+			// Fields has always been in, and reporting it the same way is what keeps the
+			// round-trip contract honest.
+			if len(n.Fields) > 0 || len(n.Navigate) > 0 {
 				ok = false
 			}
 			node = n.Input

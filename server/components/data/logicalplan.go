@@ -90,8 +90,13 @@ type PlanProject struct {
 	// Fields is the property set to keep. Empty means every field.
 	Fields []string
 	// Navigate retargets what the plan RETURNS: instead of the scanned entity, the entities
-	// reached by following these segments. This is where Query.Navigate lowers to, and where
-	// Cypher's `RETURN <var>` lands.
+	// reached by following these segments. This is where Cypher's `RETURN <var>` lands.
+	//
+	// It used to say "this is where Query.Navigate lowers to". Query stopped carrying navigation
+	// on 2026-09-10 -- it was a projection held as a query condition -- so PlanFromQuery has
+	// nothing to lower and a caller that holds navigation sets this field itself. This node
+	// remains the eventual home for it; what changed is that the legacy field is no longer the
+	// route.
 	//
 	// It is a projection rather than its own node because it changes which rows come back and
 	// nothing else — the same thing a projection does, one level out.

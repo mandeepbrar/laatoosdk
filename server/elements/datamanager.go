@@ -30,17 +30,24 @@ type DataManager interface {
 	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
 	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
 	//start a chained query against the entity named by obj. Build with Where/Through/Expanding,
-	//end with All, One, Count or Condition.
+	//end with All, One, Count or Condition, each of which takes the REQUEST's own context.
 	//
 	//THIS IS THE ONLY ENTRY POINT. DataComponent.CreateQuery was removed on 2026-09-09, and the
 	//removal is what makes the two relationship constructs work here: an Expand the provider
-	//declines to compile, and a Navigate, which never travels to a provider at all, are both
-	//resolved by reading a DIFFERENT entity's component — and a component is bound to exactly one
-	//entity, so only something holding the registry can do it. That is this interface.
+	//declines to compile, and a navigation, which returns a different entity's records entirely,
+	//are both resolved by reading a DIFFERENT entity's component — and a component is bound to
+	//exactly one entity, so only something holding the registry can do it. That is this interface.
 	//
-	//An obj with no registered component yields a builder that fails at its terminal, not a nil,
-	//so a chain reports the missing component where the caller is already checking an error.
-	CreateQuery(ctx core.RequestContext, obj string) data.QueryBuilder
+	//An obj with no registered component is an ERROR HERE rather than a builder that fails later.
+	//It used to return a builder carrying a deferred error, which existed so a chain could keep
+	//chaining; construction returns an error as of 2026-09-10, so there is nothing left to defer
+	//and the failure is reported where it happens.
+	//
+	//IT TAKES A ServerContext, NOT A RequestContext. Building a query is not a request -- its
+	//shape is fixed by the code that writes it -- so a query may be built once in Initialize and
+	//kept, and each request supplies its own context to the terminal. That split is what makes a
+	//prepared query expressible; see data.QueryBuilder.
+	CreateQuery(ctx core.ServerContext, obj string) (data.QueryBuilder, error)
 	//start a chained query from query TEXT, written in the named form — "odata", "cypher", or
 	//any form a registered data.QueryComponent supplies. The component named by `form` parses the
 	//text into the AST; this contract carries no parser of its own.
@@ -52,10 +59,12 @@ type DataManager interface {
 	//This REPLACES CreateODataQuery, which was one method per form and had to grow by one method
 	//per form forever. Naming the form makes every future form free.
 	//
-	//A form with no registered component, or one whose ParseQuery refuses, yields a builder that
-	//fails at its terminal rather than a nil — the same shape CreateQuery uses for an obj with no
-	//component, so a chain reports it where the caller is already checking an error.
-	CreateTextQuery(ctx core.RequestContext, obj string, form string, queryText string) data.QueryBuilder
+	//A form with no registered component, or one whose ParseQuery refuses, is an error here --
+	//the same shape CreateQuery now uses for an obj with no component.
+	//
+	//It takes a ServerContext for the reason CreateQuery does: parsing text into an AST is
+	//construction, and construction is not a request.
+	CreateTextQuery(ctx core.ServerContext, obj string, form string, queryText string) (data.QueryBuilder, error)
 
 	//Save writes an item through the data component registered for obj, after running the
 	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the
