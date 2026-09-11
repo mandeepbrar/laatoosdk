@@ -50,6 +50,11 @@ type RelationQuery struct {
 	// OtherType narrows the far end to one entity type: the source for an incoming query, the
 	// target for an outgoing one. Empty means any type.
 	OtherType string
+	// Limit is the most relations the CALLER can use. A component refuses a query matching more than
+	// the smaller of Limit and its own bound, and reads no more than one past that -- so a caller
+	// that would refuse a larger answer anyway does not pay for reading up to the component's bound
+	// first. Zero or negative means no caller limit: the component's own bound applies.
+	Limit int
 }
 
 // Relation is one edge: From holds a storableref naming To, declared with Relationship.
@@ -81,6 +86,7 @@ type RelationComponent interface {
 	// caller's tenant; the far records are not read at all.
 	//
 	// An implementation refuses a query it cannot answer correctly -- a zero Direction, a node with
-	// no Id or Type, a result past its bound -- rather than answering part of it.
+	// no Id or Type, a result past its bound or past the query's Limit -- rather than answering part
+	// of it.
 	QueryRelations(ctx core.RequestContext, query RelationQuery, pageSize int, pageNum int) (relations []Relation, totalrecs int, err error)
 }
