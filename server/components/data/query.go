@@ -1197,6 +1197,11 @@ func resolvePredicate(predicate Predicate, params utils.StringsMap) Predicate {
 		if resolvedPredicate == nil {
 			return nil
 		}
+		// Every field but Predicate is carried over unchanged. Relationship and TargetScope were
+		// once left out of this copy, so every provider binding through Resolve received the
+		// traversal WITHOUT its edge-type narrowing and without the far side's scope: a
+		// narrowed traversal answered as an un-narrowed one, with no error. Four providers had
+		// to carry their own copy of this function to avoid it.
 		return &Traversal{
 			Optionality:   traversal.Optionality,
 			Path:          traversal.Path,
@@ -1204,6 +1209,8 @@ func resolvePredicate(predicate Predicate, params utils.StringsMap) Predicate {
 			Predicate:     resolvedPredicate,
 			MinDepth:      traversal.MinDepth,
 			MaxDepth:      traversal.MaxDepth,
+			Relationship:  traversal.Relationship,
+			TargetScope:   traversal.TargetScope,
 			MatchOptional: traversal.MatchOptional,
 		}
 	}
