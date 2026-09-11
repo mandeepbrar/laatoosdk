@@ -113,7 +113,7 @@ func throwError(ctx ctx.Context, message, internalErrorCode string, thrownErr er
 			log.Debug(ctx, "Debug Error", infoArr...)
 		}*/
 	err := &Error{
-		error:             fmt.Errorf(message),
+		error:             fmt.Errorf("%s", message),
 		info:              infoArr,
 		InternalErrorCode: internalErrorCode,
 	}
