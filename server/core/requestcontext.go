@@ -117,7 +117,11 @@ type RequestContext interface {
 	// InvokeActivity invokes an activity.
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
 
-	// SendNotification sends a notification.
+	// SendNotification delivers a notification to ONE channel: notification.Channel when set,
+	// otherwise the type's default channel, otherwise the only channel serving the type — and refuses,
+	// naming the candidates, when several serve it and none is the default. See
+	// elements.NotificationManager.SendNotification; to reach every channel of a type, use the
+	// manager's Broadcast.
 	SendNotification(notification *Notification) error
 	// CompleteRequest marks the request as complete.
 	CompleteRequest()
