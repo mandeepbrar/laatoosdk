@@ -86,8 +86,29 @@ const (
 	ServerElementAgent         ServerElementType = 36
 	ServerElementSkill         ServerElementType = 37
 	ServerElementCache         ServerElementType = 38
-	ServerElementLLMProvider   ServerElementType = 39
-	ServerElementWorkflow      ServerElementType = 40
+
+	// ServerElementProvider is a PROVIDER: the pluggable component a manager delegates to -- a
+	// workflow engine, a dataconnection, an agent runtime, an LLM provider, a pub/sub broker, a task
+	// backend. It is placed under the manager it serves and OWNS the elements it holds, so a workflow
+	// lives at ::<namespace>::workflowmanager::<engine>::<workflow> rather than directly under its
+	// manager.
+	//
+	// ONE KIND FOR EVERY PROVIDER, not one per manager. What a provider serves is read from the
+	// manager it sits under, so a new pluggable dimension is a declaration on a manager rather than a
+	// new constant here.
+	//
+	// Like the held kinds around it, it wraps an implementation and does not change it: the plugin's
+	// components.WorkflowManager, data factory, agent factory or ai.LLMProvider is untouched, and the
+	// server builds the element around it.
+	//
+	// 39 WAS ServerElementLLMProvider, removed in this release: an LLM provider is now one provider
+	// among the rest. Reusing a value is what the explicit numbering above exists to avoid, and it is
+	// safe HERE for two reasons that must both hold: no plugin referenced the old constant, and a
+	// release that changes this block rebuilds every plugin .so anyway, since a plugin will not load
+	// against a different SDK version. Do not take it as precedent for reusing a value any plugin
+	// references.
+	ServerElementProvider ServerElementType = 39
+	ServerElementWorkflow ServerElementType = 40
 
 	// ServerElementTopic is a declared pub/sub topic, and it joins the nine above for the same
 	// reason they are there: it is resolved BY NAME, so it needs an address to say which of two
@@ -116,6 +137,16 @@ const (
 	// Like ServerElementTopic, it is resolved by name and its address in the element index
 	// provides hierarchical resolution and nearest-first inheritance across namespaces.
 	ServerElementJobTemplate ServerElementType = 43
+
+	// ServerElementTaskQueue is a task queue, held beneath the task backend that serves it. It is
+	// resolved BY NAME -- every push names its queue -- so, like the held kinds above, it needs an
+	// address to say which namespace's queue a push bound to.
+	ServerElementTaskQueue ServerElementType = 44
+
+	// ServerElementLLMModel is a model offered by an LLM provider, held beneath that provider. Two
+	// providers may each offer a model of the same name; each is then reachable by its qualified
+	// address, where a single flat model index could hold only one of them.
+	ServerElementLLMModel ServerElementType = 45
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
