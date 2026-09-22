@@ -66,6 +66,13 @@ type DataEvent struct {
 	// this after a wire hop should expect utils.StringMap (recursively, at any nesting depth) and
 	// read named fields out of it rather than type-asserting a concrete struct.
 	Changes interface{}
+	// Connection names the dataconnection the emitting component wrote the entity to, e.g.
+	// "designerdb". A consumer that needs a store co-located with the entity -- an Edge table on
+	// the same connection -- asks for it on this connection directly, rather than looking the
+	// entity's component up by name: a listener runs in the namespace that subscribed, and a
+	// lookup from there cannot see a component registered in an application namespace below it.
+	// Empty from a publisher that predates the field; a consumer must treat that as unknown.
+	Connection string
 }
 
 type Dataset struct {
