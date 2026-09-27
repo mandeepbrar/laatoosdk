@@ -2,6 +2,7 @@ package components
 
 import (
 	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/server/components/data"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
@@ -81,9 +82,38 @@ type SecurityHandler interface {
 	//
 	// NO SHIPPED HANDLER ENFORCES IT. The Casbin handler returns true unconditionally, and the
 	// fallback returns its allow-all flag; neither looks at the object, the id or the action.
-	// Row-level authorization must therefore be enforced by the service itself. Calling this and
-	// branching on the result gives a check that reads like a control and is not one.
+	// Calling this and branching on the result gives a check that reads like a control and is not
+	// one.
+	//
+	// Record-level authorization is EntityAccessFilter's job, not this method's: an entity that
+	// opts in has its entityaccess policy applied by its data component on every read and write,
+	// lists included, which a per-object yes/no cannot serve.
 	CanAccessObject(ctx core.RequestContext, module string, service string, object string, objectid string, action string) (bool, error)
+
+	// RegisterEntityAccessPolicies hands the handler the entityaccess policy rows a module ships,
+	// as CSV file contents keyed by the file's path (used only to name the file in an error).
+	//
+	// It REPLACES every row previously registered for that module: a hot-reloaded module
+	// re-registers and its old rows are gone, and an unloaded module registers an empty map to
+	// clear them. A row the handler cannot enforce — a rule outside the pushable grammar — is
+	// refused here with an error naming the file, the row and the construct, so boot fails rather
+	// than an entity serving unprotected.
+	RegisterEntityAccessPolicies(ctx core.ServerContext, module string, policies map[string][]byte) error
+
+	// EntityAccessFilter answers which records of an entity the caller may reach for an action,
+	// reduced to a predicate over the record's fields. See data.EntityAccessFilter.
+	//
+	// A system context is answered as unrestricted. A caller whose roles match no row is answered
+	// as denied. An error is a failure to decide and must be treated as a refusal, never as
+	// permission.
+	EntityAccessFilter(ctx core.RequestContext, entity string, action data.EntityAction) (*data.EntityAccessFilter, error)
+
+	// EnforcesEntityAccess reports whether this handler implements record-level access at all.
+	//
+	// A data component whose entity opts in checks it at initialization and refuses to start
+	// when it is false: the fallback handler answers false, and an opted-in entity under it must
+	// fail boot rather than be served without its rules.
+	EnforcesEntityAccess() bool
 
 	// SetClaims is a hook for a handler to add claims to a user before a token is minted. Both
 	// shipped handlers implement it as an empty body.

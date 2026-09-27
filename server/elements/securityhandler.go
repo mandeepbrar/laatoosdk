@@ -3,6 +3,7 @@ package elements
 import (
 	"laatoo.io/sdk/server/auth"
 	"laatoo.io/sdk/server/components"
+	"laatoo.io/sdk/server/components/data"
 	"laatoo.io/sdk/server/core"
 )
 
@@ -34,9 +35,25 @@ type SecurityHandler interface {
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 
 	// CanAccessObject is the per-object authorization hook, and no shipped back end enforces it:
-	// it answers without consulting the object, the id or the action. Enforce row-level access
-	// in the service. See components.SecurityHandler.CanAccessObject.
+	// it answers without consulting the object, the id or the action. Record-level access is
+	// EntityAccessFilter's job — see components.SecurityHandler.CanAccessObject.
 	CanAccessObject(ctx core.RequestContext, module string, service string, object string, objectid string, action string) (bool, error)
+
+	// RegisterEntityAccessPolicies hands the configured back end the entityaccess policy rows a
+	// module ships, replacing any the module registered before. The module manager calls it at
+	// module start, and again with an empty map when a module unloads. See
+	// components.SecurityHandler.RegisterEntityAccessPolicies.
+	RegisterEntityAccessPolicies(ctx core.ServerContext, module string, policies map[string][]byte) error
+
+	// EntityAccessFilter answers which records of an entity the caller may reach for an action.
+	// A data component calls it for an entity that opts in to record-level access, and folds the
+	// answer into the query beside tenancy. A system context is answered as unrestricted without
+	// consulting the back end. See components.SecurityHandler.EntityAccessFilter.
+	EntityAccessFilter(ctx core.RequestContext, entity string, action data.EntityAction) (*data.EntityAccessFilter, error)
+
+	// EnforcesEntityAccess reports whether the configured back end implements record-level
+	// access. False under the fallback handler; an opted-in entity refuses to start when it is.
+	EnforcesEntityAccess() bool
 
 	// HasPermission reports whether the caller holds a permission, resolved through its roles. A
 	// bare bool: refusal and failure-to-determine are the same value.

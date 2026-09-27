@@ -466,6 +466,12 @@ type ScopeRequirement struct {
 	SoftDelete bool
 	// DeletedField names the flag soft deletion sets.
 	DeletedField string
+	// EntityAccess says the reached entity opts in to record-level access rules. Those rules are
+	// decided per CALLER — they are not a column this struct could name — so a provider must REFUSE
+	// to compile the hop natively when this is set, and the hop is then served by reading the target
+	// through its own component, which applies the caller's rules. A native join here would return
+	// records the caller could not read directly.
+	EntityAccess bool
 	// Connection names the dataconnection the reached entity lives on. Empty means the caller has
 	// not said, and it inherits this struct's existing rule exactly: a provider must then REFUSE to
 	// compile the hop natively rather than guess. Guessing here would emit a join against whichever
