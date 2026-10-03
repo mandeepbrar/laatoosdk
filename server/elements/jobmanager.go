@@ -49,4 +49,11 @@ type JobManager interface {
 
 	// ListJobRuns returns historical execution records for a job up to limit, ordered newest first.
 	ListJobRuns(ctx core.ServerContext, jobName string, limit int) ([]job.JobRun, error)
+
+	// CancelJobRun cancels an in-flight run by run ID: its context is cancelled, and the run is
+	// recorded as its target leaves it -- failed with a cancellation error, exactly as a run
+	// replaced under ConcurrencyReplace is (there is no separate canceled status). It reaches runs executing on THIS server only;
+	// a run another replica claimed is not found. An unknown or finished run answers a not-found
+	// error.
+	CancelJobRun(ctx core.ServerContext, runId string) error
 }

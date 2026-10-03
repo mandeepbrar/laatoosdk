@@ -25,6 +25,16 @@ type Activity interface {
 	GetDefinition() *core.ActivityDefinition
 }
 
+// Action is the server's handle on a registered action, held beneath the action manager of the
+// namespace that registered it (core.ServerElementAction). The registered-elements report lists
+// actions through it.
+type Action interface {
+	core.ServerElement
+
+	// Descriptor returns what the action takes and returns.
+	Descriptor() core.ActionDescriptor
+}
+
 // Script is the server's handle on a registered script. A script is resolved by alias by workflow
 // activities and by the expression layer.
 type Script interface {

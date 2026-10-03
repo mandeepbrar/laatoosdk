@@ -52,13 +52,20 @@ const (
 	ServerElementActivityManager     ServerElementType = 21
 	ServerElementScriptManager       ServerElementType = 22
 	ServerElementExpressionManager   ServerElementType = 23
-	ServerElementActionsManager      ServerElementType = 24
-	ServerElementDataManager         ServerElementType = 25
-	ServerElementAgentManager        ServerElementType = 26
-	ServerElementOpen1               ServerElementType = 27
-	ServerElementOpen2               ServerElementType = 28
-	ServerElementOpen3               ServerElementType = 29
-	ServerElementKnowledgeManager    ServerElementType = 30
+	// ServerElementActionsManager is the registry of ACTIONS: single-step primitives (send a
+	// notification, start a workflow, save a record) that the server and plugins register in code,
+	// each with a descriptor (elements.ActionManager). An action is NOT a service and carries no
+	// access control -- workflows, activities and agents are the service-equivalents that callers
+	// are authorized against, and an action runs only inside one of them. The slot was reserved
+	// while the action layer was folded into activity executors; it is live again, at its
+	// original value.
+	ServerElementActionsManager   ServerElementType = 24
+	ServerElementDataManager      ServerElementType = 25
+	ServerElementAgentManager     ServerElementType = 26
+	ServerElementOpen1            ServerElementType = 27
+	ServerElementOpen2            ServerElementType = 28
+	ServerElementOpen3            ServerElementType = 29
+	ServerElementKnowledgeManager ServerElementType = 30
 
 	// ServerElementNamespaceManager owns the namespace tree: discovery from configuration, holding,
 	// resolution and lifecycle. Added at 31, the next free value -- NOT by repurposing one of the
@@ -147,6 +154,11 @@ const (
 	// providers may each offer a model of the same name; each is then reachable by its qualified
 	// address, where a single flat model index could hold only one of them.
 	ServerElementLLMModel ServerElementType = 45
+
+	// ServerElementAction is one registered action, held beneath the action manager of the
+	// namespace that registered it and resolved by name, nearest namespace first, like every held
+	// kind above.
+	ServerElementAction ServerElementType = 46
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
