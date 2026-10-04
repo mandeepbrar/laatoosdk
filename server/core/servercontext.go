@@ -159,6 +159,11 @@ const (
 	// namespace that registered it and resolved by name, nearest namespace first, like every held
 	// kind above.
 	ServerElementAction ServerElementType = 46
+
+	// ServerElementTraceManager records agent runs step by step and hands finished steps to the
+	// trace sink registered for their namespace (elements.TraceManager). Plugins add steps of their
+	// own through tracing.Start, which resolves it.
+	ServerElementTraceManager ServerElementType = 47
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
