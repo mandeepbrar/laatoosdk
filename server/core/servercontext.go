@@ -161,8 +161,8 @@ const (
 	ServerElementAction ServerElementType = 46
 
 	// ServerElementTraceManager records agent runs step by step and hands finished steps to the
-	// trace sink registered for their namespace (elements.TraceManager). Plugins add steps of their
-	// own through tracing.Start, which resolves it.
+	// trace sink registered for their namespace (elements.TraceManager). RequestContext.StartTraceStep
+	// resolves it, which is how plugins add steps of their own.
 	ServerElementTraceManager ServerElementType = 47
 )
 

@@ -1,38 +1,28 @@
-// Package tracing is the contract for recording what an agent run did, step by step: the run
+// Package tracing is the storage side of recording what an agent run did, step by step: the run
 // itself, each plan and task, each LLM call, each skill and tool call, each handoff and each
 // workflow activity, nested under the step that caused it.
 //
-// Three parties meet here:
+// Steps are STARTED from a request context, with core.RequestContext.StartTraceStep, and their handle
+// and kinds are core.TraceStep and core.TraceStepKind. This package holds what the rest of the system needs
+// around them:
 //
-//   - The SERVER records steps. It implements Tracer as part of the trace manager element
-//     (elements.TraceManager) and starts the steps it owns -- an agent's run, every LLM
-//     completion, every skill invocation -- itself.
-//
-//   - A PLUGIN adds steps the server cannot see, such as a goal agent's plan or a chat backend's
-//     tool call, through Start. Start resolves the trace manager from the context and hands back a
-//     step that does nothing when tracing is off, so the plugin code is the same in every
-//     configuration (example below).
-//
-//   - A SINK stores finished steps. A plugin implementing TraceSink registers it with the trace
-//     manager; the server hands it batches of StepRecord, already stamped with the tenant and user
-//     each step ran as, so a sink writing tenant-scoped records never has to infer identity.
+//   - The well-known attribute keys and payload names a step is annotated with (Attr*, Payload*),
+//     so the server, the plugins and a sink agree on what an LLM step's token count is called.
+//   - StepRecord, one finished step as storage receives it, already stamped with the tenant and
+//     user it ran as, so a sink writing tenant-scoped records never has to infer identity.
+//   - TraceSink, the contract a storage plugin implements and registers with the trace manager
+//     (elements.TraceManager.RegisterTraceSink).
+//   - Tracer, the surface the trace manager element offers beyond the request context: reading the
+//     current step from a base context, and carrying a trace position where a context cannot go --
+//     a message, a task, a workflow's start parameters, a pause record. A workflow engine plugin
+//     uses it to deliver the trace from a workflow's start to each activity it invokes.
 //
 // Tracing is OFF until a sink is registered. With no sink resolving for a context's namespace,
-// Start returns the context unchanged and a step whose methods do nothing.
+// StartTraceStep returns the context unchanged and a step whose methods do nothing.
 //
 // Every type in a method signature here is a core, utils, builtin or SDK type, which is what lets
 // a plugin's own package main satisfy or consume these interfaces across the shared-object
 // boundary.
-//
-// A plugin recording one tool call:
-//
-//	ctx, step := tracing.Start(ctx, tracing.StepTool, "search_orders", utils.StringMap{
-//		tracing.AttrToolName: "search_orders",
-//	})
-//	defer step.End()
-//	step.SetPayload(tracing.PayloadInput, string(argsJSON))
-//	result, err := callTool(ctx, args)
-//	step.RecordError(err)
 package tracing
 
 import (
@@ -41,49 +31,6 @@ import (
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
-)
-
-// StepKind says what a step is. A viewer groups and styles steps by kind, and an agent querying a
-// run filters on it -- "every LLM call in run X" is a kind filter.
-type StepKind string
-
-const (
-	// StepRun is the top step of a trace: one agent invocation from the request that started it
-	// to the response, a failure, or a pause for human input.
-	StepRun StepKind = "run"
-	// StepPlan is an agent deciding what to do -- a goal agent building its execution graph.
-	StepPlan StepKind = "plan"
-	// StepTask is one unit of a plan being executed. A retried task records one StepTask per
-	// attempt, each carrying AttrRetryAttempt.
-	StepTask StepKind = "task"
-	// StepLLM is one completion request to an LLM provider, streaming or not.
-	StepLLM StepKind = "llm"
-	// StepSkill is one skill invocation.
-	StepSkill StepKind = "skill"
-	// StepTool is one tool call an agent made -- an MCP tool, or a service exposed to the model
-	// as a tool.
-	StepTool StepKind = "tool"
-	// StepHandoff is one agent passing work to another.
-	StepHandoff StepKind = "handoff"
-	// StepActivity is one workflow activity an agent drove.
-	StepActivity StepKind = "activity"
-	// StepResume is a paused run continuing in a later request. It sits in the original run's
-	// trace, so a run that waited for a human still reads as one run.
-	StepResume StepKind = "resume"
-)
-
-// StepStatus is how a step ended.
-type StepStatus string
-
-const (
-	// StatusOK is a step that finished without error. It is the status of an ended step on which
-	// neither RecordError nor SetStatus was called.
-	StatusOK StepStatus = "ok"
-	// StatusFailed is a step on which RecordError was called, or which was set failed explicitly.
-	StatusFailed StepStatus = "failed"
-	// StatusPaused is a step that stopped to wait for human input and will be continued by a
-	// StepResume in a later request. It is normally set on the run step.
-	StatusPaused StepStatus = "paused"
 )
 
 // Well-known attribute keys. The LLM keys use the OpenTelemetry generative-AI semantic convention
@@ -111,20 +58,20 @@ const (
 	AttrAgentType = "laatoo.agent.type"
 	// AttrSessionId is the conversation session a run belongs to, when it has one.
 	AttrSessionId = "laatoo.session.id"
-	// AttrSkillName is the skill a StepSkill invoked.
+	// AttrSkillName is the skill a skill step invoked.
 	AttrSkillName = "laatoo.skill.name"
-	// AttrToolName is the tool a StepTool called.
+	// AttrToolName is the tool a tool step called.
 	AttrToolName = "laatoo.tool.name"
-	// AttrHandoffTarget is the agent a StepHandoff passed work to.
+	// AttrHandoffTarget is the agent a handoff step passed work to.
 	AttrHandoffTarget = "laatoo.handoff.target"
 	// AttrHandoffMode is how a handoff ran, e.g. "direct" or "async".
 	AttrHandoffMode = "laatoo.handoff.mode"
-	// AttrActivityName is the activity a StepActivity executed.
+	// AttrActivityName is the activity an activity step executed.
 	AttrActivityName = "laatoo.activity.name"
 	// AttrRetryAttempt is the 1-based attempt number of a retried step.
 	AttrRetryAttempt = "laatoo.retry.attempt"
-	// AttrPauseHandle is the handle of the pause a StatusPaused run is waiting on, and the pause a
-	// StepResume continued.
+	// AttrPauseHandle is the handle of the pause a paused run is waiting on, and the pause a
+	// resume step continued.
 	AttrPauseHandle = "laatoo.pause.handle"
 )
 
@@ -143,63 +90,49 @@ const (
 	PayloadCompletion = "completion"
 	// PayloadPlan is a plan an agent built, e.g. a goal agent's execution graph.
 	PayloadPlan = "plan"
+	// PayloadLog is log records written while the step was current, one per line.
+	PayloadLog = "log"
 )
 
-// Step is a handle on one step while it runs. Every method is safe to call on the handle Start
-// returns when tracing is off, and does nothing there; a caller never checks whether it is
-// recording before using it.
-type Step interface {
-	// SetAttributes adds attributes to the step, overwriting a key already set. Values should be
-	// strings, numbers or booleans; anything else is recorded as its string form.
-	SetAttributes(attrs utils.StringMap)
-	// SetPayload attaches the full text of something the step consumed or produced under a name,
-	// normally one of the Payload* constants. Setting a name twice keeps the later text.
-	SetPayload(name string, content string)
-	// RecordError marks the step failed and records err's message. A nil err is ignored.
-	RecordError(err error)
-	// SetStatus sets how the step ended, overriding what RecordError implied. A run step waiting
-	// for human input is set StatusPaused.
-	SetStatus(status StepStatus)
-	// End finishes the step. Calling it more than once has no further effect, and a step that is
-	// never ended is never exported.
-	End()
-	// TraceId returns the id of the trace the step belongs to -- the run's id -- or "" when the
-	// step is not recording.
-	TraceId() string
-	// StepId returns the step's own id, or "" when the step is not recording.
-	StepId() string
-	// IsRecording reports whether the step is being recorded, so a caller can skip building an
-	// expensive payload that would be thrown away.
-	IsRecording() bool
-}
-
-// Tracer starts and finds steps. The server implements it as part of the trace manager element;
-// a plugin normally reaches it through Start and Current rather than resolving it itself.
+// Tracer is the trace manager's surface beyond the request context. RequestContext.StartTraceStep,
+// CurrentTraceStep and RootTraceStep are implemented through it; a plugin calls it directly only to carry a
+// trace where a request context cannot go, or to read the current step from a base context.
 type Tracer interface {
 	// Enabled reports whether steps started from ctx are recorded, which is whether a trace sink
 	// resolves for ctx's namespace.
 	Enabled(ctx core.RequestContext) bool
-	// StartStep starts a step as a child of ctx's current step -- or as the top step of a new
-	// trace when ctx has none -- and returns a context carrying it, to pass to whatever the step
-	// does, together with the step's handle. When tracing is off it returns ctx unchanged and a
-	// handle that does nothing.
-	StartStep(ctx core.RequestContext, kind StepKind, name string, attrs utils.StringMap) (core.RequestContext, Step)
-	// CurrentStep returns the innermost step ctx carries, or a handle that does nothing when it
+	// StartTraceStep is what RequestContext.StartTraceStep does: starts a step as a child of ctx's current
+	// step, or as the top step of a new trace when ctx has none, and returns a context carrying it.
+	StartTraceStep(ctx core.RequestContext, kind core.TraceStepKind, name string, attrs utils.StringMap) (core.RequestContext, core.TraceStep)
+	// CurrentTraceStep returns the innermost step ctx carries, or a handle that does nothing when it
 	// carries none. It takes the base context so that code holding only a ctx.Context, such as a
-	// log handler, can read the current step's ids.
-	CurrentStep(ctx ctx.Context) Step
-	// RunStep returns the top step of the trace ctx belongs to when that step was started in this
-	// process, or a handle that does nothing otherwise. It is how code at any depth marks the
-	// run paused or adds run-level attributes.
-	RunStep(ctx ctx.Context) Step
+	// log handler, can read the current step.
+	CurrentTraceStep(ctx ctx.Context) core.TraceStep
+	// RootTraceStep returns the top step of the trace ctx belongs to when that step was started in this
+	// process, or a handle that does nothing otherwise.
+	RootTraceStep(ctx ctx.Context) core.TraceStep
 	// Inject writes ctx's current trace position into a string map that can travel where a
 	// context cannot -- a message, a task, a workflow's start parameters, a pause record. It
 	// returns an empty map when ctx carries no step.
 	Inject(ctx ctx.Context) utils.StringMap
 	// Extract returns a context continuing the trace a carrier written by Inject describes, so
 	// steps started from it nest under the step that was current when the carrier was written. An
-	// empty or unreadable carrier returns ctx unchanged.
+	// empty or unreadable carrier returns ctx unchanged. It also accepts a carrier returned by
+	// StartLongLivedStep, so work done for a long-lived step -- a workflow's activities -- nests
+	// under it from any request or pod.
 	Extract(ctx core.RequestContext, carrier utils.StringMap) core.RequestContext
+	// StartLongLivedStep starts a step whose end will happen in a different request or process --
+	// a workflow run, a manual activity waiting for a person. Unlike StartTraceStep it is recorded
+	// at once, with status core.TraceStepRunning, and it returns a carrier identifying it as well
+	// as a context carrying it. Keep the carrier with the work (a workflow instance, a pause
+	// record) and pass it to EndLongLivedStep when the work ends. When tracing is off it returns
+	// ctx unchanged and an empty carrier.
+	StartLongLivedStep(ctx core.RequestContext, kind core.TraceStepKind, name string, attrs utils.StringMap) (core.RequestContext, utils.StringMap)
+	// EndLongLivedStep ends the long-lived step a carrier from StartLongLivedStep identifies,
+	// recording it again with the final status, errMsg ("" for none) and any further attributes.
+	// It needs only the carrier, so it can run on any pod after any restart. The new record
+	// replaces the running one. An empty or unreadable carrier is ignored.
+	EndLongLivedStep(ctx core.RequestContext, carrier utils.StringMap, status core.TraceStepStatus, errMsg string, attrs utils.StringMap)
 }
 
 // StepRecord is one finished step as a sink receives it.
@@ -208,10 +141,10 @@ type StepRecord struct {
 	TraceId string
 	// StepId is the step's own id.
 	StepId string
-	// ParentStepId is the id of the step this one is nested under, or "" for the run step.
+	// ParentStepId is the id of the step this one is nested under, or "" for the top step.
 	ParentStepId string
 	// Kind says what the step is.
-	Kind StepKind
+	Kind core.TraceStepKind
 	// Name is the step's display name, e.g. a model, skill, tool or agent name.
 	Name string
 	// Start is when the step started.
@@ -219,7 +152,7 @@ type StepRecord struct {
 	// End is when the step ended.
 	End time.Time
 	// Status is how the step ended.
-	Status StepStatus
+	Status core.TraceStepStatus
 	// Error is the message RecordError recorded, or "".
 	Error string
 	// Attributes are the step's attributes, after redaction.
@@ -249,74 +182,10 @@ type TraceSink interface {
 	// a step's parent may arrive in a later batch than the step itself. A returned error drops the
 	// batch: the server logs it and counts the dropped steps, and the requests that produced them
 	// are unaffected.
+	//
+	// A step id arrives TWICE only for a long-lived step: first with status
+	// core.TraceStepRunning when it starts, then with its final status when it ends, possibly from
+	// another pod days later. The later record replaces the earlier one; a sink stores by step id
+	// and overwrites. No other step is ever sent twice.
 	ExportSteps(ctx core.ServerContext, steps []*StepRecord) error
 }
-
-// Start starts a step as a child of ctx's current step, through the trace manager ctx resolves.
-// It returns a context carrying the step and the step's handle. When no trace manager resolves, or
-// tracing is off for ctx's namespace, it returns ctx unchanged and a handle that does nothing --
-// so code calling Start needs no check of its own.
-func Start(ctx core.RequestContext, kind StepKind, name string, attrs utils.StringMap) (core.RequestContext, Step) {
-	tracer := tracerOf(ctx)
-	if tracer == nil {
-		return ctx, NoopStep()
-	}
-	return tracer.StartStep(ctx, kind, name, attrs)
-}
-
-// Current returns the innermost step ctx carries, through the trace manager ctx resolves, or a
-// handle that does nothing when there is none.
-func Current(ctx core.RequestContext) Step {
-	tracer := tracerOf(ctx)
-	if tracer == nil {
-		return NoopStep()
-	}
-	return tracer.CurrentStep(ctx)
-}
-
-// tracerOf resolves the trace manager from ctx, returning nil when ctx is nil or the server
-// provides none -- the case on a server built before the trace manager existed.
-func tracerOf(ctx core.RequestContext) Tracer {
-	if ctx == nil {
-		return nil
-	}
-	// the trace manager element; nil on a server that has none
-	tracer, ok := ctx.GetServerElement(core.ServerElementTraceManager).(Tracer)
-	if !ok {
-		return nil
-	}
-	return tracer
-}
-
-// NoopStep returns a step handle that records nothing. Start returns one when tracing is off, and
-// an implementation of Tracer returns one for the same reason.
-func NoopStep() Step {
-	return noopStep{}
-}
-
-// noopStep is the handle of a step that is not being recorded.
-type noopStep struct{}
-
-// SetAttributes does nothing.
-func (noopStep) SetAttributes(utils.StringMap) {}
-
-// SetPayload does nothing.
-func (noopStep) SetPayload(string, string) {}
-
-// RecordError does nothing.
-func (noopStep) RecordError(error) {}
-
-// SetStatus does nothing.
-func (noopStep) SetStatus(StepStatus) {}
-
-// End does nothing.
-func (noopStep) End() {}
-
-// TraceId returns "": the step belongs to no trace.
-func (noopStep) TraceId() string { return "" }
-
-// StepId returns "": the step has no id.
-func (noopStep) StepId() string { return "" }
-
-// IsRecording returns false.
-func (noopStep) IsRecording() bool { return false }

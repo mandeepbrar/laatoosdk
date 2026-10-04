@@ -18,6 +18,20 @@ type RequestContext interface {
 	EngineRequestContext() EngineContext
 	// EngineRequestParams returns the parameters extracted from the engine request.
 	EngineRequestParams() utils.StringMap
+	// StartTraceStep starts a recorded step -- an agent run, an LLM call, a tool call -- as a child of
+	// this context's current step, or as the top step of a new trace when there is none, and
+	// returns a context carrying it together with the step's handle. Pass the returned context to
+	// whatever the step does, so the steps it starts nest beneath it. When tracing is off for this
+	// context's namespace it returns this context unchanged and a handle that does nothing, so a
+	// caller needs no check of its own. The trace manager element does the recording.
+	StartTraceStep(kind TraceStepKind, name string, attrs utils.StringMap) (RequestContext, TraceStep)
+	// CurrentTraceStep returns the innermost step this context carries, or a handle that does nothing
+	// when it carries none.
+	CurrentTraceStep() TraceStep
+	// RootTraceStep returns the top step of the trace this context belongs to when that step was started
+	// in this process, or a handle that does nothing otherwise. It is how code at any depth adds
+	// run-level attributes or marks the run paused.
+	RootTraceStep() TraceStep
 	// SubContext creates a sub-context of the request.
 	// It retains the ID and tracks flow along with variables.
 	SubContext(name string) RequestContext

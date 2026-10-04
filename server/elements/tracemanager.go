@@ -13,8 +13,10 @@ import (
 // and every namespace below it that does not register its own. With no sink resolving, tracing is
 // off for that namespace and every step started there is a handle that does nothing.
 //
-// A plugin rarely needs this interface: tracing.Start and tracing.Current cover adding steps. It
-// is for a plugin that supplies a sink.
+// A plugin rarely needs this interface: RequestContext.StartTraceStep covers adding steps. It is for a
+// plugin that supplies a sink, or one that carries a trace where a request context cannot go -- a
+// workflow engine delivering it from a workflow's start to each activity (tracing.Tracer's Inject
+// and Extract).
 type TraceManager interface {
 	core.ServerElement
 	tracing.Tracer
