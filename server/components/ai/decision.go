@@ -9,14 +9,14 @@ import (
 // generating text. They are made through the AgentManager (Evaluate, Classify, Score, Validate,
 // Route) and answered by a DecisionProvider, never by the chat LLM path.
 //
-// The caller supplies its own state and, optionally, a subject. The server assembles what the model
-// sees from four sections -- the caller's state, the knowledge graph's statements about the subject,
-// memory items found for the subject, and the session's conversation -- so every provider receives
-// the same context and no caller re-implements the lookups:
+// KNOWLEDGE IS THE CALLER'S. The caller supplies its own state, carrying whatever knowledge the
+// decision needs -- gathered with the tools of the vocabulary it works in -- and, optionally, a
+// subject. The server adds what only it can reach, the session: memory items found for the subject
+// and the session's conversation, so every provider receives the same context:
 //
 //	answer, err := agentMgr.Classify(ctx, &ai.DecisionRequest{
-//		State:   map[string]any{"message": "I was charged twice"},
-//		Subject: &ai.DecisionSubject{ID: "https://example.org/order/1042", Graph: "domain"},
+//		State:   map[string]any{"message": "I was charged twice", "order": orderFacts},
+//		Subject: &ai.DecisionSubject{ID: "order 1042"},
 //		MinConfidence: 0.8,
 //	}, "Which team should handle this?", []ai.DecisionOption{
 //		{Key: "billing", Description: "Charges and refunds"},
@@ -33,15 +33,9 @@ const (
 	// DecisionChoice is a question with an unordered set of options, answered with the chosen
 	// option and a probability for every option.
 	DecisionChoice DecisionQuestionType = "choice"
-	// DecisionScore is a question over 2 to 10 ordered levels, answered with the probability-weighted
+	// DecisionScore is a question over ordered levels (the server bounds how many), answered with the probability-weighted
 	// level and the distribution over levels.
 	DecisionScore DecisionQuestionType = "score"
-)
-
-// MinScoreLevels and MaxScoreLevels bound a score question's levels.
-const (
-	MinScoreLevels = 2
-	MaxScoreLevels = 10
 )
 
 // DecisionOption is one option of a choice question or one level of a score question. Key is what
@@ -78,21 +72,16 @@ type DecisionMemorySource struct {
 	Limit int        `json:"limit,omitempty"`
 }
 
-// DecisionSubject is what a decision is about, and where the server looks it up.
+// DecisionSubject is what a decision is about, for the session memory the server searches.
 //
-//   - ID identifies the subject. For the ontology lookup it must be an absolute IRI; for the memory
-//     search it is the query text.
-//   - Graph is the alias of a knowledge graph registered with the KnowledgeManager, resolved nearest
-//     namespace first. Empty means no ontology section.
-//   - Query optionally replaces the default lookup: a SPARQL SELECT carrying the placeholder
-//     {{subject}}, which the server replaces with the validated <IRI>. The default selects every
-//     statement with the subject in subject or object position.
+//   - ID identifies the subject; it is the query text of the memory search.
 //   - Memory names the banks to search. Nil means the session's own Reference and Data banks (a bank
 //     of each type whose id is the session id), where they exist.
+//
+// The server reads no ontology for a decision: knowledge about the subject is the caller's to gather
+// and pass in DecisionRequest.State.
 type DecisionSubject struct {
 	ID     string                 `json:"id"`
-	Graph  string                 `json:"graph,omitempty"`
-	Query  string                 `json:"query,omitempty"`
 	Memory []DecisionMemorySource `json:"memory,omitempty"`
 }
 
@@ -102,8 +91,6 @@ type DecisionStateSection string
 const (
 	// DecisionStateCaller is the caller's own state. It is always included and never trimmed.
 	DecisionStateCaller DecisionStateSection = "state"
-	// DecisionStateOntology is the knowledge graph's statements about the subject.
-	DecisionStateOntology DecisionStateSection = "ontology"
 	// DecisionStateMemory is the memory items found for the subject.
 	DecisionStateMemory DecisionStateSection = "memory"
 	// DecisionStateConversation is the session's earlier turns, bounded by agents.conversationturns.
@@ -190,8 +177,8 @@ type DecisionEvaluation struct {
 // AgentManager (RegisterDecisionProvider). It is deliberately separate from LLMProvider: a decision
 // model has no completion, streaming or token counting, and a chat model has no typed questions.
 //
-// The provider never sees the subject, the knowledge graph or the memory; the server assembles them
-// into the state, so every provider receives the same context.
+// The provider never sees the subject or the memory; the server assembles them, with the caller's
+// state, into one state, so every provider receives the same context.
 type DecisionProvider interface {
 	// Name is the provider's registration name, e.g. "typesafe".
 	Name() string

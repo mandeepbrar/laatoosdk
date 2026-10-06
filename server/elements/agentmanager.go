@@ -193,10 +193,11 @@ type AgentManager interface {
 	// Evaluate answers every question of req in one decision-model call. The model is req.Model,
 	// else agents.decisionmodel from the nearest namespace setting it; with neither the call is
 	// refused with Core_Bad_Conf naming agents.decisionmodel. Malformed questions (no options for
-	// a choice, fewer than 2 or more than 10 score levels, a duplicate or empty name) are refused
+	// a choice, a score outside the server's level bounds, a duplicate or empty name) are refused
 	// before any model is called. The state the model receives is assembled by the server from
-	// the caller's state and, unless excluded, the subject's ontology statements, the memory items
-	// found for it and the session's conversation; the response reports what each section carried.
+	// the caller's state -- which carries any knowledge the caller gathered; the server reads no
+	// ontology -- and, unless excluded, the memory items found for the subject and the session's
+	// conversation; the response reports what each section carried.
 	// Each call is recorded as a "decision" trace step.
 	Evaluate(ctx core.RequestContext, req *ai.DecisionRequest) (*ai.DecisionResponse, error)
 
