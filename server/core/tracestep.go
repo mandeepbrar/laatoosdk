@@ -20,6 +20,10 @@ const (
 	TraceStepTask TraceStepKind = "task"
 	// TraceStepLLM is one completion request to an LLM provider, streaming or not.
 	TraceStepLLM TraceStepKind = "llm"
+	// TraceStepDecision is one decision-model call (AgentManager.Evaluate and its typed forms):
+	// its usage is recorded under the same gen_ai attribute keys as an LLM step, so a sink can
+	// total both.
+	TraceStepDecision TraceStepKind = "decision"
 	// TraceStepSkill is one skill invocation.
 	TraceStepSkill TraceStepKind = "skill"
 	// TraceStepTool is one tool call an agent made -- an MCP tool, or a service exposed to the model

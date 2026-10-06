@@ -164,6 +164,11 @@ const (
 	// trace sink registered for their namespace (elements.TraceManager). RequestContext.StartTraceStep
 	// resolves it, which is how plugins add steps of their own.
 	ServerElementTraceManager ServerElementType = 47
+
+	// ServerElementDecisionModel is a model offered by a decision provider (ai.DecisionProvider),
+	// held beneath that provider as ServerElementLLMModel is beneath an LLM provider: two providers
+	// may each offer a model of one name, and each is then reachable by its qualified address.
+	ServerElementDecisionModel ServerElementType = 48
 )
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,

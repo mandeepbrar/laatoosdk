@@ -114,7 +114,9 @@ type AgentManager interface {
 	// RegisterAgentType binds an agent type to the ServiceFactory that builds agents of that
 	// type. Call it from a plugin's Initialize, before any agent YAML naming the type is
 	// loaded; an agent whose metadata.agentType has no factory fails startup with NotFound.
-	// Registration OVERWRITES an existing type silently and always returns nil.
+	// The same factory registering again is a no-op; a DIFFERENT factory for a type this
+	// namespace already has is refused with Core_Duplicate_Declaration naming both
+	// registrants; a nested namespace registering its own is an override.
 	RegisterAgentType(ctx core.ServerContext, agenttype ai.AgentType, factory core.ServiceFactory) error
 
 	// RegisterAgent allows direct registration of pro-code agents (e.g. golangagent), skipping
@@ -130,23 +132,25 @@ type AgentManager interface {
 	// LLMRequest sends a completion request to the provider owning req.Model and returns the
 	// response.
 	//
-	// Dispatch is BY MODEL NAME ONLY — the manager looks req.Model up in a flat map built from
-	// every registered provider's ListModels — so req.Model is required, provider selection is
-	// not something the caller controls, and an unknown or empty model is a NotFound
-	// ("LLM Model"). Two providers advertising the same model name silently collide: the one
-	// registered later wins for every request. req.PreferredModels / FallbackModels are NOT
-	// consulted here; any fallback is the provider's own affair.
+	// req.Model is a model reference, bare ("gemini-3.8-flash") or qualified
+	// ("gemini::gemini-3.8-flash"), resolved nearest namespace first. An empty model runs on
+	// the namespace's configured agents.defaultmodel (or a profile model); with nothing
+	// configured the request is refused with Core_Bad_Conf naming agents.defaultmodel. A bare
+	// name several providers declare is refused naming each qualified form. The session's
+	// earlier turns are placed before req.Messages unless req.Metadata["conversation"] is
+	// "none" or "included". req.PreferredModels / FallbackModels are NOT consulted here; any
+	// fallback is the provider's own affair.
 	LLMRequest(ctx core.RequestContext, req *ai.CompletionRequest) (*ai.CompletionResponse, error)
 
 	// LLMStreamingRequest sends a prompt and streams back responses as a channel of
-	// ai.StreamEvent. Model dispatch works exactly as in LLMRequest, including the
-	// same-model-name collision. The caller must drain the channel to completion; abandoning
+	// ai.StreamEvent. Model resolution and conversation attachment work exactly as in
+	// LLMRequest. The caller must drain the channel to completion; abandoning
 	// it leaks the provider's producer goroutine.
 	LLMStreamingRequest(ctx core.RequestContext, req *ai.CompletionRequest) (<-chan ai.StreamEvent, error)
 
-	// GetMCPServer returns the MCP engine wrapper registered at rootpath, or a NotFound error.
-	// rootpath is matched EXACTLY as a map key — there is no prefix or longest-match logic —
-	// so it must be the same string the engine registered with.
+	// GetMCPServer returns an MCP engine wrapper by engine name, or a NotFound error. "" or "/"
+	// answers the namespace's default: agents.defaultmcpserver, else the only MCP engine the
+	// nearest namespace holding any has, else a refusal naming them.
 	GetMCPServer(ctx core.ServerContext, rootpath string) (ai.Mcp, error)
 
 	// RegisterMCPServer registers an MCP engine wrapper under rootpath. Called by the MCP
@@ -161,11 +165,55 @@ type AgentManager interface {
 	// RegisterLLMProvider registers an LLM provider and indexes every model its ListModels
 	// reports, so those models become dispatchable by LLMRequest.
 	//
-	// The model index is flat and shared: a model name already claimed by an earlier provider
-	// is REBOUND to this one with no error or warning. An error from ListModels fails the
-	// registration. Because the index is built once here, models a provider gains later are
-	// invisible until it is registered again.
+	// Each model becomes an element beneath its provider; two providers may declare one model
+	// name, and a bare reference to it is then refused until qualified <provider>::<model>. A
+	// different provider under a name this namespace already holds is refused. An error from
+	// ListModels fails the registration and leaves nothing registered. Because the index is
+	// built once here, models a provider gains later are invisible until it registers again.
 	RegisterLLMProvider(ctx core.ServerContext, name string, llmprovider ai.LLMProvider) error
+
+	// ============================================================
+	// DECISIONS
+	// Typed judgements answered by a decision model, never by the chat LLM path. See
+	// ai.DecisionRequest for what the model sees and ai.DecisionAnswer for when an answer is
+	// decided.
+	// ============================================================
+
+	// RegisterDecisionProvider registers a decision-model provider and indexes every model its
+	// ListModels reports, as RegisterLLMProvider does for LLM providers: models are elements
+	// beneath the provider, a bare model name several providers declare must be qualified, and a
+	// different provider under a held name -- including a name an LLM provider holds in this
+	// namespace -- is refused.
+	RegisterDecisionProvider(ctx core.ServerContext, name string, provider ai.DecisionProvider) error
+
+	// GetDecisionProvider returns the decision provider registered under name, nearest namespace
+	// first, or a NotFound error.
+	GetDecisionProvider(ctx core.ServerContext, name string) (ai.DecisionProvider, error)
+
+	// Evaluate answers every question of req in one decision-model call. The model is req.Model,
+	// else agents.decisionmodel from the nearest namespace setting it; with neither the call is
+	// refused with Core_Bad_Conf naming agents.decisionmodel. Malformed questions (no options for
+	// a choice, fewer than 2 or more than 10 score levels, a duplicate or empty name) are refused
+	// before any model is called. The state the model receives is assembled by the server from
+	// the caller's state and, unless excluded, the subject's ontology statements, the memory items
+	// found for it and the session's conversation; the response reports what each section carried.
+	// Each call is recorded as a "decision" trace step.
+	Evaluate(ctx core.RequestContext, req *ai.DecisionRequest) (*ai.DecisionResponse, error)
+
+	// Classify asks one choice question: which of labels fits. req carries the state, subject and
+	// thresholds; req.Questions must be empty.
+	Classify(ctx core.RequestContext, req *ai.DecisionRequest, instructions string, labels []ai.DecisionOption) (*ai.DecisionAnswer, error)
+
+	// Score asks one score question over levels, ordered lowest first (2 to 10 of them).
+	Score(ctx core.RequestContext, req *ai.DecisionRequest, instructions string, levels []ai.DecisionOption) (*ai.DecisionAnswer, error)
+
+	// Validate asks one yes/no question; the answer's Probability is the probability of yes.
+	Validate(ctx core.RequestContext, req *ai.DecisionRequest, instructions string) (*ai.DecisionAnswer, error)
+
+	// Route asks which target should take the work. With targets empty the options are the agents
+	// and skills visible from the calling namespace, keyed "agent:<alias>" and "skill:<name>" and
+	// described by their descriptions; with none visible either the call is refused.
+	Route(ctx core.RequestContext, req *ai.DecisionRequest, instructions string, targets []ai.DecisionOption) (*ai.DecisionAnswer, error)
 
 	// HasModel reports whether any registered provider advertises modelName.
 	//
@@ -324,11 +372,9 @@ type AgentManager interface {
 	// COMPLETION REQUEST FACTORIES
 	// Returns pre-configured CompletionRequest instances for common use-cases.
 	//
-	// EVERY FACTORY HARDCODES A MODEL NAME — "gpt-5-mini" for most, "gemini-2-5-pro" for the
-	// high-quality and research variants — with no reference to what the solution has actually
-	// configured. If the matching provider is not registered, the request these produce fails
-	// LLMRequest with NotFound ("LLM Model"). Treat them as starting points and set .Model, or
-	// use WithModel, unless you know that model is available.
+	// The model of each comes from the namespace's agents config: the profile's model
+	// (agents.profiles.<profile>) else agents.defaultmodel, nearest namespace first. With none
+	// configured the model is empty and LLMRequest refuses it naming agents.defaultmodel.
 	//
 	// Each returns a FRESH struct per call, so mutating one is safe. All of them enable cost
 	// tracking with BudgetExceededAction "fail", so a request that exceeds MaxCostUSD is
@@ -337,17 +383,18 @@ type AgentManager interface {
 	// ============================================================
 
 	// DefaultCompletionRequest returns a CompletionRequest with sensible production defaults:
-	// gpt-5-mini, temperature 0.7, 1500 max tokens, no tool calling, streaming off, a $0.10
+	// the default profile's model, temperature 0.7, 1500 max tokens, no tool calling, streaming off, a $0.10
 	// budget and 2 retries. This is the base every other factory below clones and adjusts.
 	DefaultCompletionRequest() *ai.CompletionRequest
 
 	// DefaultCompletionRequestCostSensitive returns defaults optimized for minimum cost:
-	// 500 max tokens, temperature 0.3, a $0.02 budget, falling back to gemini-1.5-flash.
+	// the cost_sensitive profile's model, 500 max tokens, temperature 0.3, a $0.02 budget, no
+	// fallback models.
 	DefaultCompletionRequestCostSensitive() *ai.CompletionRequest
 
 	// DefaultCompletionRequestHighQuality returns defaults optimized for quality & reasoning:
-	// gemini-2-5-pro, 4000 max tokens, a $0.50 budget and NO fallback models — so if that
-	// model is unavailable the request simply fails.
+	// the quality profile's model, 4000 max tokens, a $0.50 budget and NO fallback models — so
+	// if that model is unavailable the request simply fails.
 	DefaultCompletionRequestHighQuality() *ai.CompletionRequest
 
 	// DefaultCompletionRequestFast returns defaults optimized for lowest time-to-first-token:
