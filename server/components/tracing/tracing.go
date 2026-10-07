@@ -43,6 +43,10 @@ const (
 	AttrLLMModel = "gen_ai.request.model"
 	// AttrLLMInputTokens is the prompt token count the provider reported.
 	AttrLLMInputTokens = "gen_ai.usage.input_tokens"
+	// AttrLLMCachedInputTokens is the part of the input the provider read from its prompt cache and
+	// billed at the cached rate, when it reported any (OpenTelemetry's GenAI name). Absent means none
+	// was reported, not zero.
+	AttrLLMCachedInputTokens = "gen_ai.usage.cache_read.input_tokens"
 	// AttrLLMOutputTokens is the completion token count the provider reported.
 	AttrLLMOutputTokens = "gen_ai.usage.output_tokens"
 	// AttrLLMCostUSD is the cost of a completion in US dollars, when the provider reported one.
