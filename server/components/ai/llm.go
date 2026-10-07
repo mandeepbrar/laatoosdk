@@ -55,6 +55,12 @@ type ModelCapabilities struct {
 	SupportsJSON          bool
 	SupportsSystemPrompt  bool
 	SupportsTemperature   bool
+	// SupportsDecisions marks a model that may be named as a decision model (agents.decisionmodel):
+	// one served by a decisions API, or a chat model cheap and light enough to answer typed
+	// questions in one short call. A provider sets it in its catalogue; a DecisionProvider lists only
+	// models carrying it, and the server refuses to register one that lists a model without it.
+	// Example: gemini-3.5-flash-lite carries it, gemini-3.5-flash does not.
+	SupportsDecisions     bool
 	MaxContextTokens      int
 	ReleaseDate           time.Time
 }

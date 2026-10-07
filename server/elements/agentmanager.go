@@ -183,7 +183,10 @@ type AgentManager interface {
 	// ListModels reports, as RegisterLLMProvider does for LLM providers: models are elements
 	// beneath the provider, a bare model name several providers declare must be qualified, and a
 	// different provider under a held name -- including a name an LLM provider holds in this
-	// namespace -- is refused.
+	// namespace -- is refused. So is a provider listing a model whose GetConfig lacks
+	// ai.ModelCapabilities.SupportsDecisions, or answers no configuration, with an error naming the
+	// model: only models marked capable of decisions can be indexed, and so named by
+	// agents.decisionmodel.
 	RegisterDecisionProvider(ctx core.ServerContext, name string, provider ai.DecisionProvider) error
 
 	// GetDecisionProvider returns the decision provider registered under name, nearest namespace
@@ -292,22 +295,20 @@ type AgentManager interface {
 	// CreateMemory creates a memory bank of the given type under id, delegating to the
 	// AgentMemoryManager registered for that MemoryType.
 	//
-	// Only MemoryTypeSession and MemoryTypeShared have a registered manager in the shipped
-	// platform — chromemmemory and laatooreferencememory implement AgentMemoryManager but
-	// never call RegisterAgentMemoryManager — so MemoryTypeData and MemoryTypeReferences
-	// always fail here with NotFound ("Memory Manager").
+	// The manager is looked up nearest namespace first; a type no loaded plugin registered fails
+	// here with NotFound ("Memory Manager").
 	CreateMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string, config map[string]interface{}) (ai.MemoryBank, error)
 
 	// GetMemory returns an existing memory bank of the given type by id, or an error. Same
-	// registered-type limitation as CreateMemory. Callers generally want the
+	// registered-type rule as CreateMemory. Callers generally want the
 	// get-then-create-on-miss pattern the manager itself uses for session banks.
 	GetMemory(ctx core.RequestContext, memorytype ai.MemoryType, id string) (ai.MemoryBank, error)
 
 	// RegisterAgentMemoryManager registers the manager that creates banks for a MemoryType.
 	// Call it from the memory plugin's Initialize — a plugin that implements
-	// ai.AgentMemoryManager but omits this call is unreachable through CreateMemory/GetMemory,
-	// which is exactly the state chromemmemory and laatooreferencememory are in today.
-	// Overwrites silently and always returns nil.
+	// ai.AgentMemoryManager but omits this call is unreachable through CreateMemory/GetMemory.
+	// A second, different manager for the same type in one namespace is refused with an error
+	// naming both declarers; the same element registering again (a hot reload) replaces its own.
 	RegisterAgentMemoryManager(ctx core.ServerContext, memorytype ai.MemoryType, mgr ai.AgentMemoryManager) error
 
 	// WriteMessageToMemory records a conversation turn in the session memory bank.

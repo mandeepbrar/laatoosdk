@@ -182,8 +182,14 @@ type DecisionEvaluation struct {
 type DecisionProvider interface {
 	// Name is the provider's registration name, e.g. "typesafe".
 	Name() string
-	// ListModels names the models this provider serves. They are indexed once, at registration.
+	// ListModels names the models this provider serves. They are indexed once, at registration, and
+	// each must carry ModelCapabilities.SupportsDecisions in its GetConfig: registration is refused
+	// when one does not.
 	ListModels(ctx core.ServerContext) ([]string, error)
+	// GetConfig answers a listed model's configuration -- its context, prices and capabilities -- or
+	// an error for a model the provider does not serve. The server reads SupportsDecisions from it
+	// when the provider registers.
+	GetConfig(ctx core.ServerContext, model string) (*ModelConfig, error)
 	// StateLimit is the largest state, in characters, the model accepts. The server trims injected
 	// context to fit and refuses a call whose caller state alone exceeds it. Zero means no limit.
 	StateLimit(ctx core.ServerContext, model string) (int, error)
