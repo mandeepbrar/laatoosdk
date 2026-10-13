@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log/slog"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -131,8 +132,14 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		}
 	}
 
-	is := func(variable string) bool {
-		val, _ := ctx.GetBool(variable)
+	// is answers whether a value is true: the argument itself when it is already a boolean, as
+	// when piped from var ({{var "x" | is}}), else the context variable it names ({{is "x"}}).
+	is := func(arg string) bool {
+		if b, err := strconv.ParseBool(strings.TrimSpace(arg)); err == nil {
+			return b
+		}
+		// the argument names a context variable; an unset one is false
+		val, _ := ctx.GetBool(arg)
 		return val
 	}
 
