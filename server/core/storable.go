@@ -25,6 +25,12 @@ type StorableConfig struct {
 	// already embeds data.DeletionInfo unconditionally, so the field exists in storage whether
 	// or not this is set — turning it on is a configuration change and never a migration.
 	SoftDelete bool
+	// EntityAccess opts the entity in to record-level access: its data component asks the
+	// security handler which records the caller may read, create, update or delete, and applies
+	// the answer on every path — lists, by-id reads, counts, expansion targets and writes. Declared
+	// by the entity (entityaccess: true) and never overridable per data service: a module setting
+	// that could turn it off would be a way to serve the entity without its rules.
+	EntityAccess bool
 }
 
 // Storable is the object a data service persists. Implementations are GENERATED, not hand-written:

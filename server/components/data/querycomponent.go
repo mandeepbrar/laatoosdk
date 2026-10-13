@@ -44,13 +44,24 @@ type QueryComponent interface {
 	// Lower converts a dataset's declaration into the query AST, writing onto the Query it is
 	// given. It is called at most once per dataset, at load.
 	//
-	// The returned slice is the projection the declaration named — OData's $select, and whatever
-	// the equivalent is in another form. Return nil when the form carries no projection of its
-	// own, which leaves the dataset's declared Properties in force.
-	Lower(ctx core.ServerContext, conf config.Config, query *Query) ([]string, error)
+	// projection is what the declaration named — OData's $select, and whatever the equivalent is
+	// in another form. Return nil when the form carries no projection of its own, which leaves the
+	// dataset's declared Properties in force.
+	//
+	// navigate is what the declaration said the query RETURNS, when it says anything: a dataset's
+	// `Navigate:` key, Cypher's `RETURN <var>` naming the far end of a pattern. Nil means the
+	// query returns its own entity, which is every declaration that says nothing.
+	//
+	// IT IS RETURNED RATHER THAN WRITTEN ONTO THE QUERY, and that is the whole reason this
+	// signature changed on 2026-09-10. Navigation is a projection — it changes which rows come
+	// back and nothing else — and a projection has never been written onto Query either; $select
+	// has always come back through the first return value. Carrying navigation on the AST instead
+	// made every consumer of the AST strip or refuse a field it could not use.
+	Lower(ctx core.ServerContext, conf config.Config, query *Query) (projection []string, navigate []string, err error)
 
-	// ParseQuery converts query TEXT into the AST, writing onto the Query it is given, and
-	// returns the projection the text named — nil when it named none.
+	// ParseQuery converts query TEXT into the AST, writing onto the Query it is given, and returns
+	// the projection and the navigation the text named — nil for either when it named none. Both
+	// carry the meaning Lower gives them above.
 	//
 	// It takes the same Query the dataset path writes to, deliberately: a caller may already have
 	// set parts of it, and a form that overwrote rather than composed would silently discard them.
@@ -68,5 +79,5 @@ type QueryComponent interface {
 	// new so there is nothing to break by widening it, and a form that cannot read text has no
 	// fallback to select. An error at the call site is the whole of the behaviour, so an error is
 	// the whole of the contract.
-	ParseQuery(ctx core.ServerContext, queryText string, query *Query) ([]string, error)
+	ParseQuery(ctx core.ServerContext, queryText string, query *Query) (projection []string, navigate []string, err error)
 }

@@ -378,7 +378,8 @@ const DepthUnbounded = -1
 // whose Path is `["Category"]`; the comparison's Field is then resolved on Category.
 //
 // The result type is unchanged: a Traversal filters the records the query already targets. To
-// return the related records instead, use Query.Navigate.
+// return the related records instead, navigate — QueryBuilder.NavigatingTo declares it and
+// NavigatingComponent.NavigatingTo executes it; it is not a field on Query.
 type Traversal struct {
 	Optionality
 	// Path is the navigation segments from the entity in scope, outermost first. Every
@@ -465,6 +466,12 @@ type ScopeRequirement struct {
 	SoftDelete bool
 	// DeletedField names the flag soft deletion sets.
 	DeletedField string
+	// EntityAccess says the reached entity opts in to record-level access rules. Those rules are
+	// decided per CALLER — they are not a column this struct could name — so a provider must REFUSE
+	// to compile the hop natively when this is set, and the hop is then served by reading the target
+	// through its own component, which applies the caller's rules. A native join here would return
+	// records the caller could not read directly.
+	EntityAccess bool
 	// Connection names the dataconnection the reached entity lives on. Empty means the caller has
 	// not said, and it inherits this struct's existing rule exactly: a provider must then REFUSE to
 	// compile the hop natively rather than guess. Guessing here would emit a join against whichever
@@ -681,8 +688,23 @@ const (
 	// CapabilityExpandCount covers reporting the expanded set's full size alongside a page of
 	// it, which is what distinguishes a truncated expansion from a complete one.
 	CapabilityExpandCount QueryCapability = "expandcount"
-	// CapabilityNavigate covers Query.Navigate — a query returning a related entity rather
-	// than its own.
+	// CapabilityNavigate covers returning a RELATED entity rather than the component's own, in
+	// one store query -- see NativeNavigatingComponent, which is the method that serves it.
+	//
+	// IT IS DECLARABLE AS OF 2026-09-10, and was not before. It named a query field that every
+	// consumer stripped or refused, so no provider could ever declare it and the platform recorded
+	// that as though it were a fact about stores. It is not: SQL and jsonb join, mongo has
+	// $lookup/$unwind/$replaceRoot, couchbase has N1QL, and a graph store's whole query language is
+	// built around it. The obstacle was an interface with nowhere to put the rows, and that is now
+	// NativeNavigatingComponent.
+	//
+	// A provider declaring it MUST apply the target's ScopeRequirement explicitly: the query reads
+	// the target's rows without the target's component running, so nothing else stamps its tenancy
+	// or soft delete. Declaring this without that is a cross-tenant read that returns rows.
+	//
+	// Not declaring it is not a gap. The read-and-follow strategy behind
+	// NavigatingComponent.NavigatingTo serves every provider correctly; this capability buys one
+	// round trip instead of two and a page boundary that describes the entities returned.
 	CapabilityNavigate QueryCapability = "navigate"
 	// CapabilityOptionalMatch covers Traversal.MatchOptional and Expansion.Required, the two
 	// places a query says what reaching nothing should mean.
@@ -748,10 +770,104 @@ type ExpandingComponent interface {
 	CompileWithExpansion(ctx core.ServerContext, query *Query) (interface{}, error)
 }
 
+// NavigatingComponent resolves a NAVIGATION: the records a query's segments REACH, returned in
+// place of the ones that matched.
+//
+// It is an optional interface beside DataComponent and never a method on it, for the reason
+// ExpandingComponent, ExpiringComponent and PrefixScanComponent are: adding a method to
+// DataComponent breaks its implementors SILENTLY, because Go checks satisfaction at the assertion
+// site, so they compile and fail at load.
+//
+// IT OWNS THE READ, and that is forced rather than preferred. An entry point taking
+// already-fetched records could never reach a provider's native path -- the read would already
+// have happened -- so the two strategies below would not be interchangeable behind one name.
+//
+//	if nav, ok := component.(NavigatingComponent); ok {
+//	    reached, total, returned, err := nav.NavigatingTo(ctx, cond, 50, 1, nil, "Course", "Department")
+//	}
+//
+// ONE ACCESS POINT, TWO STRATEGIES, AND THE CALLER CHOOSES NEITHER. An implementation either
+// compiles the navigation into a single store query -- see NativeNavigatingComponent -- or reads
+// the matched records and follows their references through each TARGET's own component. Which one
+// served a call is an implementation decision logged at debug, not a fact the caller acts on.
+//
+// SEGMENTS ARE REFERENCE FIELD NAMES. "Course", then "Department" -- never the relationshipname
+// stamped onto a StorableRef, and never a collection. Nothing here names a target entity, because
+// the target is a per-ROW fact carried on StorableRef.Type and .DataConnection; that is what lets
+// one field reach two entities and a reference on another dataconnection resolve to the right
+// store.
+//
+// NO props OR dao. Navigation returns whole records: the caller asked for the entity, not a
+// projection of it. Accepting arguments and ignoring them is the silently-wrong direction this
+// interface exists to close, so a projection of the reached entity is a separate method if it is
+// ever wanted.
+//
+// The name is shared with Query.NavigatingTo's successor on QueryBuilder deliberately -- one
+// vocabulary word for one concept across declaration and execution. The difference is that the
+// builder's is lazy and this one performs reads.
+type NavigatingComponent interface {
+	// NavigatingTo runs the bound condition and returns the entities the segments reach.
+	//
+	// No segments returns the matched records unchanged. A segment that reaches nothing returns an
+	// empty slice and NO error -- no record satisfied the path, which is an answer rather than a
+	// failure. Each hop reads through the target's own component, so its tenancy and soft-delete
+	// apply without this interface knowing about either.
+	//
+	// The counts describe what is RETURNED, not what matched: a caller holding the children has no
+	// use for a total describing their parents.
+	NavigatingTo(ctx core.RequestContext, cond interface{}, pageSize, pageNum int,
+		orderBy []string, segments ...string) (records []core.Storable, totalrecs int, recsreturned int, err error)
+}
+
+// NativeNavigatingComponent is implemented by a provider that can return a related entity in ONE
+// store query, rather than by reading the matched records and following their references.
+//
+// EVERY RELATIONAL AND GRAPH STORE CAN DO THIS, and the platform said otherwise until 2026-09-10.
+// SQL and jsonb serve it with a join, mongo with $lookup/$unwind/$replaceRoot, couchbase with
+// N1QL, a graph provider with the RETURN clause it was designed around. What blocked it was never
+// the store: it was that Get returns storables of the component's own object and its props, dao,
+// ids and both counts all describe the parent, so a provider could compute the right rows and had
+// nowhere in its signature to put them. This method is that missing place, which is why
+// CapabilityNavigate could not be declared by anyone before it existed.
+//
+// REFUSAL MEANS FALL BACK, NEVER FAIL -- the contract CompileWithExpansion already carries. A
+// provider that serves navigation in general but not THIS call returns errors.NotImplemented and
+// the caller resolves it by reading, per NavigatingComponent.
+//
+// SCOPING DOES NOT COME FREE HERE, and it is the hazard of implementing this at all. The query
+// reads the target's rows directly, so the target's own component never runs and its
+// PreProcessConditionMap never stamps tenancy or soft delete. This is the same exposure a native
+// join has and takes the same instrument: ask the target component for its ScopeRequirement and
+// apply it explicitly. An implementation that omits it is a cross-tenant read that RETURNS ROWS.
+//
+// PAGING IS THE OBSERVABLE DIFFERENCE. This pages the entities REACHED; the read-and-follow
+// strategy can only page the parents it started from and then return however many children they
+// reach. That is what a caller asking for page 2 of a navigation actually meant.
+type NativeNavigatingComponent interface {
+	// NavigateQuery runs the condition AND the navigation as one store query.
+	//
+	// It takes the same arguments NavigatingTo does and answers the same question; the difference
+	// is the number of round trips and the correctness of the page boundary.
+	NavigateQuery(ctx core.RequestContext, cond interface{}, pageSize, pageNum int,
+		orderBy []string, segments ...string) (records []core.Storable, totalrecs int, recsreturned int, err error)
+}
+
 // Query is the root of a data-layer query. It is the single representation every front-end
 // lowers into — OData filter text, declarative dataset filters, and the map shorthand — and
 // the only one a data provider compiles.
 type Query struct {
+	// Plan is the canonical logical plan for this query, when one has been built.
+	//
+	// ADDITIVE AND OPTIONAL. The fields below remain the live ones: every front-end still writes
+	// them and every provider still compiles them, so a caller that never mentions a plan is
+	// unaffected and the ~130 modules pinning this SDK need no edit. Plan is populated alongside,
+	// by PlanFromQuery or by a front-end that lowers straight into it, and is what the optimizer
+	// and capability decisions read.
+	//
+	// A nil Plan means "not built", never "empty query" — build one with PlanForEntity rather
+	// than inferring anything from its absence.
+	Plan PlanNode
+
 	Version QueryVersion
 	// Filter is the predicate tree. A nil filter means the query is unconstrained; note that
 	// this is distinct from a nil condition passed to a data service, which returns nothing.
@@ -784,29 +900,25 @@ type Query struct {
 	// An empty Expand is every query written before this field existed, and returns records
 	// with their references unresolved exactly as it always did.
 	Expand []Expansion
-	// Navigate changes what the query RETURNS: instead of the entity the data service holds,
-	// it returns the entities reached by following these navigation segments from each record
-	// that matched Filter. This is OData's URL path addressing,
-	// /Groups('Github')/Admin/Friends/Pets.
+
+	// NAVIGATION IS NOT A FIELD HERE, and its absence is deliberate rather than an omission.
 	//
-	// It is the third and last of the relationship constructs, and the three are distinct in
-	// a way worth stating together because they are easy to confuse: Expand returns parents
-	// with children attached, a Traversal returns parents filtered by their children, and
-	// Navigate returns the children.
+	// A Navigate field lived on this struct until 2026-09-10. It was a PROJECTION carried as a
+	// query condition: Filter says which records, Expand says what each carries, and navigation
+	// says which entity comes back — the first two are properties of a read against one entity,
+	// the third changes the subject of the sentence. logicalplan.go models it correctly as
+	// PlanProject.Navigate and says why: "a projection rather than its own node because it
+	// changes which rows come back and nothing else".
 	//
-	// THIS FIELD NEVER REACHES A PROVIDER, and that is stated here because a provider author
-	// will otherwise search the condition for it and find nothing. It cannot reach one: it
-	// changes the result ENTITY, and a DataComponent is bound to a single entity — every
-	// execution method returns []core.Storable of the component's own object. Widening the
-	// interface to carry it is forbidden for the usual reason, that a new interface method
-	// breaks implementors at load rather than at compile.
+	// Carrying it here cost six seams whose only work was undoing its presence — an
+	// unconditional strip before compile, two refusals in the data layer, a third in the query
+	// builder, a capability no provider could ever declare, and one PROVIDER preserving the
+	// field through a clone while its own comment said it never read it.
 	//
-	// It is a directive to the SERVER. The hop executor resolves the target entity's component
-	// through DataManager and executes there, which is the one use DataManager is reserved for
-	// on the query path — a provider that executes traversal natively resolves nothing.
-	//
-	// An empty Navigate returns the query's own entity.
-	Navigate []string
+	// WHERE IT LIVES NOW. A front-end returns it beside the projection (QueryComponent.Lower and
+	// ParseQuery), the read-owner passes it to the component that owns the read, and
+	// NavigatingComponent.NavigatingTo executes it. See that interface, and
+	// QueryBuilder.NavigatingTo for the declarative surface.
 }
 
 // NewQuery builds an empty query at the current version.
@@ -897,16 +1009,6 @@ func (q *Query) Expanding(expansions ...Expansion) *Query {
 		return q
 	}
 	q.Expand = append(q.Expand, expansions...)
-	return q
-}
-
-// NavigatingTo makes the query return records of a RELATED entity instead of its own, following
-// the named navigation segments. It replaces rather than appends: a query has one result type.
-func (q *Query) NavigatingTo(segments ...string) *Query {
-	if q == nil {
-		return q
-	}
-	q.Navigate = segments
 	return q
 }
 
@@ -1004,6 +1106,9 @@ func (q *Query) Resolve(params utils.StringsMap) *Query {
 	// pruned. clone carries them, so a resolved query cannot silently lose its expansion and
 	// return the right records with the wrong shape.
 	resolved := q.clone()
+	// the filter and the expansion filters are both pruned below, so a plan built before this
+	// call describes predicates that are about to change
+	resolved.invalidatePlan()
 	resolved.Filter = nil
 	if q.Filter != nil {
 		resolved.Filter = resolvePredicate(q.Filter, params)
@@ -1023,7 +1128,20 @@ func (q *Query) Resolve(params utils.StringsMap) *Query {
 // with no compile error: the query still executes, and returns the wrong shape rather than an
 // error. That defect has already been written once in this file's history.
 func (q *Query) clone() *Query {
-	return &Query{Version: q.Version, Filter: q.Filter, Expand: q.Expand, Navigate: q.Navigate}
+	return &Query{Version: q.Version, Filter: q.Filter, Expand: q.Expand, Plan: q.Plan}
+}
+
+// invalidatePlan drops a built plan from a query whose fields have just been changed.
+//
+// Every caller of clone MUTATES the copy — Resolve prunes the filter, WithoutExpand drops the
+// projection — and a plan built from the fields before that edit no longer describes the fields
+// after it. Carrying it forward is strictly worse than dropping it: nil means "not built" and the
+// caller rebuilds, while a stale plan is a second, silently disagreeing description of the query
+// that a provider may compile INSTEAD of the fields. That is the same shape as the expansion
+// hazard WithoutExpand exists to prevent — wrong in the direction nothing downstream detects.
+func (q *Query) invalidatePlan() *Query {
+	q.Plan = nil
+	return q
 }
 
 // WithoutExpand returns a copy of the query with the projection removed, leaving everything else
@@ -1044,7 +1162,8 @@ func (q *Query) WithoutExpand() *Query {
 	}
 	stripped := q.clone()
 	stripped.Expand = nil
-	return stripped
+	// the plan was built with the expansions this call just removed
+	return stripped.invalidatePlan()
 }
 
 // resolvePredicate prunes a predicate tree against the supplied parameters, returning nil
@@ -1084,6 +1203,11 @@ func resolvePredicate(predicate Predicate, params utils.StringsMap) Predicate {
 		if resolvedPredicate == nil {
 			return nil
 		}
+		// Every field but Predicate is carried over unchanged. Relationship and TargetScope were
+		// once left out of this copy, so every provider binding through Resolve received the
+		// traversal WITHOUT its edge-type narrowing and without the far side's scope: a
+		// narrowed traversal answered as an un-narrowed one, with no error. Four providers had
+		// to carry their own copy of this function to avoid it.
 		return &Traversal{
 			Optionality:   traversal.Optionality,
 			Path:          traversal.Path,
@@ -1091,6 +1215,8 @@ func resolvePredicate(predicate Predicate, params utils.StringsMap) Predicate {
 			Predicate:     resolvedPredicate,
 			MinDepth:      traversal.MinDepth,
 			MaxDepth:      traversal.MaxDepth,
+			Relationship:  traversal.Relationship,
+			TargetScope:   traversal.TargetScope,
 			MatchOptional: traversal.MatchOptional,
 		}
 	}

@@ -18,43 +18,158 @@ const (
 
 type ServerElementType int
 
+// Values are ASSIGNED EXPLICITLY, never by iota.
+//
+// Under iota, removing a constant renumbers every one after it, and a plugin .so compiled
+// against the old numbering then resolves a different element than the server means — an unset
+// extension slot, whose nil interface panics at the caller's type assertion far from the cause.
+// Explicit values make a future removal cost nothing.
+//
+// ServerElementNamespace replaces the former Solution, Application and Isolation constants:
+// levels are namespaces now, and the server holds no level vocabulary.
 const (
-	ServerElementEngine ServerElementType = iota
-	ServerElementSolution
-	ServerElementLoader
-	ServerElementServiceFactory
-	ServerElementServiceManager
-	ServerElementChannel
-	ServerElementChannelManager
-	ServerElementFactoryManager
-	ServerElementApplication
-	ServerElementRulesManager
-	ServerElementService
-	ServerElementIsolation
-	ServerElementSessionManager
-	ServerElementSecurityHandler
-	ServerElementMessagingManager
-	ServerElementModuleManager
-	ServerElementTaskManager
-	ServerElementCacheManager
-	ServerElementModule
-	ServerElementLogger
-	ServerElementNotificationManager
-	ServerElementSecretsManager
-	ServerElementWorkflowManager
-	ServerElementActivityManager
-	ServerElementScriptManager
-	ServerElementExpressionManager
-	ServerElementActionsManager
-	ServerElementDataManager
-	ServerElementAgentManager
-	ServerElementOpen1
-	ServerElementOpen2
-	ServerElementOpen3
-	ServerElementKnowledgeManager
-)
+	ServerElementEngine              ServerElementType = 0
+	ServerElementNamespace           ServerElementType = 1
+	ServerElementLoader              ServerElementType = 2
+	ServerElementServiceFactory      ServerElementType = 3
+	ServerElementServiceManager      ServerElementType = 4
+	ServerElementChannel             ServerElementType = 5
+	ServerElementChannelManager      ServerElementType = 6
+	ServerElementFactoryManager      ServerElementType = 7
+	ServerElementRulesManager        ServerElementType = 8
+	ServerElementService             ServerElementType = 9
+	ServerElementSessionManager      ServerElementType = 10
+	ServerElementSecurityHandler     ServerElementType = 11
+	ServerElementMessagingManager    ServerElementType = 12
+	ServerElementModuleManager       ServerElementType = 13
+	ServerElementTaskManager         ServerElementType = 14
+	ServerElementCacheManager        ServerElementType = 15
+	ServerElementModule              ServerElementType = 16
+	ServerElementLogger              ServerElementType = 17
+	ServerElementNotificationManager ServerElementType = 18
+	ServerElementSecretsManager      ServerElementType = 19
+	ServerElementWorkflowManager     ServerElementType = 20
+	ServerElementActivityManager     ServerElementType = 21
+	ServerElementScriptManager       ServerElementType = 22
+	ServerElementExpressionManager   ServerElementType = 23
+	// ServerElementActionsManager is the registry of ACTIONS: single-step primitives (send a
+	// notification, start a workflow, save a record) that the server and plugins register in code,
+	// each with a descriptor (elements.ActionManager). An action is NOT a service and carries no
+	// access control -- workflows, activities and agents are the service-equivalents that callers
+	// are authorized against, and an action runs only inside one of them. The slot was reserved
+	// while the action layer was folded into activity executors; it is live again, at its
+	// original value.
+	ServerElementActionsManager   ServerElementType = 24
+	ServerElementDataManager      ServerElementType = 25
+	ServerElementAgentManager     ServerElementType = 26
+	ServerElementOpen1            ServerElementType = 27
+	ServerElementOpen2            ServerElementType = 28
+	ServerElementOpen3            ServerElementType = 29
+	ServerElementKnowledgeManager ServerElementType = 30
 
-type ContextMap map[ServerElementType]ServerElement
+	// ServerElementNamespaceManager owns the namespace tree: discovery from configuration, holding,
+	// resolution and lifecycle. Added at 31, the next free value -- NOT by repurposing one of the
+	// Open slots above, because a spare renamed is a slot whose meaning changed under any plugin
+	// still compiled against the old name, which is the hazard explicit numbering exists to prevent.
+	ServerElementNamespaceManager ServerElementType = 31
+
+	// The nine kinds below are things a MANAGER HOLDS rather than managers themselves. Each is
+	// resolved BY NAME, so each needs an address to say which of two same-named declarations a
+	// reference bound to -- the question the design these replace could not express at all.
+	//
+	// They follow the shape Channel, Service, Factory and Module already use: the SDK declares an
+	// elements.X interface embedding ServerElement, and the server registers a proxy implementing
+	// it. The wrapped type -- data.DataComponent, ai.Agent, components.Script and the rest -- is
+	// NOT changed, exactly as core.Service is not changed to be an element. An element wraps the
+	// implementation; it is not the implementation.
+	//
+	// Numbered 32-40, continuing the explicit sequence. Never iota, and never by reusing an Open
+	// slot: a spare renamed is a slot whose meaning changed under any plugin still compiled
+	// against the old name.
+	ServerElementDataComponent ServerElementType = 32
+	ServerElementDataset       ServerElementType = 33
+	ServerElementActivity      ServerElementType = 34
+	ServerElementScript        ServerElementType = 35
+	ServerElementAgent         ServerElementType = 36
+	ServerElementSkill         ServerElementType = 37
+	ServerElementCache         ServerElementType = 38
+
+	// ServerElementProvider is a PROVIDER: the pluggable component a manager delegates to -- a
+	// workflow engine, a dataconnection, an agent runtime, an LLM provider, a pub/sub broker, a task
+	// backend. It is placed under the manager it serves and OWNS the elements it holds, so a workflow
+	// lives at ::<namespace>::workflowmanager::<engine>::<workflow> rather than directly under its
+	// manager.
+	//
+	// ONE KIND FOR EVERY PROVIDER, not one per manager. What a provider serves is read from the
+	// manager it sits under, so a new pluggable dimension is a declaration on a manager rather than a
+	// new constant here.
+	//
+	// Like the held kinds around it, it wraps an implementation and does not change it: the plugin's
+	// components.WorkflowManager, data factory, agent factory or ai.LLMProvider is untouched, and the
+	// server builds the element around it.
+	//
+	// 39 WAS ServerElementLLMProvider, removed in this release: an LLM provider is now one provider
+	// among the rest. Reusing a value is what the explicit numbering above exists to avoid, and it is
+	// safe HERE for two reasons that must both hold: no plugin referenced the old constant, and a
+	// release that changes this block rebuilds every plugin .so anyway, since a plugin will not load
+	// against a different SDK version. Do not take it as precedent for reusing a value any plugin
+	// references.
+	ServerElementProvider ServerElementType = 39
+	ServerElementWorkflow ServerElementType = 40
+
+	// ServerElementTopic is a declared pub/sub topic, and it joins the nine above for the same
+	// reason they are there: it is resolved BY NAME, so it needs an address to say which of two
+	// same-named declarations a reference bound to.
+	//
+	// A topic is declared in a plugin's registry/topics/<topic>.yml or in a namespace's own
+	// configuration, and every publish and subscribe resolves it by that name. Before this, topic
+	// identity was carried by copying an ancestor's topic names into each child namespace at
+	// construction -- so a topic declared after a child was built was invisible to it forever, and
+	// a namespace could not say which namespace a topic it could see was declared in.
+	//
+	// UNLIKE THE NINE ABOVE, IT WRAPS NO IMPLEMENTATION. A data component wraps a provider's
+	// component and a skill wraps a plugin's skill; a topic has no object behind it. The
+	// declaration IS the thing, which is why elements.Topic exposes a durability accessor and no
+	// X() accessor -- see heldmessaging.go. A reader following "an element wraps an implementation"
+	// should not go looking for the missing one.
+	ServerElementTopic ServerElementType = 41
+
+	// ServerElementJobManager manages background job templates, schedules, and clustered execution.
+	// Low-code job templates are authored in plugin registries, while schedules and concurrency
+	// policies are authored in namespace configurations. Clustered single-execution is guaranteed
+	// via NATS JetStream deduplication on TaskManager queues.
+	ServerElementJobManager ServerElementType = 42
+
+	// ServerElementJobTemplate is a declared background job template held by JobManager.
+	// Like ServerElementTopic, it is resolved by name and its address in the element index
+	// provides hierarchical resolution and nearest-first inheritance across namespaces.
+	ServerElementJobTemplate ServerElementType = 43
+
+	// ServerElementTaskQueue is a task queue, held beneath the task backend that serves it. It is
+	// resolved BY NAME -- every push names its queue -- so, like the held kinds above, it needs an
+	// address to say which namespace's queue a push bound to.
+	ServerElementTaskQueue ServerElementType = 44
+
+	// ServerElementLLMModel is a model offered by an LLM provider, held beneath that provider. Two
+	// providers may each offer a model of the same name; each is then reachable by its qualified
+	// address, where a single flat model index could hold only one of them.
+	ServerElementLLMModel ServerElementType = 45
+
+	// ServerElementAction is one registered action, held beneath the action manager of the
+	// namespace that registered it and resolved by name, nearest namespace first, like every held
+	// kind above.
+	ServerElementAction ServerElementType = 46
+
+	// ServerElementTraceManager records agent runs step by step and hands finished steps to the
+	// trace sink registered for their namespace (elements.TraceManager). RequestContext.StartTraceStep
+	// resolves it, which is how plugins add steps of their own.
+	ServerElementTraceManager ServerElementType = 47
+
+	// ServerElementDecisionModel is a model offered by a decision provider (ai.DecisionProvider),
+	// held beneath that provider as ServerElementLLMModel is beneath an LLM provider: two providers
+	// may each offer a model of one name, and each is then reachable by its qualified address.
+	ServerElementDecisionModel ServerElementType = 48
+)
 
 // ServerElement is the handle a plugin gets on one of the server's managers — the data manager,
 // the service manager, the security handler and so on — obtained by asking a context for an
@@ -62,11 +177,24 @@ type ContextMap map[ServerElementType]ServerElement
 //
 // What is handed out is a proxy over the live manager rather than the manager itself, which is
 // why the element type and the interface you assert to are separate things.
+//
+// TWO MEMBERS WERE REMOVED IN THIS RELEASE, and what replaced them is worth knowing because the
+// removals look like losses and are not:
+//
+//   - Reference() ServerElement -- returned another handle onto the same manager. The server
+//     called it in exactly one place, to copy a context's element map when deriving a child
+//     context. Element identity is now an ADDRESS resolved through the element index, and a
+//     string copies correctly where a handle does not, so there is nothing left for it to do.
+//     No caller outside the server ever existed.
+//
+//   - ContextMap map[ServerElementType]ServerElement -- the shape a context's elements were
+//     handed around in. Nothing outside laatooserver ever used it; it was server-internal
+//     plumbing that happened to live in the SDK.
+//
+// Removing a method from an interface does NOT break implementors: Go satisfaction is structural,
+// so a type that still has Reference() satisfies this narrower interface unchanged. Only a CALLER
+// of the removed method would break, and there were none outside the server.
 type ServerElement interface {
-	// Reference returns another handle onto the SAME underlying manager. It is a new proxy, not
-	// a copy of any state: both handles see the one manager.
-	Reference() ServerElement
-
 	// GetProperty reads a named property of the element, or nil when there is none.
 	//
 	// A nil result does not distinguish "no such property" from "this element does not support
@@ -77,12 +205,63 @@ type ServerElement interface {
 	// GetName returns the element's registered name.
 	GetName() string
 
-	// GetContext returns the ServerContext this element belongs to, which is the level
-	// (server, solution, application, isolation) it was created at.
+	// GetContext returns the ServerContext of the NAMESPACE this handle is scoped to.
+	//
+	// It formerly returned the context of the level the element was CREATED at, which is the
+	// captured-context defect this replaced: an element built at one scope and invoked from
+	// another resolved through the scope that built it. Scope now arrives at the call.
 	GetContext() ServerContext
 
 	// GetType returns the discriminator identifying which manager this is.
 	GetType() ServerElementType
+
+	// GetAddress returns this element's fully qualified address in `::` form —
+	// "myapp::scriptmanager::validate" for a script declared in myapp. The root's address is the
+	// separator itself, "::", so a child of the root reads "::orders" rather than "orders".
+	//
+	// The element reports its OWN address rather than having one reconstructed from outside. That
+	// is what makes resolution diagnosable: asking which of two same-named declarations a bare
+	// reference bound to is answered by asking the bound element where it lives, rather than by
+	// re-deriving the walk and hoping it matches.
+	//
+	// An address is stable across relocation. A script declared in a namespace that owns no
+	// ScriptManager is held by whichever manager resolves, under its own address; when that
+	// namespace later declares a manager of its own, the holder changes and the address does not.
+	GetAddress() string
+
+	// GetParent returns the element enclosing this one, or a NIL INTERFACE at the root.
+	//
+	// `el.GetParent() == nil` is the correct root test. Stated in the contract rather than left to
+	// implementations because a typed nil reaching a type assertion has already caused a
+	// production panic in this platform (laatooserver/src/core/servicemanager.go records one on
+	// the remote-service path).
+	//
+	// This is a stored pointer and is deliberately NOT a checked lookup, unlike GetChild. Walking
+	// up is unchecked because it needs no check: ancestors are already reachable from any element,
+	// and coming back down requires GetChild, which is checked. Do not "fix" this into a lookup
+	// for symmetry — it would put a lock acquisition on a hot path and buy nothing.
+	//
+	// The returned element may be narrowed by assertion where the relationship is total: a
+	// namespace's parent is always a namespace, and a channel's is always a channel or an engine.
+	GetParent() ServerElement
+
+	// GetChild returns this element's named child, or nil when there is none.
+	//
+	// Descent is uniform: given an element and a name, the next element is that element's named
+	// child, whatever kind either is. A caller walking "myapp::scriptmanager::validate" asks three
+	// times and never has to know which segments are namespaces and which are managers.
+	//
+	// A LEAF ANSWERS EXACTLY AS A MISS DOES — both return nil. This is deliberate: a caller
+	// descending a path does not care whether it stopped because the name was absent or because
+	// the element it reached holds no children, and collapsing the two keeps every call site from
+	// having to distinguish a case it has no use for.
+	//
+	// The ctx argument supplies the CALLER'S scope, which is what makes this checkable: a
+	// namespace is a containment boundary, and descent that would leave the caller's own subtree
+	// is refused. A refusal also returns nil; it is reported through the server's diagnostic
+	// surface rather than through this signature, so that the common path stays a single nilable
+	// return.
+	GetChild(ctx ServerContext, name string) ServerElement
 }
 
 // ServerContext is the context passed during initialization of factories and services.

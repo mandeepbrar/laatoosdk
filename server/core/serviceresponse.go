@@ -65,14 +65,14 @@ func SuccessServeBytes(data []byte) *Response {
 	return newServiceResponse(StatusSuccess, data, nil, nil, false)
 }
 func BadRequestResponse(err string) *Response {
-	return newServiceResponse(StatusBadRequest, nil, nil, fmt.Errorf(err), true)
+	return newServiceResponse(StatusBadRequest, nil, nil, fmt.Errorf("%s", err), true)
 }
 
 func InternalErrorResponse(err string) *Response {
-	return newServiceResponse(StatusInternalError, nil, nil, fmt.Errorf(err), true)
+	return newServiceResponse(StatusInternalError, nil, nil, fmt.Errorf("%s", err), true)
 }
 func UnauthorizedResponse(err string) *Response {
-	return newServiceResponse(StatusUnauthorized, nil, nil, fmt.Errorf(err), true)
+	return newServiceResponse(StatusUnauthorized, nil, nil, fmt.Errorf("%s", err), true)
 }
 
 // StreamChunk represents a single chunk in a streaming response.

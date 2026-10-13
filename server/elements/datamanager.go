@@ -29,14 +29,25 @@ type DataManager interface {
 	//create condition from a query, for shapes the shorthand cannot express. Callers needing
 	//compile-once/bind-per-request reach the component through GetRegisteredComponent.
 	CreateQueryCondition(ctx core.RequestContext, obj string, query *data.Query, params utils.StringsMap) (interface{}, error)
-	//start a chained query against the component registered for obj — the DataManager-scoped
-	//twin of DataComponent.CreateQuery, taking the entity name a caller here does not otherwise
-	//have a component for. Build with Where/Through/Expanding, end with All, One, Count or
-	//Condition.
+	//start a chained query against the entity named by obj. Build with Where/Through/Expanding,
+	//end with All, One, Count or Condition, each of which takes the REQUEST's own context.
 	//
-	//An obj with no registered component yields a builder that fails at its terminal, not a nil,
-	//so a chain reports the missing component where the caller is already checking an error.
-	CreateQuery(ctx core.RequestContext, obj string) *data.QueryBuilder
+	//THIS IS THE ONLY ENTRY POINT. DataComponent.CreateQuery was removed on 2026-09-09, and the
+	//removal is what makes the two relationship constructs work here: an Expand the provider
+	//declines to compile, and a navigation, which returns a different entity's records entirely,
+	//are both resolved by reading a DIFFERENT entity's component — and a component is bound to
+	//exactly one entity, so only something holding the registry can do it. That is this interface.
+	//
+	//An obj with no registered component is an ERROR HERE rather than a builder that fails later.
+	//It used to return a builder carrying a deferred error, which existed so a chain could keep
+	//chaining; construction returns an error as of 2026-09-10, so there is nothing left to defer
+	//and the failure is reported where it happens.
+	//
+	//IT TAKES A ServerContext, NOT A RequestContext. Building a query is not a request -- its
+	//shape is fixed by the code that writes it -- so a query may be built once in Initialize and
+	//kept, and each request supplies its own context to the terminal. That split is what makes a
+	//prepared query expressible; see data.QueryBuilder.
+	CreateQuery(ctx core.ServerContext, obj string) (data.QueryBuilder, error)
 	//start a chained query from query TEXT, written in the named form — "odata", "cypher", or
 	//any form a registered data.QueryComponent supplies. The component named by `form` parses the
 	//text into the AST; this contract carries no parser of its own.
@@ -48,10 +59,12 @@ type DataManager interface {
 	//This REPLACES CreateODataQuery, which was one method per form and had to grow by one method
 	//per form forever. Naming the form makes every future form free.
 	//
-	//A form with no registered component, or one whose ParseQuery refuses, yields a builder that
-	//fails at its terminal rather than a nil — the same shape CreateQuery uses for an obj with no
-	//component, so a chain reports it where the caller is already checking an error.
-	CreateTextQuery(ctx core.RequestContext, obj string, form string, queryText string) *data.QueryBuilder
+	//A form with no registered component, or one whose ParseQuery refuses, is an error here --
+	//the same shape CreateQuery now uses for an obj with no component.
+	//
+	//It takes a ServerContext for the reason CreateQuery does: parsing text into an AST is
+	//construction, and construction is not a request.
+	CreateTextQuery(ctx core.ServerContext, obj string, form string, queryText string) (data.QueryBuilder, error)
 
 	//Save writes an item through the data component registered for obj, after running the
 	//component's configured hooks: presave message + Storable.PreSave, tenant stamping when the
@@ -214,4 +227,31 @@ type DataManager interface {
 	RegisterDataComponentToConn(ctx core.ServerContext, connection string, obj string, comp data.DataComponent) error
 	// GetRegisteredComponentToConn resolves a component on an explicitly named dataconnection.
 	GetRegisteredComponentToConn(ctx core.ServerContext, connection string, obj string) (data.DataComponent, error)
+
+	// RegisterRelationComponent registers the component answering relation queries for a
+	// dataconnection -- see data.RelationComponent. graphedges registers one per Edge store it
+	// maintains, so the DataManager routes relation queries without knowing that store's schema.
+	//
+	// A connection of "" names the configured default, as the ToConn methods above do. A duplicate
+	// registration on one connection is REFUSED rather than replacing the first, for the reason
+	// RegisterDataComponentToConn refuses one: two components claiming one connection would let load
+	// order decide which store answers.
+	RegisterRelationComponent(ctx core.ServerContext, connection string, component data.RelationComponent) error
+	// QueryRelations answers a relation query on the default dataconnection: which records are
+	// related to the query's nodes, in the direction and by the relationship it names. It returns
+	// RELATIONS, not records -- read the far records through their own components, which is where
+	// their tenancy and soft-delete apply. See data.RelationQuery and data.Relation.
+	//
+	// An edge lives on its SOURCE record's connection, so an incoming query here finds only sources
+	// on the default connection. That is the whole answer for a single-connection deployment; with
+	// sources on another connection, ask it through QueryRelationsToConn.
+	//
+	// A connection with no relation component registered is REFUSED (Core_Not_Implemented), never
+	// answered with an empty list. An empty list means nothing is related, and conflating the two is
+	// the failure a caller cannot detect -- a deployment without supportedges would read as one where
+	// no record references another.
+	QueryRelations(ctx core.RequestContext, query data.RelationQuery, pageSize int, pageNum int) (relations []data.Relation, totalrecs int, err error)
+	// QueryRelationsToConn answers a relation query on an explicitly named dataconnection. A
+	// connection of "" names the configured default. See QueryRelations.
+	QueryRelationsToConn(ctx core.RequestContext, connection string, query data.RelationQuery, pageSize int, pageNum int) (relations []data.Relation, totalrecs int, err error)
 }

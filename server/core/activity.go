@@ -8,11 +8,19 @@ import (
 // ActivityType defines the nature of the activity
 type ActivityType string
 
+// The built-in activity types. Any other value names a type served by a provider registered with
+// elements.ActivityManager.RegisterActivityProvider -- ActivityTypeFlow is the one the platform ships
+// a provider for.
+//
+// There is no executor type: a Go function is registered as an ACTION
+// (elements.ActionManager.RegisterAction), and a workflow step names the action directly.
 const (
-	ActivityTypeManual    ActivityType = "manual"
-	ActivityTypeService   ActivityType = "service"
-	ActivityTypeExecutor  ActivityType = "executor"
-	ActivityTypeScript    ActivityType = "script"
+	ActivityTypeManual  ActivityType = "manual"
+	ActivityTypeService ActivityType = "service"
+	ActivityTypeScript  ActivityType = "script"
+	// ActivityTypeFlow is a low-code function: its Body is a workflow-DSL statement tree run
+	// synchronously within the caller's request, returning its declared Output.
+	ActivityTypeFlow ActivityType = "flow"
 )
 
 // Activity represents the interface for a workflow step, treating it as a specialized service.
@@ -39,6 +47,17 @@ type ActivityDefinition struct {
 	// When true, the service invoke path spawns a goroutine and the
 	// activity manager drains the ResponseStream channel after execution.
 	Streaming bool `json:"streaming,omitempty" yaml:"streaming,omitempty"`
+	// Input declares what a caller passes, as a JSON-Schema object
+	// ({type: object, properties: {...}, required: [...]}), the shape a workflow's inputSchema
+	// takes. When set, a call missing a required property is refused before the activity runs.
+	Input map[string]interface{} `json:"input,omitempty" yaml:"input,omitempty"`
+	// Output declares what the activity returns, in the same shape. When set, the caller receives
+	// only the declared properties of the activity's result.
+	Output map[string]interface{} `json:"output,omitempty" yaml:"output,omitempty"`
+	// Body is the definition a provider-backed type runs -- for ActivityTypeFlow, the workflow-DSL
+	// statement tree (the value a workflow's inlineDefinition.root takes). The built-in types
+	// ignore it.
+	Body map[string]interface{} `json:"body,omitempty" yaml:"body,omitempty"`
 }
 
 type RetryPolicy struct {
@@ -58,6 +77,3 @@ type HumanTaskConfig struct {
 	TaskQueue      string                 `json:"task_queue,omitempty" yaml:"task_queue,omitempty"`
 	TaskManager    string                 `json:"task_manager,omitempty" yaml:"task_manager,omitempty"`
 }
-
-// ActivityExecutor defines the signature for executing an activity logic
-type ActivityExecutor func(ctx RequestContext, activity Activity, params utils.StringMap) (interface{}, error)

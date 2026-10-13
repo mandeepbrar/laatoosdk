@@ -127,9 +127,18 @@ type TopicDurability struct {
 //
 // Deliberately separate from PubSubComponent rather than folded into it. PubSubComponent has
 // implementors outside the server — redispubsub asserts it at compile time — and widening it would
-// break every one of them to demand a capability most of them have no way to provide. A provider
+// break every one of them to demand a capability MOST OF THEM HAVE NO WAY TO PROVIDE. A provider
 // that can offer durability implements this as well; the messaging manager type asserts for it when
 // a topic is declared durable, and a declaration the provider cannot honour fails at startup.
+//
+// THE EMPHASIS IS LOAD-BEARING, and the release that added PubSubComponent.Unsubscribe is what
+// makes it so. That change widened the base interface, which reads as a contradiction of this
+// paragraph and is not one: the test is not "does widening break implementors" — it always does —
+// but "is this a capability an implementor could reasonably lack". Durability is: a transport with
+// no persistence cannot invent it, and demanding it would exclude providers the platform wants.
+// Detaching a subscription is not: anything that can attach one can stop delivering to it, so a
+// provider that cannot is broken rather than merely simpler. That is why unsubscribe went into the
+// base interface and durability stays out here.
 //
 // This interface is the PROVIDER contract, not the caller-facing one. Callers use
 // elements.MessagingManager, whose Publish and Subscribe are the same for both kinds of topic.

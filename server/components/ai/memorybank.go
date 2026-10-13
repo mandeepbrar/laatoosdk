@@ -76,12 +76,10 @@ type MemoryItem interface {
 //   - MemoryTypeData (chromemmemory) — chromem vector store; Set writes to BOTH the vector
 //     index and an in-process map, so Retrieve does return Set items here.
 //
-// ONLY THE FIRST TWO ARE REACHABLE. Session and Shared call
-// AgentManager.RegisterAgentMemoryManager in their Initialize; chromemmemory and
-// laatooreferencememory implement AgentMemoryManager but never register it, so
-// GetMemory/CreateMemory with MemoryTypeData or MemoryTypeReferences always fails NotFound
-// ("Memory Manager") no matter which modules the solution loads. Reaching those two banks
-// today means holding the service object directly.
+// Each plugin calls AgentManager.RegisterAgentMemoryManager for its type in Initialize, so a
+// type is reachable wherever its plugin is loaded, in that namespace and every one below it.
+// GetMemory/CreateMemory with a type whose plugin the solution does not load fails NotFound
+// ("Memory Manager").
 //
 // Method errors are unreliable across the board: several implementations swallow the
 // underlying failure and report success or emptiness instead. Each case is called out below.

@@ -193,27 +193,23 @@ type WorkflowInstance interface {
 type WorkflowActivityType string
 
 const (
-	// Aligned with workflow DSL `activity_type` and core.ActivityType
-	MANUAL   WorkflowActivityType = "manual"
-	SERVICE  WorkflowActivityType = "service"
-	SCRIPT   WorkflowActivityType = "script"
-	EXECUTOR WorkflowActivityType = "executor"
+	// Aligned with workflow DSL `activity_type` and core.ActivityType. A step naming an ACTION
+	// carries no type: an action is resolved by name, and runs automatically.
+	MANUAL  WorkflowActivityType = "manual"
+	SERVICE WorkflowActivityType = "service"
+	SCRIPT  WorkflowActivityType = "script"
+	FLOW    WorkflowActivityType = "flow"
 
 	// Legacy values (deprecated; prefer SERVICE/SCRIPT/EXECUTOR + switch/decision statements)
 //	AUTOMATIC WorkflowActivityType = "automatic"
 //	DECISION  WorkflowActivityType = "decision"
 )
 
-// IsAutomatic returns true for any activity type that should be executed
-// automatically by the workflow engine (i.e. not a human/manual step).
-// This covers the canonical types service, script, executor, the legacy
-// "automatic" value, and an empty string (the default when no type is set).
+// IsAutomatic returns true for any activity type the workflow engine runs without waiting for a
+// person: every type except manual, including provider-served types such as flow and the empty
+// type a step naming an action carries.
 func (t WorkflowActivityType) IsAutomatic() bool {
-	switch t {
-	case SERVICE, SCRIPT, EXECUTOR, "":
-		return true
-	}
-	return false
+	return t != MANUAL
 }
 
 // IsManual returns true only when the activity type explicitly requires

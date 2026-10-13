@@ -17,9 +17,15 @@ type ScriptManager interface {
 	// the name a workflow activity definition refers to and the name ScriptActivity.Start resolves
 	// (laatooserver/src/core/activities.go:165-170).
 	//
-	// SILENTLY OVERWRITES an existing alias — a plain map assignment with no duplicate check
-	// (laatooserver/src/core/scriptmanager.go:209-212). Two engines that both produce a script
-	// named "notify" leave only the one registered later, with no error. Always returns nil.
+	// A DUPLICATE ALIAS IN ONE NAMESPACE IS REFUSED with Core_Duplicate_Declaration
+	// (laatooserver/src/core/scriptmanager.go:177-179). Two engines that both produce a script named
+	// "notify" in one namespace get an error on the second, not a silent replacement. The check reads
+	// this namespace's own scripts only: an alias an ENCLOSING namespace registered may be registered
+	// again here, which is an override -- lookups resolve nearest-first, so this namespace's wins here
+	// and the enclosing one keeps serving everywhere else.
+	//
+	// Corrected 2026-09-12: this comment said the call silently overwrites and always returns nil,
+	// which described the server before the duplicate check landed.
 	//
 	// The registered Script must return a non-nil GetScriptManager(), since that is how it is
 	// dispatched.

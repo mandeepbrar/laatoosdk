@@ -53,9 +53,31 @@ type Channel interface {
 	// exceptional, and callers must handle it.
 	GetModule() core.Module
 
-	// GetParent returns the channel this one was created under, or nil for an engine's root
-	// channel.
-	GetParent() Channel
+	// GetParentChannel returns the channel this one was created under for ROUTING purposes, or nil
+	// when its parent is an engine rather than another channel.
+	//
+	// THIS IS NOT THE ELEMENT TREE, and the distinction is the reason this method is no longer
+	// called GetParent. Two different graphs both use the word "parent":
+	//
+	//   ROUTING (this method) composes the URL path and cascades channel configuration. A solution
+	//     declares "localhost:8080/" as webroot; an application declares "/myapi" beneath it. The
+	//     routing parent is therefore frequently in a DIFFERENT namespace from the channel itself,
+	//     and it is what skipAuth, allowedQParams, allowedCookies and allowedHeaders are inherited
+	//     along.
+	//
+	//   CONTAINMENT (core.ServerElement.GetParent) is which element holds this one. For a channel
+	//     addressed "myapp::channelmanager::mychannel" that is "myapp::channelmanager" -- the
+	//     manager in its own namespace, which may have nothing to do with the channel it routes
+	//     under.
+	//
+	// So for one channel the two answers routinely differ, and substituting either for the other
+	// composes the wrong URL or reads configuration from the wrong place. Neither is a generalization
+	// of the other.
+	//
+	// The same applies downward: core.ServerElement.GetChild does not enumerate a group channel's
+	// child channels. A channel is a leaf of the element tree; its routing children are a separate
+	// graph reached through the channel manager.
+	GetParentChannel() Channel
 
 	// GetEngine returns the engine hosting this channel. The ctx argument is not consulted by any
 	// implementation.

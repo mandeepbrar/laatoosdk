@@ -1,34 +1,37 @@
 package elements
 
 import (
+	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/utils"
 )
 
-// ActivityManager owns the activities available to workflows at one server level — both the ones
-// loaded from src/server/registry/activities/ and the ones plugins register programmatically.
+// ActivityManager owns the activities available at one server level: the ones loaded from
+// src/server/registry/activities/, and the scripts the script manager registers. An activity is a
+// SERVICE-EQUIVALENT: it is exposed as the service activity.<name> and authorized like one.
 type ActivityManager interface {
 	core.ServerElement
 
-	// RegisterActivity binds a Go function as the executor for an activity name.
+	// RegisterActivityProvider registers the provider that serves one activity type -- a type the
+	// server does not build in, such as core.ActivityTypeFlow.
 	//
-	// CALL IT NO LATER THAN YOUR MODULE'S Initialize. The binding is consumed when the activity's
-	// own service STARTS: ExecutorActivity.Start looks the executor up by activity alias, and a
-	// non-manual activity with no executor by then fails startup with "Activity Executor not
-	// found" (laatooserver/src/core/activities.go:93-104). Registering after that point leaves the
-	// activity bound to nothing — Start has already run and is not repeated. Manual (HITL)
-	// activities are the deliberate exception: they are allowed to carry no executor.
+	// CALL IT FROM A FACTORY'S Initialize. Each activity of the type binds to its provider when
+	// the activity's service starts (see components.ActivityProvider), which is after every
+	// factory initializes and before any request.
 	//
-	// A DUPLICATE NAME IS REFUSED, NOT REPLACED — a second registration for the same name logs a
-	// warning and returns a Bad Conf error, leaving the first executor in place
-	// (laatooserver/src/core/activitymanager_impl.go:224-244).
+	// ONE PROVIDER PER TYPE ACROSS A BRANCH OF NAMESPACES: a type already served at this level or
+	// any level above is refused, naming both. A built-in type (service, script, manual) cannot be
+	// registered.
 	//
-	// Registering an executor does NOT create an ActivityDefinition; the code that would have done
-	// so is commented out (activitymanager_impl.go:231-238). GetActivityDefinition therefore
-	// returns nil for an activity that exists only as a registered executor.
-	RegisterActivity(ctx core.ServerContext, activityName string, executor core.ActivityExecutor) error
+	// There is no executor registration: a Go function is an ACTION, registered with
+	// ActionManager.RegisterAction, and a workflow step names it directly.
+	RegisterActivityProvider(ctx core.ServerContext, activityType core.ActivityType, provider components.ActivityProvider) error
 
-	// ExecuteActivity runs an activity by name and returns its result.
+	// ExecuteActivity runs an ACTIVITY by name and returns its result.
+	//
+	// IT NEVER RUNS AN ACTION. A workflow step names an action with `action:`, which reaches
+	// ActionManager.ExecuteAction; an `activity:` step reaches this method. Neither falls back to
+	// the other, so an action of the same name is not consulted when no activity has the name.
 	//
 	// IT DISPATCHES THROUGH THE SERVICE LAYER, NOT THROUGH THE EXECUTOR MAP: the name is resolved
 	// as the service "activity."+activityName and invoked with params under the single argument
