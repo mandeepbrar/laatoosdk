@@ -73,6 +73,13 @@ type DataEvent struct {
 	// lookup from there cannot see a component registered in an application namespace below it.
 	// Empty from a publisher that predates the field; a consumer must treat that as unknown.
 	Connection string
+	// Namespace is the `::` path of the namespace that registered the emitting component, e.g.
+	// "::designer::admin". A consumer that must read the record back asks that namespace's own data
+	// manager for the component: the lookup the consumer's namespace would make walks outward only,
+	// so a component registered below it is not found there.
+	// Empty from a publisher that predates the field; a consumer must treat that as unknown and
+	// resolve from its own scope as before.
+	Namespace string
 }
 
 type Dataset struct {
