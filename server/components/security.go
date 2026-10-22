@@ -17,8 +17,9 @@ import (
 //
 // Two ship, and they are not interchangeable:
 //
-//   - The Casbin-backed handler enforces service access and permissions from the policy files
-//     under config/security/. This is what a real deployment uses.
+//   - The Casbin-backed handler enforces service access and resource access permissions from the
+//     role permissions and roles the namespace authors under config/security/ (and, for customer
+//     roles, from the database). This is what a real deployment uses.
 //   - A fallback handler is installed when no authorizationhandler is named. It holds a single
 //     allow-all flag and answers EVERY authorization question with it, consulting no policy at
 //     all. With the flag off it denies everything; with it on it permits everything.
@@ -49,32 +50,64 @@ type SecurityHandler interface {
 	// empty means the service declared no permission and access is decided by the service-access
 	// policy; non-empty routes to HasPermission and the service-access policy is not consulted.
 	//
-	// Both paths read the caller's ROLES and both refuse a caller that has none, so a service
-	// cannot grant itself access by any means available to it at request time.
+	// Both paths read the caller's ROLE PERMISSIONS, which authentication stored on the request
+	// context under constants.ROLEPERMISSIONS, and enforce the ones this back end defines. Both
+	// refuse a caller that holds none, so a service cannot grant itself access by any means
+	// available to it at request time.
 	AuthorizeService(ctx core.RequestContext, module string, service string, permission string, namespace string) (bool, error)
 
 	// AddServiceAccessPolicy grants a role access to a service at runtime.
 	//
-	// The tenant argument is accepted by this signature but the Casbin handler enforces with an
-	// empty tenant, so a grant scoped to a named tenant matches nobody — only a wildcard grant
-	// takes effect. The fallback handler discards the call entirely and returns nil, which is
-	// indistinguishable from success.
+	// The Casbin handler refuses the call with an error: access is granted by the role permissions
+	// a namespace authors and the roles that list them, never by a row added to a role directly.
+	// The fallback handler discards the call entirely and returns nil, which is indistinguishable
+	// from success.
 	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string, namespace string) error
 
-	// RegisterPermission declares a permission name so it can be granted and enforced.
+	// RegisterPermission hands the back end one resource access permission id that a plugin of
+	// this namespace declared. The server calls it once per declared id, before ApplyAccessModel,
+	// so the back end can check the role permissions it loads against the ids that exist.
 	RegisterPermission(ctx core.ServerContext, perm string) error
 
-	// ListPermissions returns the registered permission names.
+	// ListPermissions returns the resource access permission ids registered with the back end.
 	ListPermissions(ctx core.ServerContext) []string
 
-	// HasPermission reports whether the caller holds a permission, resolved through the caller's
-	// roles. A caller with no roles holds no permissions.
+	// ApplyAccessModel loads the namespace's role permissions and roles and checks them against what
+	// has been registered. The server calls it after every module that registers declarations with
+	// this back end has started, and before the namespace serves requests.
+	//
+	// Every resource access permission a role permission lists must have been registered, every
+	// service it lists must exist, every role must list role permissions that exist, and no role
+	// permission may reuse an id in ancestorRolePermissions, the ids defined by namespaces above this
+	// one. An unresolved name is returned as ONE error naming each file, line and name, so a single
+	// boot reports every problem. The call is idempotent: a second call rebuilds the model from the
+	// same files.
+	ApplyAccessModel(ctx core.ServerContext, ancestorRolePermissions []string) error
+
+	// ResolveRolePermissions expands role names into the ids of the role permissions this back end
+	// holds for them, read in the tenant of the request. A role this back end does not know
+	// contributes nothing and is not an error. The server calls it for every request, at
+	// authentication, and stores the union of the answers of every back end up the namespace tree
+	// on the request context under constants.ROLEPERMISSIONS.
+	ResolveRolePermissions(ctx core.RequestContext, roles []string) ([]string, error)
+
+	// ListRolePermissions returns the role permissions this back end defines. Those defined above
+	// this namespace are listed by the server element, which adds them.
+	ListRolePermissions(ctx core.RequestContext) ([]auth.RolePermission, error)
+
+	// DeleteRole removes a role built in role management, in the tenant of the request. A role the
+	// namespace ships in its files cannot be deleted and is an error. The next request of a user who
+	// held the role finds it unknown.
+	DeleteRole(ctx core.RequestContext, name string) error
+
+	// HasPermission reports whether the caller holds a resource access permission, through the role
+	// permissions on the request context. A caller holding no role permission holds no permissions.
 	//
 	// It returns a bare bool: "not permitted" and "could not be determined" are the same value.
 	HasPermission(ctx core.RequestContext, permission string) bool
 
-	// AddRolePermissionPolicy grants a permission to a role at runtime, with the same tenant
-	// caveat as AddServiceAccessPolicy.
+	// AddRolePermissionPolicy grants a permission to a role at runtime. The Casbin handler refuses
+	// it for the reason AddServiceAccessPolicy is refused.
 	AddRolePermissionPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string) error
 
 	// CanAccessObject is the hook for per-object authorization — whether this caller may perform
@@ -122,22 +155,24 @@ type SecurityHandler interface {
 	// the claims passed at mint time, independently of this.
 	SetClaims(user auth.User, addClaims map[string]interface{}, exp int64)
 
-	// SaveRole persists a role. Both shipped handlers accept the call and store nothing.
+	// SaveRole persists a role built in role management, in the tenant of the request. The role
+	// must implement auth.RolePermissionHolder; every role-permission id it lists must be defined
+	// by this back end or by one above it, and its name must not be the name of a role the
+	// namespace ships. The change applies to the next request, with no restart. The fallback
+	// handler accepts the call and stores nothing.
 	SaveRole(ctx core.RequestContext, role interface{}) error
 
-	// GetRole looks up a role by name.
+	// GetRole looks up a role by name, in the tenant of the request.
 	//
-	// Both shipped handlers return (nil, nil) for every name — a nil Role WITH a nil error, so a
-	// caller guarding only on err proceeds to dereference nothing. Check the returned Role.
-	//
-	// A role does not need to exist here to be usable: authorization matches role names as
-	// strings against the policy, so a role named in a grant works whether or not this can
-	// resolve it.
+	// The Casbin handler returns the role when it is a default role or a role built in role
+	// management, and (nil, nil) when it knows no such role — a nil Role WITH a nil error, so a
+	// caller guarding only on err proceeds to dereference nothing. Check the returned Role. The
+	// fallback handler returns (nil, nil) for every name.
 	GetRole(ctx core.RequestContext, name string) (auth.Role, error)
 
 	// ListRoles returns the roles known for the caller's tenant, falling back to the global
-	// tenant when the request carries none. The Casbin handler answers from roles held in
-	// memory; the fallback returns nil.
+	// tenant when the request carries none: the roles the namespace ships and the roles built in
+	// role management. The fallback returns nil.
 	ListRoles(ctx core.RequestContext) (map[string]auth.Role, error)
 }
 

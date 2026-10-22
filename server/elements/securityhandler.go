@@ -27,7 +27,7 @@ type SecurityHandler interface {
 
 	// AuthorizeService decides whether the caller may invoke a service. An empty permission is
 	// decided by the service-access policy; a non-empty one routes to HasPermission instead.
-	// Both paths refuse a caller holding no roles.
+	// Both paths refuse a caller holding no role permissions.
 	AuthorizeService(ctx core.RequestContext, module string, service string, permission string, namespace string) (bool, error)
 
 	// ServicesAccessibleByRole lists the services one role can reach — a query over the policy
@@ -55,8 +55,9 @@ type SecurityHandler interface {
 	// access. False under the fallback handler; an opted-in entity refuses to start when it is.
 	EnforcesEntityAccess() bool
 
-	// HasPermission reports whether the caller holds a permission, resolved through its roles. A
-	// bare bool: refusal and failure-to-determine are the same value.
+	// HasPermission reports whether the caller holds a resource access permission, resolved through
+	// the role permissions authentication stored on the request. A permission no plugin declared is
+	// refused and logged. A bare bool: refusal and failure-to-determine are the same value.
 	HasPermission(ctx core.RequestContext, permission string) bool
 
 	// AuthenticateRequest authenticates the caller of a request.
@@ -72,21 +73,34 @@ type SecurityHandler interface {
 	// therefore no service reference at all.
 	AuthenticateRequest(ctx core.RequestContext, authComp components.AuthenticationComponent) (authenticated bool, usrId string, tenant string, token string, claims map[string]interface{}, err error)
 
-	// RegisterPermission declares a permission name so it can be granted and enforced. A plugin
-	// registers the permissions it means to check, usually at startup.
+	// RegisterPermission records that a channel or service guard names a resource access
+	// permission. The permission must be declared by the plugin that owns the guard, or borrowed
+	// from a plugin it depends on; the server checks every recorded guard once, after the modules
+	// of the namespace have started, and a guard naming an undeclared permission stops the boot.
+	// A plugin does not declare permissions through this call: it lists them in its configuration.
 	RegisterPermission(ctx core.ServerContext, perm string) error
 
-	// ListPermissions returns the registered permission names.
+	// ListPermissions returns the ids of the resource access permissions declared in the
+	// namespace.
 	ListPermissions(ctx core.ServerContext) []string
 
-	// SaveRole persists a role. Both shipped back ends accept the call and store nothing.
+	// ListPermissionDeclarations returns the resource access permissions declared in the
+	// namespace, each with its id, its name and the plugin that authors it.
+	ListPermissionDeclarations(ctx core.ServerContext) []auth.PermissionDeclaration
+
+	// ListRolePermissions returns the role permissions a role built here may list: those the
+	// namespace's back end defines and those defined by every namespace above it.
+	ListRolePermissions(ctx core.RequestContext) ([]auth.RolePermission, error)
+
+	// SaveRole persists a role built in role management, in the tenant of the request. See
+	// components.SecurityHandler.SaveRole.
 	SaveRole(ctx core.RequestContext, role interface{}) error
 
-	// GetRole looks up a role by name. Both shipped back ends return a nil Role AND a nil error
-	// for every name, so guard on the returned Role rather than on err.
-	//
-	// A role needs no entry here to work: authorization matches role names as strings against
-	// the policy.
+	// DeleteRole removes a role built in role management. See components.SecurityHandler.DeleteRole.
+	DeleteRole(ctx core.RequestContext, name string) error
+
+	// GetRole looks up a role by name. See components.SecurityHandler.GetRole: guard on the
+	// returned Role rather than on err.
 	GetRole(ctx core.RequestContext, name string) (auth.Role, error)
 
 	// ListRoles returns the roles known for the caller's tenant, falling back to the global
@@ -96,14 +110,12 @@ type SecurityHandler interface {
 	// ListServices returns the services known to the policy.
 	ListServices(ctx core.ServerContext) []string
 
-	// AddServiceAccessPolicy grants a role access to a service at runtime.
-	//
-	// The tenant argument is carried by the signature but not honoured by the Casbin back end,
-	// which enforces with an empty tenant — so a grant naming a tenant matches nobody and only a
-	// wildcard grant takes effect. The fallback back end discards the call and returns nil.
+	// AddServiceAccessPolicy grants a role access to a service at runtime. The Casbin back end
+	// refuses the call: access is granted by the role permissions a namespace authors and the
+	// roles that list them. The fallback back end discards the call and returns nil.
 	AddServiceAccessPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string, namespace string) error
 
-	// AddRolePermissionPolicy grants a permission to a role at runtime, with the same tenant
-	// caveat as AddServiceAccessPolicy.
+	// AddRolePermissionPolicy grants a permission to a role at runtime. It is refused by the
+	// Casbin back end for the reason AddServiceAccessPolicy is.
 	AddRolePermissionPolicy(ctx core.ServerContext, tenant string, module string, service string, role string, permission string) error
 }

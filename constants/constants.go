@@ -18,6 +18,10 @@ const (
 	DEFAULTDATACONNECTION = "__defaultdataconnection"
 	TENANT               = "__tenant"
 	AUTHCLAIMS           = "__authclaims"
+	// ROLEPERMISSIONS is the request-context key under which authentication stores the caller's
+	// role-permission ids (a []string), expanded from the caller's roles on every request. An
+	// authorization back end enforces the ids it defines and ignores the rest.
+	ROLEPERMISSIONS = "__rolepermissions"
 	CONF_PVTKEYPATH      = "pvtkey"
 	CONF_PUBLICKEYPATH   = "publickey"
 	ENCODING             = "encoding"

@@ -44,13 +44,11 @@ type Role interface {
 	// same value; do the same.
 	SetName(string)
 
-	// GetPermissions returns the permission strings this role confers.
+	// GetPermissions returns permission strings stored on the role record.
 	//
-	// Consumed when the handler builds the permission set for a list of role names
-	// (LocalSecurityhandler.go:570-582, the Append at :579) and when roles are loaded from
-	// configuration (:672).
-	// These back the `accesspermission` predicate check; they are NOT what gates service access,
-	// which is Casbin policy keyed on the role name.
+	// No authorization back end reads them: what a role is allowed to do is the role-permission ids
+	// it lists (see RolePermissionHolder), which the back end expands into resource access
+	// permissions and service access rows.
 	//
 	// Returns a plain slice with no error, unlike DefaultUser's own GetPermissions. A nil slice
 	// is a legitimate empty set, not a failure.
