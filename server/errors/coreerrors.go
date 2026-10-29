@@ -180,6 +180,9 @@ func HasErrorCode(err error, code string) bool {
 // The data stores return NotFound directly and dataManager passes it through unchanged, so the
 // code is on the outermost error on every by-id path. See HasErrorCode for where that stops being
 // true.
+//
+// A declared error of kind not found (Raise, declared.go) answers true as well, so a branch on
+// absence keeps working when a plugin raises its own declared not-found.
 func IsNotFound(err error) bool {
-	return HasErrorCode(err, CORE_ERROR_RES_NOT_FOUND)
+	return HasErrorCode(err, CORE_ERROR_RES_NOT_FOUND) || IsKind(err, KindNotFound)
 }
