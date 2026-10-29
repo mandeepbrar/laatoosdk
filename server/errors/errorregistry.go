@@ -101,13 +101,19 @@ func throwError(ctx ctx.Context, message, internalErrorCode string, thrownErr er
 	}
 	infoArr = append(infoArr, info...)
 	// a code the server declares (a Core_* code raised through a helper such as NotFound, or
-	// through ThrowError) carries its declaration, as a Raise does; its info is its values
-	if !hasDeclared(info) {
+	// through ThrowError) carries its declaration, as a Raise does; its info is its values. This
+	// error's own declaration goes first, ahead of one copied from the error it rethrows, so the
+	// outermost declared error is the one found; an undeclared rethrow leaves the inner one found.
+	own, declared := ownDeclared(info)
+	if !declared {
 		if decl := resolve(ctx, internalErrorCode); decl != nil {
 			raised := &Raised{Code: internalErrorCode, Values: info, Cause: thrownErr, Declaration: decl}
 			raised.Sentence, _ = FillSentence(decl.Sentence, info)
-			infoArr = append(infoArr, slog.Any(DeclaredErrorKey, raised))
+			own, declared = slog.Any(DeclaredErrorKey, raised), true
 		}
+	}
+	if declared {
+		infoArr = append([]slog.Attr{own}, withoutAttr(infoArr, own)...)
 	}
 	/*	switch registeredError.Loglevel {
 		case FATAL:
@@ -142,12 +148,24 @@ func throwError(ctx ctx.Context, message, internalErrorCode string, thrownErr er
 	return err
 }
 
-// hasDeclared reports whether info already carries a raised declared error, as Raise's does.
-func hasDeclared(info []slog.Attr) bool {
+// ownDeclared answers the raised declared error a Raise passes in info, when it does. Pure.
+func ownDeclared(info []slog.Attr) (slog.Attr, bool) {
 	for _, attr := range info {
 		if attr.Key == DeclaredErrorKey {
-			return true
+			return attr, true
 		}
 	}
-	return false
+	return slog.Attr{}, false
+}
+
+// withoutAttr answers attrs without the one attribute that is own, compared by its value. Pure.
+func withoutAttr(attrs []slog.Attr, own slog.Attr) []slog.Attr {
+	out := make([]slog.Attr, 0, len(attrs))
+	for _, attr := range attrs {
+		if attr.Key == DeclaredErrorKey && attr.Value.Any() == own.Value.Any() {
+			continue
+		}
+		out = append(out, attr)
+	}
+	return out
 }
