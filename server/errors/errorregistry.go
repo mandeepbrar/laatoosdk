@@ -100,6 +100,15 @@ func throwError(ctx ctx.Context, message, internalErrorCode string, thrownErr er
 		infoArr = append(infoArr, slog.String("Stack", string(debug.Stack())))
 	}
 	infoArr = append(infoArr, info...)
+	// a code the server declares (a Core_* code raised through a helper such as NotFound, or
+	// through ThrowError) carries its declaration, as a Raise does; its info is its values
+	if !hasDeclared(info) {
+		if decl := resolve(ctx, internalErrorCode); decl != nil {
+			raised := &Raised{Code: internalErrorCode, Values: info, Cause: thrownErr, Declaration: decl}
+			raised.Sentence, _ = FillSentence(decl.Sentence, info)
+			infoArr = append(infoArr, slog.Any(DeclaredErrorKey, raised))
+		}
+	}
 	/*	switch registeredError.Loglevel {
 		case FATAL:
 			log.Fatal(ctx, "Encountered error", infoArr...)
@@ -131,4 +140,14 @@ func throwError(ctx ctx.Context, message, internalErrorCode string, thrownErr er
 	}
 	//thwo the error
 	return err
+}
+
+// hasDeclared reports whether info already carries a raised declared error, as Raise's does.
+func hasDeclared(info []slog.Attr) bool {
+	for _, attr := range info {
+		if attr.Key == DeclaredErrorKey {
+			return true
+		}
+	}
+	return false
 }
