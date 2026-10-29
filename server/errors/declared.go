@@ -1,7 +1,10 @@
 package errors
 
 import (
+	"fmt"
 	"log/slog"
+	"regexp"
+	"strings"
 	"sync"
 
 	"laatoo.io/sdk/ctx"
@@ -92,6 +95,77 @@ type Raised struct {
 	Cause error
 	// Declaration is the resolved declaration, or nil.
 	Declaration *Declaration
+	// Sentence is the declaration's default sentence filled with the values, or "".
+	Sentence string
+}
+
+// String renders the raised error for a log line or an error's text: its code, and when it was
+// resolved its module, kind, audience and filled sentence, e.g.
+// `DesignNameTaken (servercontainers, conflict, person): An agent named "test" is already ...`.
+func (r *Raised) String() string {
+	if r == nil {
+		return "<nil>"
+	}
+	if r.Declaration == nil {
+		return r.Code + " (undeclared)"
+	}
+	d := r.Declaration
+	text := fmt.Sprintf("%s (%s, %s, %s)", r.Code, d.Module, d.Kind, d.Audience)
+	if r.Sentence != "" {
+		text += ": " + r.Sentence
+	}
+	return text
+}
+
+// LogValue renders the raised error as a group of its parts in a structured log line.
+func (r *Raised) LogValue() slog.Value {
+	if r == nil {
+		return slog.StringValue("<nil>")
+	}
+	attrs := []slog.Attr{slog.String("code", r.Code)}
+	if r.Declaration == nil {
+		return slog.GroupValue(append(attrs, slog.Bool("declared", false))...)
+	}
+	d := r.Declaration
+	attrs = append(attrs, slog.String("module", d.Module), slog.String("kind", string(d.Kind)),
+		slog.String("audience", string(d.Audience)), slog.String("sentence", r.Sentence))
+	if r.Cause != nil {
+		attrs = append(attrs, slog.String("cause", r.Cause.Error()))
+	}
+	return slog.GroupValue(attrs...)
+}
+
+// sentenceSlot matches one [[...]] in a sentence template; only [[ctx.<name>]] is filled.
+var sentenceSlot = regexp.MustCompile(`\[\[\s*([^\]]*?)\s*\]\]`)
+
+// plainValue matches the one slot form a sentence may hold, ctx.<name>.
+var plainValue = regexp.MustCompile(`^ctx\.([A-Za-z_][A-Za-z0-9_]*)$`)
+
+// FillSentence fills each [[ctx.<name>]] in template with the named value, e.g.
+// "An [[ctx.kind]] named \"[[ctx.name]]\" ..." with kind=agent, name=test. A slot holding anything
+// else -- an expression, an unknown name -- is left as written and ok is false; the browser's
+// filler (jsui) follows the same rule. Pure.
+func FillSentence(template string, values []slog.Attr) (sentence string, ok bool) {
+	byName := make(map[string]string, len(values))
+	for _, v := range values {
+		byName[v.Key] = fmt.Sprint(v.Value.Resolve().Any())
+	}
+	ok = true
+	sentence = sentenceSlot.ReplaceAllStringFunc(template, func(slot string) string {
+		inner := sentenceSlot.FindStringSubmatch(slot)[1]
+		m := plainValue.FindStringSubmatch(inner)
+		if m == nil {
+			ok = false
+			return slot
+		}
+		val, found := byName[m[1]]
+		if !found {
+			ok = false
+			return slot
+		}
+		return val
+	})
+	return strings.TrimSpace(sentence), ok
 }
 
 // DeclarationResolver finds the declaration of code for the module ctx belongs to. The server
@@ -137,13 +211,20 @@ func RaiseFrom(c ctx.Context, cause error, code string, values ...slog.Attr) err
 	return raise(c, code, cause, values)
 }
 
-// raise builds the declared error: an *Error whose code is the declared code and whose info carries
-// the *Raised, the values and, through throwError, the cause and the stack.
+// raise builds the declared error: an *Error whose code is the declared code, whose message is the
+// filled default sentence, and whose info carries the *Raised, the values and, through throwError,
+// the cause and the stack.
 func raise(c ctx.Context, code string, cause error, values []slog.Attr) error {
 	raised := &Raised{Code: code, Values: values, Cause: cause, Declaration: resolve(c, code)}
 	message := "Declared error " + code
-	if raised.Declaration != nil && raised.Declaration.Description != "" {
-		message = raised.Declaration.Description
+	if d := raised.Declaration; d != nil {
+		raised.Sentence, _ = FillSentence(d.Sentence, values)
+		switch {
+		case raised.Sentence != "":
+			message = raised.Sentence
+		case d.Description != "":
+			message = d.Description
+		}
 	}
 	info := append([]slog.Attr{slog.Any(DeclaredErrorKey, raised)}, values...)
 	return throwError(c, message, code, cause, info...)
