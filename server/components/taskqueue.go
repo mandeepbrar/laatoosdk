@@ -89,6 +89,20 @@ type TaskManager interface {
 	GetTask(ctx core.RequestContext, queue string, id string) (*Task, error)
 }
 
+// The keys a task's user and tenant are written under, each as an object of its own. A user's own fields
+// cannot share a key with the task's this way: written flattened beside the task's, the user's "Id" and
+// the task's "Id" were one key, and a reader kept only one of them -- the JSON reader the first, so every
+// task ran as a user whose id was the task's; the binary codec the last, so the task took the user's id.
+const (
+	taskUserKey   = "User"
+	taskTenantKey = "Tenant"
+)
+
+// ReadAll reads a task: its own fields, then its user and tenant. The user and tenant are read from their
+// flattened fields first, which is all a task queued before they had objects of their own carries, and
+// then from their own objects, which a task queued since carries and which override the flattened read.
+// A task with no principal or tenant to fill (no configured principal type, a system caller) reads its
+// own fields only.
 func (ent *Task) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 
@@ -104,13 +118,24 @@ func (ent *Task) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.Seria
 		return err
 	}
 
-	err = ent.User.ReadAll(c, cdc, rdr)
-	if err != nil {
-		return err
+	if ent.User != nil {
+		// the flattened layout: a task queued before the user had an object of its own
+		if err = ent.User.ReadAll(c, cdc, rdr); err != nil {
+			return err
+		}
+		// the user's own object, when the task carries one; absent, nothing is read
+		if err = rdr.ReadObject(c, cdc, taskUserKey, ent.User); err != nil {
+			return err
+		}
 	}
-	err = ent.Tenant.ReadAll(c, cdc, rdr)
-	if err != nil {
-		return err
+	if ent.Tenant != nil {
+		// the flattened layout, then the tenant's own object, as for the user
+		if err = ent.Tenant.ReadAll(c, cdc, rdr); err != nil {
+			return err
+		}
+		if err = rdr.ReadObject(c, cdc, taskTenantKey, ent.Tenant); err != nil {
+			return err
+		}
 	}
 	if err = rdr.ReadObject(c, cdc, "Metadata", &ent.Metadata); err != nil {
 		return err
@@ -119,6 +144,11 @@ func (ent *Task) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.Seria
 	return nil
 }
 
+// WriteAll writes a task: its own fields, then its user and tenant each as an object of its own. The user's
+// and tenant's fields are also written flattened, as they were before, so a server that reads only that
+// layout (an older one in a cluster during an upgrade) still reads the task's user and roles; the task's
+// own "Id" is written again after them, so a writer keeping a repeated key's last write keeps the task's
+// id, as a reader keeping the first does.
 func (ent *Task) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 
@@ -130,28 +160,37 @@ func (ent *Task) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.Seri
 		return err
 	}
 
-	/*	if err = wtr.WriteObject(c, cdc, "User", &ent.User); err != nil {
-			return err
-		}
-
-		if err = wtr.WriteObject(c, cdc, "Tenant", &ent.Tenant); err != nil {
-			return err
-		}
-	*/
 	if err = wtr.WriteArray(c, cdc, "Data", &ent.Data); err != nil {
 		return err
 	}
 
+	// the flattened layout, for a reader that knows no other
 	if ent.User != nil {
-		err = ent.User.WriteAll(c, cdc, wtr)
-		if err != nil {
+		if err = ent.User.WriteAll(c, cdc, wtr); err != nil {
 			return err
 		}
-
 	}
 	if ent.Tenant != nil {
-		err = ent.Tenant.WriteAll(c, cdc, wtr)
-		if err != nil {
+		if err = ent.Tenant.WriteAll(c, cdc, wtr); err != nil {
+			return err
+		}
+	}
+	if ent.User != nil || ent.Tenant != nil {
+		// the task's own id last as well as first: the flattened user wrote an "Id" of its own
+		if err = wtr.WriteString(c, cdc, "Id", &ent.Id); err != nil {
+			return err
+		}
+	}
+
+	// the user and the tenant each as an object of its own, which is what a reader trusts
+	if ent.User != nil {
+		// the user itself, not a pointer to the interface: only the user serialises itself
+		if err = wtr.WriteObject(c, cdc, taskUserKey, ent.User); err != nil {
+			return err
+		}
+	}
+	if ent.Tenant != nil {
+		if err = wtr.WriteObject(c, cdc, taskTenantKey, ent.Tenant); err != nil {
 			return err
 		}
 	}
