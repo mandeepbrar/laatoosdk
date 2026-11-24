@@ -33,7 +33,7 @@ type SecretsManager interface {
 	// corrupt secret.
 	//
 	// Two further behaviours of the built-in store that this interface does not express: it
-	// appends "_test" to the key when the server runs in test mode (secretsmanagerimpl.go:69-72),
+	// appends "_test" to the key when the server runs in test mode (secretsmanagerimpl.go, Get),
 	// so the same key resolves to a different secret there; and it performs no key validation,
 	// unlike the plugin backends, which reject empty keys, path separators and traversal segments
 	// before the key becomes a path segment
@@ -42,19 +42,20 @@ type SecretsManager interface {
 
 	// Put stores val under key.
 	//
-	// A NIL RETURN DOES NOT MEAN THE SECRET WAS STORED. Two layers discard writes silently:
+	// How the server's own layers write (laatooserver/src/core):
 	//
-	//   - the server's built-in disk store implements Put as `return nil` and writes nothing
-	//     (laatooserver/src/core/secretsmanagerimpl.go:91-93) — secrets in that store are placed
-	//     out of band, by `laatoo security addsecret`;
-	//   - the server's aggregating manager returns nil when the level has no store of its own
-	//     (secretsmanager.go:87-95), and unlike Get it never delegates to the parent, so a write
-	//     at a level with no store is dropped rather than inherited upward.
+	//   - the built-in disk store encrypts val with the seed-password key and writes it in the
+	//     format `laatoo security addsecret` writes (secretsmanagerimpl.go, Put);
+	//   - the directory of secrets delivered to a deployed server is read-only, and a Put that
+	//     reaches it is refused with an error (secretsfilestore.go);
+	//   - the aggregating manager writes to the level's own store, or, at a level with no store of
+	//     its own, to the nearest ancestor that has one, which is the store Get reads there
+	//     (secretsmanager.go, put). A write is dropped only when no level up to the root has a
+	//     store.
 	//
-	// A Put that must actually persist therefore requires a backend that genuinely writes —
-	// vaultsecrets (VaultSecretsSvc.Put, which creates a new KV v2 version) or gcpsecrets — and
-	// the caller cannot tell the difference from the return value alone. Read the key back if the
-	// write has to be confirmed.
+	// Plugin backends write as their stores do: vaultsecrets creates a new KV v2 version, and
+	// gcpsecrets adds a version, creating the secret first only when its `createmissing` setting
+	// is on. A caller that must know the value is readable reads the key back.
 	//
 	// Implementations must return an error only for a real failure, and must not treat overwriting
 	// an existing key as one unless the backend genuinely forbids it.
